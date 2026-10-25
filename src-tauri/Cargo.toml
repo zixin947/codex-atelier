@@ -1,0 +1,9 @@
+[package]
+name = "codex-atelier"
+version = "0.1.0"
+description = "A personal Codex companion workstation"
+edition = "2021"
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+[dependencies]
+tauri = { version = "2", features = [] }

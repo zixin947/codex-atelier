@@ -1,0 +1,53 @@
+:root {
+  color-scheme: light;
+  --shell: #ddd4bf;
+  --panel: #ebe4d2;
+  --highlight: #f6f1e3;
+  --edge: #b9ae96;
+  --line: #5a544a;
+  --ink: #393b34;
+  --muted: #716d60;
+  --paper: #fbf9f0;
+  --screen: #363d37;
+  --screen-ink: #eae9d8;
+  --mint: #8fd6a0;
+  --green: #386b48;
+  --orange: #f08a5d;
+  --orange-ink: #9b4c28;
+  --red: #b33e30;
+  --font-body: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --text-xs: 10px;
+  --text-sm: 12px;
+  --text-md: 13px;
+  --text-title: 27px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --radius: 2px;
+  --border: 1px solid var(--line);
+  --raised: inset 1px 1px var(--highlight), inset -1px -1px var(--edge), 0 2px 0 var(--edge);
+  --sunken: inset 2px 2px 0 #00000016, 0 1px 0 var(--highlight);
+  --key: inset 1px 1px 0 #fffaf0, inset -1px -2px 0 var(--edge), 0 1px 0 var(--line);
+  --sidebar: 202px;
+  --header: 76px;
+  --control: 36px;
+  --motion: 120ms;
+  --ease: cubic-bezier(0.2, 0.6, 0.3, 1);
+}
+/* Reserved palette, not exposed until visually validated. */
+[data-theme='dark-reserved'] {
+  --shell: #302f2a;
+  --panel: #3c3b34;
+  --highlight: #535249;
+  --edge: #23251f;
+  --line: #171c17;
+  --ink: #eee8d8;
+  --muted: #c0bbaa;
+  --paper: #252b25;
+  --screen: #1c251e;
+}
