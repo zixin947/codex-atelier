@@ -1,61 +1,229 @@
-# Codex Atelier
+<a id="codex-atelier"></a>
 
-Codex 的独立伴侣工作站。Tauri 2 + Rust、Vue 3 + TypeScript + Vite、Vue Router、Pinia。
-当前为可运行的桌面前端原型，所有环境、模型、扩展、检查和备份信息都是**演示数据**。
+<div align="center">
 
-## 运行
+<img src="docs/readme/hero.svg" width="100%" alt="Codex Atelier — 为专注，留一间工作室。Codex 独立伴侣工具，当前为演示原型。" />
 
-需要 Node.js 22.12+（本轮使用 24.16.0）、pnpm 10、稳定版 Rust，以及平台的 [Tauri 2 前置依赖](https://v2.tauri.app/start/prerequisites/)。macOS 需要 Xcode Command Line Tools。没有全局升级需求。
+**Codex 的独立伴侣工作站** · `v0.1.0` 交互原型
+
+把复杂留给工作台，把专注留给你。
+
+<p>
+  <img src="https://img.shields.io/badge/Tauri-2-8fd6a0?style=flat-square&amp;labelColor=5a544a" alt="Tauri 2" />
+  <img src="https://img.shields.io/badge/Vue-3-8fd6a0?style=flat-square&amp;labelColor=5a544a" alt="Vue 3" />
+  <img src="https://img.shields.io/badge/TypeScript-strict-8fd6a0?style=flat-square&amp;labelColor=5a544a" alt="严格 TypeScript" />
+  <img src="https://img.shields.io/badge/Status-Prototype-f08a5d?style=flat-square&amp;labelColor=5a544a" alt="当前阶段：原型" />
+</p>
+
+<p>
+  <a href="#start"><img src="docs/readme/key-start.svg" width="184" alt="开始体验" /></a>
+  <a href="#preview"><img src="docs/readme/key-preview.svg" width="184" alt="界面预览" /></a>
+  <a href="#roadmap"><img src="docs/readme/key-roadmap.svg" width="184" alt="功能进度" /></a>
+  <a href="#development"><img src="docs/readme/key-docs.svg" width="184" alt="开发文档" /></a>
+</p>
+
+</div>
+
+> [!IMPORTANT]
+> 当前版本是可运行的桌面前端原型。环境状态、模型、扩展、诊断和备份均为**演示数据**，不代表本机扫描结果。真实管理能力尚未接入。
+
+<a id="about"></a>
+
+## 简介
+
+<img src="docs/readme/section-intro.svg" width="100%" alt="01 · 把环境收好，把专注留下 / ABOUT THE ATELIER" />
+
+模型、Provider、MCP、Skills、会话、配置……随着 Codex 工作流逐渐丰富，环境管理也需要一个清楚、顺手的位置。
+
+**Codex Atelier** 希望把这些外置能力放进同一间工作室：看清当前环境，整理扩展，理解配置变化，并在每次调整之前保留退路。它是独立伴侣工具，Codex 继续负责聊天与 Agent 执行。
+
+- **一个有主次的工作台**：环境状态、当前连接、扩展概况与诊断摘要集中呈现，先看到值得关注的事。
+- **一套有触感的界面**：米灰机壳、奶油面板、下沉仪表屏与薄荷绿键帽，让桌面工具也值得细看。
+- **能亲手体验的原型**：搜索、筛选、详情、开关、弹窗和通知都可以操作，每处演示都有明确标识。
+- **为真实接入留好边界**：页面与数据适配器分离，未来的配置变更需要经过预览、备份、确认与校验。
+
+这是独立项目，与 OpenAI 无官方隶属关系。
+
+<a id="preview"></a>
+
+## 界面预览
+
+<img src="docs/readme/section-preview.svg" width="100%" alt="02 · 走进工作间 / INTERFACE PREVIEW" />
+
+### 主工作台
+
+深色仪表屏是视觉中心，连接与扩展紧随其后，诊断建议和快捷操作留在侧手边。截图中的状态全部来自 Mock adapter。
+
+![Codex Atelier 主工作台，展示示例环境、连接档案、扩展与诊断摘要](docs/screenshots/dashboard-1440.png)
+
+<details>
+<summary><strong>扩展管理 · MCP 与 Skills</strong></summary>
+
+按分类、关键词和启用状态查找扩展，在详情中查看示例工具与权限声明。启用或停用只改变本次运行的演示状态。
+
+![扩展管理：搜索、分类、状态筛选与详情面板](docs/screenshots/extensions-1440.png)
+
+</details>
+
+<details>
+<summary><strong>诊断与回滚 · 从问题到变更预览</strong></summary>
+
+查看分类检查、问题说明和风险，再进入演示差异预览。修复与恢复均需明确确认，完成后只显示模拟通知。
+
+![诊断页：分类检查、风险说明与备份档案](docs/screenshots/diagnostics-1440.png)
+
+![变更确认：修改前后差异和明确确认门槛](docs/screenshots/confirmation-1440.png)
+
+</details>
+
+<details>
+<summary><strong>原生窗口与较窄桌面窗口</strong></summary>
+
+macOS Tauri 原生窗口已实际启动并验证。前端在 1440×900、1280×800、960×700 下检查过横向溢出；较小窗口使用内容滚动，保留桌面导航。
+
+![macOS 原生 Tauri 工作台窗口](docs/screenshots/native-dashboard.png)
+
+![1280×800 工作台](docs/screenshots/dashboard-1280.png)
+
+</details>
+
+<a id="start"></a>
+
+## 开始体验
+
+<img src="docs/readme/section-start.svg" width="100%" alt="03 · 从这里开始 / GET STARTED" />
+
+当前通过源码运行。仓库包含前端与 Rust 锁文件；本地 macOS 调试包已验证，尚未提供正式签名安装包。
+
+### 准备环境
+
+- **Node.js 22.12+**，项目初始化与验收使用 `24.16.0`。
+- **pnpm 10**，仓库声明版本为 `10.28.0`。
+- **稳定版 Rust 与 Cargo**，以及对应平台的 [Tauri 2 前置依赖](https://v2.tauri.app/start/prerequisites/)。macOS 需要 Xcode Command Line Tools。
+
+### 启动桌面应用
 
 ```sh
+git clone https://github.com/zixin947/codex-atelier.git
+cd codex-atelier
 pnpm install --frozen-lockfile
-pnpm tauri dev               # 原生桌面开发窗口
-pnpm dev                     # 浏览器预览，http://127.0.0.1:1420
-pnpm typecheck
-pnpm test
-pnpm build                   # 产物 dist/
-cargo check --manifest-path src-tauri/Cargo.toml
-cargo fmt --manifest-path src-tauri/Cargo.toml --check
-pnpm tauri build             # 当前平台 .app（macOS）
-pnpm tauri build --debug --bundles app # 本轮已验证的调试包
+pnpm tauri dev
 ```
 
-macOS 调试包：`src-tauri/target/debug/bundle/macos/Codex Atelier.app`。这是本地未签名的调试构建，尚非发布安装包。
+只想预览前端，可运行 `pnpm dev`，然后访问 `http://127.0.0.1:1420`。浏览器预览与桌面验证是两项独立的检查。
 
-## 当前范围
+### 构建
 
-| 状态   | 内容                                                                                                                            |
-| ------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| 已实现 | 原生窗口、路由、设计系统、主工作台、扩展搜索/分类/状态筛选/详情、开关、通知、设置弹窗、键盘焦点、检查筛选、差异预览、确认流程   |
-| Mock   | 环境/连接/模型、7 个扩展、4 项检查、3 份备份、配置档案切换、修复/恢复。只修改内存，刷新复位；关闭演示交互会禁用模拟修改         |
-| 未实现 | 真实账号/额度、Provider/代理接管、真实扩展安装执行、会话导入、人设/长期记忆/桌宠功能、真实扫描/备份/写入/回滚、持久化、深色皮肤 |
+```sh
+pnpm build                            # 前端产物：dist/
+pnpm tauri build --debug --bundles app # 已验证的 macOS 本地调试包
+pnpm tauri build                      # 发布模式构建，尚未完成发布验收
+```
 
-桌宠位置只是一个小展示占位。规划模块明确标注未实现。
+macOS 调试包位于 `src-tauri/target/debug/bundle/macos/Codex Atelier.app`。该产物未签名、未公证；Windows/Linux 构建尚未验证。当前仓库的 bundle 配置面向 macOS `.app`。
 
-## 结构与设计
+<a id="roadmap"></a>
 
-- `src/app`：路由和 Pinia 应用状态。
-- `src/features`：工作台、扩展、诊断、规划页。
-- `src/shared/components`：统一几何图标、机壳面板、原生 dialog 弹窗。
-- `src/services/mock.ts`：唯一数据适配器，不读取外部数据。
-- `src/types/atelier.ts`：服务契约与未来配置事务边界。
-- `src/styles/tokens/theme.css`：颜色、字体、间距、尺寸、边线、材质阴影、动效令牌；深色调色板只预留，不开放切换。
-- `src/styles/main.css`：共享键帽、下沉屏、布局和控件状态；1440×900 / 1280×800 / 960×700 桌面适配。主内容独立滚动，导航和状态栏保持可见。
-- `src-tauri`：最小 Rust 窗口启动。没有注册业务命令或特权插件。
+## 功能进度
 
-视觉参考为 [MaiBot millennium 展示](https://github.com/Mai-with-u/MaiBot/blob/main/depends-data/webui-millennium-showcase.png) 与主题说明：仅借鉴米色机壳、压边键帽、下沉仪表屏和克制的薄荷绿语言。代码、图标、标识和装饰独立实现，没有复制其 GPLv3 Dashboard 代码、品牌、角色、字体或素材。系统字体保证中文正文清晰，等宽字用于仪表标签与数字。
+<img src="docs/readme/section-roadmap.svg" width="100%" alt="04 · 正在建造什么 / PROJECT ROADMAP" />
 
-## 安全边界
+| 模块                  | 现在可以体验                                 | 真实能力进度           |
+| --------------------- | -------------------------------------------- | ---------------------- |
+| 主工作台              | 环境、连接、扩展与诊断概览；演示工作配置切换 | 数据全部为 Mock        |
+| MCP 与 Skills         | 分类、搜索、筛选、详情、演示开关             | 未安装或执行真实扩展   |
+| 诊断与回滚            | 分类检查、风险说明、差异与恢复预览、确认流程 | 未扫描、备份或修改本机 |
+| 账号与额度            | 规划状态页                                   | 尚未接入               |
+| 模型、Provider 与代理 | 规划状态页；工作台示例连接档案               | 尚未接入               |
+| 会话与历史            | 规划状态页                                   | 尚未读取会话数据库     |
+| 人设、长期记忆与桌宠  | 规划状态页；小型桌宠展示占位                 | 尚未实现               |
 
-应用无遥测、自动登录、后台常驻或凭据验证。不读取或修改 auth.json、钥匙串、Codex 会话数据库、`~/.codex/config.toml`、代理、LaunchAgent、人设或记忆目录。不暴露任意 shell；Tauri capabilities 的权限列表为空，CSP 限制资源与连接。
+**演示状态仅保存在内存中，刷新或重启即可复位。** 设置中可关闭演示交互，禁用扩展开关与模拟确认。深色调色板已预留，尚未开放主题切换。
 
-`ConfigurationTransaction` 仅定义未来的读取快照 → 外部变更检测 → 差异预览 → 备份 → 明确确认 → 写入 → 校验 → 回滚接口，本轮没有生产实现。差异预览使用虚构路径与虚构配置，不代表真实 Codex 配置格式。模拟成功仅显示通知，不伪造真实修复或备份。
+<a id="development"></a>
 
-## 验收资料
+## 开发与文档
 
-截图与实际验证边界见 [docs/verification.md](docs/verification.md)，尺寸检查结果见 `docs/viewport-checks.json`。
+<img src="docs/readme/section-dev.svg" width="100%" alt="05 · 为下一步留好接口 / DEVELOPMENT" />
 
-![工作台](docs/screenshots/dashboard-1440.png)
-![扩展](docs/screenshots/extensions-1440.png)
-![诊断](docs/screenshots/diagnostics-1440.png)
-![确认流程](docs/screenshots/confirmation-1440.png)
+采用 **Tauri 2 + Rust、Vue 3 + TypeScript + Vite、Vue Router 与 Pinia**。Vue 使用 Composition API 与 `script setup`，TypeScript 开启严格检查。
+
+```text
+src/
+├── app/                 路由与应用状态
+├── features/            工作台、扩展、诊断与规划页
+├── shared/components/   图标、面板和弹窗
+├── services/            可替换的 Mock adapter
+├── types/               服务与配置事务契约
+└── styles/
+    └── tokens/          颜色、字体、间距、材质、尺寸与动效
+src-tauri/               Rust 窗口启动与最小权限配置
+tests/                   关键原型交互测试
+```
+
+| 资料                                    | 内容                                 |
+| --------------------------------------- | ------------------------------------ |
+| [设计决策](docs/design.md)              | 视觉方向、原型取舍、性能与维护假设   |
+| [验收记录](docs/verification.md)        | 已执行的检查、原生验证与未验证项     |
+| [设计令牌](src/styles/tokens/theme.css) | 机壳、面板、屏幕、字体和控件基础规范 |
+| [Mock 服务](src/services/mock.ts)       | 示例扩展、检查、备份和变更预览       |
+| [事务契约](src/types/atelier.ts)        | 未来真实配置修改必须保留的流程边界   |
+
+### 验证命令
+
+```sh
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm format:check
+cargo check --manifest-path src-tauri/Cargo.toml
+cargo fmt --manifest-path src-tauri/Cargo.toml --check
+```
+
+项目初始化验收中，6 项交互测试、类型检查、前端构建、格式检查、Rust 检查及 macOS 调试打包均通过。这里记录的是已执行的本地验收结果，并非持续集成状态；完整限制见[验收记录](docs/verification.md)。
+
+欢迎通过 [Issues](https://github.com/zixin947/codex-atelier/issues) 提交视觉建议、交互问题与功能讨论。反馈界面问题时，请附窗口尺寸、复现步骤和截图，并移除私人数据。
+
+<a id="boundaries"></a>
+
+## 设计与安全边界
+
+<img src="docs/readme/section-safety.svg" width="100%" alt="06 · 每次变化，都应该清楚 / BOUNDARIES &amp; DESIGN" />
+
+**先看清，再调整；每一步，都应该能说明白。**
+
+当前应用没有遥测、自动登录、凭据验证或后台常驻服务。不会读取或修改真实 `auth.json`、系统钥匙串、Codex 会话数据库、`~/.codex/config.toml`、系统代理、LaunchAgent、人设或记忆目录。
+
+Rust 端仅实现最小窗口启动，没有注册业务命令、特权插件或任意 shell 执行接口。Tauri capabilities 权限列表为空，资源与连接受 CSP 约束。
+
+未来的配置写入预留以下事务边界，**目前只有接口定义，没有生产实现**：
+
+```text
+读取现状 → 检测外部变更 → 预览差异 → 备份
+                                     ↓
+                       明确确认 → 写入 → 校验
+                                         ↓
+                                      必要时回滚
+```
+
+预览中的路径、配置片段和版本号为示例，不代表真实 Codex 配置格式或兼容性承诺。
+
+<a id="acknowledgements"></a>
+
+## 灵感与致谢
+
+<img src="docs/readme/section-thanks.svg" width="100%" alt="07 · 灵感与致谢 / ACKNOWLEDGEMENTS" />
+
+感谢 [MaiBot](https://github.com/Mai-with-u/MaiBot) 的 millennium「千禧主题」带来的视觉灵感，以及其 README 的展示组织方式。Atelier 借鉴米色机壳、下沉屏幕与键帽的视觉语言，独立实现界面、封面、图标和 README 素材；没有复制上游 Dashboard 代码、角色、品牌或整套素材。
+
+本项目使用的框架与工具包括 [Tauri](https://v2.tauri.app/)、[Vue](https://vuejs.org/)、[Vite](https://vite.dev/) 与 [Pinia](https://pinia.vuejs.org/)。第三方依赖遵循各自许可证。仓库目前尚未指定项目许可证。
+
+<div align="center">
+
+**MAKE ROOM FOR IDEAS.**
+
+一间安静的工作室，一套清楚的工作流。
+
+[回到顶部](#codex-atelier)
+
+</div>
