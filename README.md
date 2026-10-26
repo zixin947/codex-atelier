@@ -25,7 +25,7 @@
 </div>
 
 > [!IMPORTANT]
-> 当前主工作台、MCP/Skills 示例、诊断和备份仍为**演示数据**。新增「行为插件」页已接入本机 Ponytail / Stop That Shit 的固定版本安装、加载开关与回退；Hook 信任与会话实际效果仍需在 Codex 中确认。
+> 当前主工作台、MCP/Skills 示例、诊断和备份仍为**演示数据**。「行为插件」页已接入本机 Ponytail / Stop That Shit 的固定版本安装、加载开关、回退与 Hook 信任只读检测；会话实际效果仍需在 Codex 中验证。
 
 <a id="about"></a>
 
@@ -52,9 +52,9 @@
 
 ### 行为插件 · 真实本机开关
 
-在独立的「行为插件」页安装 Ponytail 5.3.2 与 Stop That Shit 0.2.5，并一键启停插件加载。安装默认停用，写入后读回验证；可回退上次切换，外部变更时停止覆盖。浏览器预览禁用真实操作。详见[行为插件使用与边界](docs/behavior-plugins.md)。
+在独立的「行为插件」页安装 Ponytail 5.3.2 与 Stop That Shit 0.2.5，并一键启停插件加载。安装默认停用，写入后读回验证；可回退上次切换，外部变更时停止覆盖。刷新会只读查询 CLI 的 Hook 信任状态，区分已信任、待审阅、定义变化、未加载和读取失败，不自动授权。浏览器预览禁用真实操作。详见[行为插件使用与边界](docs/behavior-plugins.md)。
 
-![macOS 原生行为插件页：两个插件已安装，加载开关均停用](docs/screenshots/behavior-plugins-native.png)
+![macOS 原生行为插件页：Ponytail 的三个 Hook 已信任，STS 停用且未枚举](docs/screenshots/behavior-plugins-trust-native.png)
 
 ### 主工作台
 

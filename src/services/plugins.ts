@@ -17,6 +17,16 @@ export function browserSnapshot(): PluginSnapshot {
       pluginId: `${p.id}@atelier-companions`,
       duplicates: false,
       canRollback: false,
+      hookTrust: {
+        state: 'unavailable',
+        total: 0,
+        trusted: 0,
+        managed: 0,
+        untrusted: 0,
+        modified: 0,
+        disabled: 0,
+        reason: '浏览器无法读取本机 Hook 信任状态。',
+      },
     })),
   }
 }

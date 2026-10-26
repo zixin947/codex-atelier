@@ -38,6 +38,53 @@ function fixture() {
   return { data, service }
 }
 describe('real plugin controls', () => {
+  it('reads trust again on refresh and distinguishes changed definitions', async () => {
+    const { data, service } = fixture()
+    data.plugins[0]!.hookTrust = {
+      ...data.plugins[0]!.hookTrust,
+      state: 'trusted',
+      total: 3,
+      trusted: 3,
+      reason: null,
+    }
+    const wrapper = mount(BehaviorPlugins, { props: { service } })
+    await flushPromises()
+    const trust = () => wrapper.get('[aria-label="Ponytail Hook 信任状态"]')
+    expect(trust().text()).toContain('3/3 已批准')
+    expect(trust().classes()).toContain('trust-ok')
+    data.plugins[0]!.hookTrust = {
+      ...data.plugins[0]!.hookTrust,
+      state: 'reviewRequired',
+      trusted: 2,
+      modified: 1,
+    }
+    await wrapper.get('.page-heading .button').trigger('click')
+    await flushPromises()
+    expect(service.status).toHaveBeenCalledTimes(2)
+    expect(trust().text()).toContain('定义已变化')
+    expect(trust().text()).toContain('2/3 已批准')
+    expect(trust().classes()).not.toContain('trust-ok')
+    expect(service.setEnabled).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+  it('shows unavailable or unloaded trust without claiming it is untrusted', async () => {
+    const { data, service } = fixture()
+    data.plugins[0]!.hookTrust.reason = 'Hook 读取失败，稍后刷新'
+    data.plugins[1]!.hookTrust = {
+      ...data.plugins[1]!.hookTrust,
+      state: 'notLoaded',
+      reason: '插件已停用，CLI 未枚举其 Hook',
+    }
+    const wrapper = mount(BehaviorPlugins, { props: { service } })
+    await flushPromises()
+    expect(wrapper.get('[aria-label="Ponytail Hook 信任状态"]').text()).toContain('无法读取')
+    expect(wrapper.get('[aria-label="Stop That Shit Hook 信任状态"]').text()).toContain(
+      '未加载，无法判断信任',
+    )
+    expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.text()).not.toContain('首次启用前')
+    wrapper.unmount()
+  })
   it('never offers real writes in the browser', async () => {
     const snapshot = await behaviorPluginService.status()
     expect(snapshot.available).toBe(false)

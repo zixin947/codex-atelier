@@ -1,4 +1,14 @@
 export type BehaviorPluginId = 'ponytail' | 'stop-that-shit'
+export interface HookTrust {
+  state: 'trusted' | 'reviewRequired' | 'notLoaded' | 'notInstalled' | 'unavailable'
+  total: number
+  trusted: number
+  managed: number
+  untrusted: number
+  modified: number
+  disabled: number
+  reason: string | null
+}
 export interface BehaviorPlugin {
   id: BehaviorPluginId
   name: string
@@ -15,6 +25,7 @@ export interface BehaviorPlugin {
   pluginId: string
   duplicates: boolean
   canRollback: boolean
+  hookTrust: HookTrust
 }
 export interface PluginSnapshot {
   available: boolean

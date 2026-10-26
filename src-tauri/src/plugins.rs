@@ -58,6 +58,116 @@ pub struct PluginStatus {
     plugin_id: String,
     duplicates: bool,
     can_rollback: bool,
+    hook_trust: HookTrust,
+}
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq)]
+#[serde(rename_all = "camelCase")]
+enum HookTrustState {
+    Trusted,
+    ReviewRequired,
+    NotLoaded,
+    NotInstalled,
+    Unavailable,
+}
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+struct HookTrust {
+    state: HookTrustState,
+    total: usize,
+    trusted: usize,
+    managed: usize,
+    untrusted: usize,
+    modified: usize,
+    disabled: usize,
+    reason: Option<String>,
+}
+impl HookTrust {
+    fn unknown(reason: &str) -> Self {
+        Self {
+            state: HookTrustState::Unavailable,
+            total: 0,
+            trusted: 0,
+            managed: 0,
+            untrusted: 0,
+            modified: 0,
+            disabled: 0,
+            reason: Some(reason.into()),
+        }
+    }
+}
+
+// The host owns definition hashing and persisted trust. Never infer trust from
+// installation/enabled state, paths, command text, or our own cached records.
+fn hook_trust(
+    response: &Result<Value, String>,
+    plugin_id: &str,
+    installed: bool,
+    enabled: bool,
+    duplicates: bool,
+) -> HookTrust {
+    if !installed {
+        return HookTrust {
+            state: HookTrustState::NotInstalled,
+            ..HookTrust::unknown("安装后可读取 Hook 信任状态。")
+        };
+    }
+    if duplicates {
+        return HookTrust::unknown("插件来源重复，请先保留一个来源，再刷新检测。");
+    }
+    let Ok(response) = response else {
+        return HookTrust::unknown(
+            "Hook 读取失败或 CLI 不支持 hooks/list；请重试或在 CLI /hooks 中核对。",
+        );
+    };
+    let Some(entries) = response["data"].as_array().filter(|v| v.len() == 1) else {
+        return HookTrust::unknown("Hook 接口返回格式不兼容，未判断信任。");
+    };
+    let entry = &entries[0];
+    // Incomplete discovery must not become a green 'all trusted' assertion.
+    if !entry["errors"].as_array().is_some_and(Vec::is_empty)
+        || !entry["warnings"].as_array().is_some_and(Vec::is_empty)
+    {
+        return HookTrust::unknown(
+            "Codex 报告 Hook 发现警告或错误，结果不完整；请在 CLI /hooks 中核对。",
+        );
+    }
+    let Some(hooks) = entry["hooks"].as_array() else {
+        return HookTrust::unknown("Hook 清单格式不兼容，未判断信任。");
+    };
+    let mut trust = HookTrust {
+        state: HookTrustState::NotLoaded,
+        reason: None,
+        ..HookTrust::unknown("")
+    };
+    for hook in hooks.iter().filter(|h| h["pluginId"] == plugin_id) {
+        let Some(enabled) = hook["enabled"].as_bool() else {
+            return HookTrust::unknown("Hook 状态字段不兼容，未判断信任。");
+        };
+        match hook["trustStatus"].as_str() {
+            Some("trusted") => trust.trusted += 1,
+            Some("managed") => trust.managed += 1,
+            Some("untrusted") => trust.untrusted += 1,
+            Some("modified") => trust.modified += 1,
+            _ => return HookTrust::unknown("CLI 返回未知的 Hook 信任状态，未判断信任。"),
+        }
+        trust.total += 1;
+        trust.disabled += usize::from(!enabled);
+    }
+    if trust.total == 0 {
+        trust.reason = Some(
+            if enabled {
+                "未发现此来源的可加载 Hook，不能据此判断已信任或未信任。"
+            } else {
+                "插件已停用，CLI 未枚举其 Hook；保留原信任状态，不自动启用检测。"
+            }
+            .into(),
+        );
+    } else if trust.untrusted + trust.modified > 0 {
+        trust.state = HookTrustState::ReviewRequired;
+    } else {
+        trust.state = HookTrustState::Trusted;
+    }
+    trust
 }
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -132,6 +242,9 @@ impl Context {
             .get("installed")
             .and_then(Value::as_array)
             .ok_or("插件清单格式不兼容。")?;
+        // Discovery only: no thread/start, model turn, Hook execution, or trust write.
+        // A missing/failed method must not disable installation and loading controls.
+        let hooks = rpc.call("hooks/list", json!({"cwds":[self.home]}));
         let plugins = catalog()
             .into_iter()
             .map(|d| {
@@ -159,6 +272,13 @@ impl Context {
                     installed: Some(entry.is_some()),
                     enabled: Some(entry.is_some_and(|p| p["enabled"].as_bool() == Some(true))),
                     installed_version: entry.and_then(|p| p["version"].as_str()).map(String::from),
+                    hook_trust: hook_trust(
+                        &hooks,
+                        &key,
+                        entry.is_some(),
+                        entry.is_some_and(|p| p["enabled"].as_bool() == Some(true)),
+                        matching.len() > 1,
+                    ),
                     plugin_id: key,
                     duplicates: matching.len() > 1,
                     can_rollback,
@@ -546,6 +666,7 @@ fn unavailable(reason: String) -> Snapshot {
                 installed_version: None,
                 duplicates: false,
                 can_rollback: false,
+                hook_trust: HookTrust::unknown("未连接本机 Codex CLI，无法读取 Hook 信任状态。"),
             })
             .collect(),
     }
@@ -606,6 +727,84 @@ pub async fn behavior_plugin_rollback(
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn hook_fixture(hooks: Value) -> Result<Value, String> {
+        Ok(json!({"data":[{"cwd":"/fixture", "hooks":hooks,"warnings":[],"errors":[]}]}))
+    }
+    #[test]
+    fn trust_uses_exact_plugin_identity_and_host_status() {
+        let hooks = hook_fixture(json!([
+            {"pluginId":"ponytail@atelier-companions","trustStatus":"trusted","enabled":true},
+            {"pluginId":"ponytail@atelier-companions","trustStatus":"managed","enabled":false},
+            {"pluginId":"ponytail@other-marketplace","trustStatus":"untrusted","enabled":true},
+            {"pluginId":null,"trustStatus":"modified","enabled":true}
+        ]));
+        let trust = hook_trust(&hooks, "ponytail@atelier-companions", true, true, false);
+        assert_eq!(trust.state, HookTrustState::Trusted);
+        assert_eq!(
+            (trust.total, trust.trusted, trust.managed, trust.disabled),
+            (2, 1, 1, 1)
+        );
+    }
+    #[test]
+    fn mixed_or_modified_hooks_require_review() {
+        let hooks = hook_fixture(json!([
+            {"pluginId":"ponytail@atelier-companions","trustStatus":"trusted","enabled":true},
+            {"pluginId":"ponytail@atelier-companions","trustStatus":"untrusted","enabled":true},
+            {"pluginId":"ponytail@atelier-companions","trustStatus":"modified","enabled":true}
+        ]));
+        let trust = hook_trust(&hooks, "ponytail@atelier-companions", true, true, false);
+        assert_eq!(trust.state, HookTrustState::ReviewRequired);
+        assert_eq!(
+            (trust.total, trust.trusted, trust.untrusted, trust.modified),
+            (3, 1, 1, 1)
+        );
+    }
+    #[test]
+    fn missing_or_disabled_discovery_is_never_untrusted_or_trusted() {
+        let hooks = hook_fixture(json!([]));
+        let off = hook_trust(&hooks, "ponytail@atelier-companions", true, false, false);
+        assert_eq!(off.state, HookTrustState::NotLoaded);
+        assert!(off.reason.unwrap().contains("已停用"));
+        assert_eq!(
+            hook_trust(&hooks, "ponytail@atelier-companions", true, true, false).state,
+            HookTrustState::NotLoaded
+        );
+        assert_eq!(
+            hook_trust(&hooks, "ponytail@atelier-companions", false, false, false).state,
+            HookTrustState::NotInstalled
+        );
+    }
+    #[test]
+    fn failed_partial_or_unknown_protocol_fails_closed_without_raw_data() {
+        let cases = [
+            Err("private upstream error text".into()),
+            Ok(json!({"data":[]})),
+            Ok(json!({"data":[{"hooks":[],"warnings":["private warning"],"errors":[]}]})),
+            Ok(json!({"data":[{"hooks":[],"warnings":[],"errors":[{"message":"private error"}]}]})),
+            hook_fixture(
+                json!([{"pluginId":"ponytail@atelier-companions","trustStatus":"futureStatus","enabled":true}]),
+            ),
+            hook_fixture(
+                json!([{"pluginId":"ponytail@atelier-companions","trustStatus":"trusted"}]),
+            ),
+        ];
+        for case in cases {
+            let trust = hook_trust(&case, "ponytail@atelier-companions", true, true, false);
+            assert_eq!(trust.state, HookTrustState::Unavailable);
+            assert!(!trust.reason.unwrap().contains("private"));
+        }
+        assert_eq!(
+            hook_trust(
+                &hook_fixture(json!([])),
+                "ponytail@atelier-companions",
+                true,
+                true,
+                true
+            )
+            .state,
+            HookTrustState::Unavailable
+        );
+    }
     #[test]
     fn rejects_arbitrary_plugin_ids() {
         assert!(serde_json::from_str::<PluginId>("\"../../config\"").is_err());
@@ -654,6 +853,8 @@ mod tests {
                     .to_string(),
             )
             .unwrap();
+            fs::create_dir_all(p.join("hooks")).unwrap();
+            fs::write(p.join("hooks/hooks.json"), json!({"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"echo atelier-hook-must-not-run"}]}]}}).to_string()).unwrap();
             entries.push(json!({"name":id.key(),"source":{"source":"local","path":format!("./{}",id.key())}}));
         }
         fs::write(
@@ -680,8 +881,19 @@ mod tests {
         }
         let s = ctx.snapshot().unwrap();
         assert!(s.plugins.iter().all(|p| p.installed == Some(true)));
+        assert!(s
+            .plugins
+            .iter()
+            .all(|p| p.hook_trust.state == HookTrustState::ReviewRequired
+                && p.hook_trust.untrusted == 1));
+        // A repeated read may discover trust, but cannot grant it or edit config.
+        let untouched = fs::read(ctx.home.join("config.toml")).unwrap();
+        let again = ctx.snapshot().unwrap();
+        assert!(again.plugins.iter().all(|p| p.hook_trust.untrusted == 1));
+        assert_eq!(fs::read(ctx.home.join("config.toml")).unwrap(), untouched);
         let off = ctx.set(PluginId::Ponytail, false, &s.revision).unwrap();
         assert_eq!(off.plugins[0].enabled, Some(false));
+        assert_eq!(off.plugins[0].hook_trust.state, HookTrustState::NotLoaded);
         assert!(ctx.set(PluginId::StopThatShit, false, &s.revision).is_err());
         let restored = ctx.rollback(PluginId::Ponytail, &off.revision).unwrap();
         assert_eq!(restored.plugins[0].enabled, Some(true));

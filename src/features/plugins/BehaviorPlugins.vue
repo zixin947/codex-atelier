@@ -5,7 +5,12 @@ import Modal from '../../shared/components/Modal.vue'
 import Icon from '../../shared/components/Icon.vue'
 import { useAtelier } from '../../app/store'
 import { behaviorPluginService } from '../../services/plugins'
-import type { BehaviorPlugin, BehaviorPluginService, PluginSnapshot } from '../../types/plugins'
+import type {
+  BehaviorPlugin,
+  BehaviorPluginService,
+  PluginSnapshot,
+  HookTrust,
+} from '../../types/plugins'
 const props = defineProps<{ service?: BehaviorPluginService }>()
 const adapter = props.service ?? behaviorPluginService
 const store = useAtelier(),
@@ -13,6 +18,20 @@ const store = useAtelier(),
   busy = ref(''),
   error = ref(''),
   installing = ref<BehaviorPlugin | null>(null)
+function trustLabel(trust: HookTrust) {
+  switch (trust.state) {
+    case 'trusted':
+      return '已信任'
+    case 'reviewRequired':
+      return trust.modified ? '定义已变化，需重新审阅' : '有 Hook 待信任'
+    case 'notLoaded':
+      return '未加载，无法判断信任'
+    case 'notInstalled':
+      return '尚未安装'
+    case 'unavailable':
+      return '无法读取'
+  }
+}
 async function refresh() {
   busy.value = 'refresh'
   error.value = ''
@@ -39,7 +58,7 @@ async function mutate(plugin: BehaviorPlugin, operation: 'install' | 'toggle' | 
     installing.value = null
     store.notify(
       operation === 'install'
-        ? `${plugin.name} 已安装，默认停用 · Hook 尚需手动信任`
+        ? `${plugin.name} 已安装，默认停用 · Hook 状态见卡片`
         : `${plugin.name} 配置已读回 · 请在新会话中确认效果`,
     )
   } catch (e) {
@@ -74,8 +93,8 @@ onMounted(refresh)
       <div>
         <b>真实插件配置，与演示数据分开</b>
         <p>
-          开关控制插件在新会话中的加载。当前会话的规则、Hook
-          信任和实际执行效果尚未观测；项目配置也可能覆盖用户设置。
+          开关控制插件在新会话中的加载。Hook 信任状态由 CLI 只读查询，刷新即可重读；
+          当前会话执行效果未验证，项目配置也可能覆盖用户设置。
         </p>
       </div>
       <span class="badge">USER SCOPE</span>
@@ -150,6 +169,49 @@ onMounted(refresh)
             <Icon name="history" :size="16" />回退上次切换</button
           ><span class="tiny muted">{{ plugin.license }} / OFFICIAL SOURCE</span>
         </div>
+        <div
+          class="inset behavior-trust"
+          :class="{
+            'trust-ok': plugin.hookTrust.state === 'trusted',
+            'trust-review': plugin.hookTrust.state === 'reviewRequired',
+          }"
+          role="status"
+          :aria-label="`${plugin.name} Hook 信任状态`"
+        >
+          <Icon
+            :name="
+              plugin.hookTrust.state === 'trusted'
+                ? 'shield'
+                : plugin.hookTrust.state === 'reviewRequired'
+                  ? 'alert'
+                  : 'terminal'
+            "
+            :size="17"
+          />
+          <div>
+            <b>Hook 信任 · {{ trustLabel(plugin.hookTrust) }}</b>
+            <p v-if="plugin.hookTrust.total">
+              {{ plugin.hookTrust.trusted + plugin.hookTrust.managed }}/{{ plugin.hookTrust.total }}
+              已批准
+              <span v-if="plugin.hookTrust.managed">
+                · {{ plugin.hookTrust.managed }} 项由策略信任</span
+              >
+              <span v-if="plugin.hookTrust.untrusted">
+                · {{ plugin.hookTrust.untrusted }} 项待信任</span
+              >
+              <span v-if="plugin.hookTrust.modified">
+                · {{ plugin.hookTrust.modified }} 项定义变化</span
+              >
+              <span v-if="plugin.hookTrust.disabled">
+                · {{ plugin.hookTrust.disabled }} 项已单独停用</span
+              >
+            </p>
+            <p v-if="plugin.hookTrust.reason">{{ plugin.hookTrust.reason }}</p>
+            <p v-if="plugin.hookTrust.state === 'reviewRequired'">
+              请在 Codex CLI 的 /hooks 中审阅当前定义并决定是否信任。
+            </p>
+          </div>
+        </div>
         <dl class="behavior-meta">
           <dt>固定版本</dt>
           <dd class="mono">{{ plugin.tag }}</dd>
@@ -170,12 +232,6 @@ onMounted(refresh)
         <div v-if="plugin.duplicates" role="alert" class="plugin-duplicate">
           发现同名插件来自两个市场。请在 Codex 中保留一个来源，再刷新。
         </div>
-        <div class="inset behavior-trust">
-          <Icon name="alert" :size="16" /><span
-            >Hook 信任状态：未检测。首次启用前，请在 Codex CLI 的 /hooks
-            中审阅并信任上游命令。</span
-          >
-        </div>
       </Panel>
     </div>
     <Panel v-if="snapshot" title="连接与生效范围" code="CONTROL RECEIPT"
@@ -189,6 +245,7 @@ onMounted(refresh)
         <div><span class="eyebrow">SESSION EFFECT</span><b>未观测 · 新会话验证</b></div>
       </div>
       <p class="plugin-footnote">
+        Hook 状态按 CLI 用户目录发现结果读取，不包含项目覆盖，也不代表 Codex Desktop 当前会话。
         安装使用 Atelier 独立本地市场，固定上游版本；不自动授予 Hook
         信任、不修改账号或代理、不向现有聊天发消息。开关先检测外部变更，保存原启用值，写入后从 Codex
         再读回。
