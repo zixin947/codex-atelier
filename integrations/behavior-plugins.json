@@ -1,0 +1,24 @@
+[
+  {
+    "id": "ponytail",
+    "name": "Ponytail",
+    "repository": "DietrichGebert/ponytail",
+    "tag": "v5.3.2",
+    "version": "5.3.2",
+    "summary": "优先复用，减少无用抽象",
+    "description": "让模型先检查项目现有实现、标准库与原生能力，再完成最小且完整的修改。",
+    "license": "MIT",
+    "commit": "16352ac229eb08a9598dcae48fe9f2b342567d86"
+  },
+  {
+    "id": "stop-that-shit",
+    "name": "Stop That Shit",
+    "repository": "lennney/stop-that-shit",
+    "tag": "0.2.5",
+    "version": "0.2.5",
+    "summary": "明确授权，约束任务越界",
+    "description": "Skill 提供工程判断，Guard 检查任务模式、文件范围、依赖与子代理预算。启用插件后仍需在会话中声明任务模式。",
+    "license": "MIT",
+    "commit": "8bc1ac558167121e7f28d9fb0bec05c039952206"
+  }
+]
