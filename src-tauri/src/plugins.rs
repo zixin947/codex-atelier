@@ -80,6 +80,20 @@ struct HookTrust {
     modified: usize,
     disabled: usize,
     reason: Option<String>,
+    hooks: Vec<HookDetail>,
+}
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+struct HookDetail {
+    key: Option<String>,
+    event_name: String,
+    trust_status: String,
+    enabled: bool,
+    source_path: Option<String>,
+    handler_type: String,
+    command: Option<String>,
+    mcp_target: Option<String>,
+    matcher: Option<String>,
 }
 impl HookTrust {
     fn unknown(reason: &str) -> Self {
@@ -92,6 +106,7 @@ impl HookTrust {
             modified: 0,
             disabled: 0,
             reason: Some(reason.into()),
+            hooks: Vec::new(),
         }
     }
 }
@@ -152,6 +167,22 @@ fn hook_trust(
         }
         trust.total += 1;
         trust.disabled += usize::from(!enabled);
+        // Return only display fields belonging to this exact managed plugin.
+        // Command strings are review material, never execution input.
+        trust.hooks.push(HookDetail {
+            key: hook["key"].as_str().map(String::from),
+            event_name: hook["eventName"].as_str().unwrap_or("unknown").into(),
+            trust_status: hook["trustStatus"].as_str().unwrap().into(),
+            enabled,
+            source_path: hook["sourcePath"].as_str().map(String::from),
+            handler_type: hook["handlerType"].as_str().unwrap_or("unknown").into(),
+            command: hook["command"].as_str().map(String::from),
+            mcp_target: hook["server"]
+                .as_str()
+                .zip(hook["tool"].as_str())
+                .map(|(server, tool)| format!("{server}/{tool}")),
+            matcher: hook["matcher"].as_str().map(String::from),
+        });
     }
     if trust.total == 0 {
         trust.reason = Some(
@@ -744,6 +775,35 @@ mod tests {
             (trust.total, trust.trusted, trust.managed, trust.disabled),
             (2, 1, 1, 1)
         );
+        assert_eq!(trust.hooks.len(), 2);
+    }
+    #[test]
+    fn review_details_only_include_exact_plugin_hooks() {
+        let hooks = hook_fixture(json!([
+            {"pluginId":"ponytail@atelier-companions","key":"one","eventName":"sessionStart","trustStatus":"trusted","enabled":true,"sourcePath":"/fixture/ponytail/hooks.json","handlerType":"command","command":"python3 session-start.py","matcher":"startup","currentHash":"not-needed-for-display"},
+            {"pluginId":"ponytail@atelier-companions","key":"two","eventName":"userPromptSubmit","trustStatus":"modified","enabled":false,"handlerType":"mcpTool","server":"fixture","tool":"validate"},
+            {"pluginId":"unrelated@private","key":"private-key","trustStatus":"trusted","enabled":true,"command":"private-command"}
+        ]));
+        let trust = hook_trust(&hooks, "ponytail@atelier-companions", true, true, false);
+        assert_eq!(trust.hooks.len(), 2);
+        assert_eq!(trust.hooks[0].event_name, "sessionStart");
+        assert_eq!(
+            trust.hooks[0].source_path.as_deref(),
+            Some("/fixture/ponytail/hooks.json")
+        );
+        assert_eq!(
+            trust.hooks[0].command.as_deref(),
+            Some("python3 session-start.py")
+        );
+        assert_eq!(
+            trust.hooks[1].mcp_target.as_deref(),
+            Some("fixture/validate")
+        );
+        assert_eq!(trust.hooks[1].trust_status, "modified");
+        assert!(!trust.hooks[1].enabled);
+        let serialized = serde_json::to_string(&trust).unwrap();
+        assert!(!serialized.contains("private-command"));
+        assert!(!serialized.contains("currentHash"));
     }
     #[test]
     fn mixed_or_modified_hooks_require_review() {

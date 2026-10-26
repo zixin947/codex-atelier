@@ -1,4 +1,15 @@
 export type BehaviorPluginId = 'ponytail' | 'stop-that-shit'
+export interface HookDetail {
+  key: string | null
+  eventName: string
+  trustStatus: 'trusted' | 'managed' | 'untrusted' | 'modified'
+  enabled: boolean
+  sourcePath: string | null
+  handlerType: string
+  command: string | null
+  mcpTarget: string | null
+  matcher: string | null
+}
 export interface HookTrust {
   state: 'trusted' | 'reviewRequired' | 'notLoaded' | 'notInstalled' | 'unavailable'
   total: number
@@ -8,6 +19,7 @@ export interface HookTrust {
   modified: number
   disabled: number
   reason: string | null
+  hooks: HookDetail[]
 }
 export interface BehaviorPlugin {
   id: BehaviorPluginId

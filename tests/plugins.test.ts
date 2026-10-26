@@ -38,6 +38,49 @@ function fixture() {
   return { data, service }
 }
 describe('real plugin controls', () => {
+  it('identifies each hook by plugin, event and exact review details without rendering commands as HTML', async () => {
+    const { data, service } = fixture()
+    data.plugins[0]!.hookTrust.hooks = [
+      {
+        key: 'fixture-key',
+        eventName: 'sessionStart',
+        trustStatus: 'trusted',
+        enabled: true,
+        sourcePath: '/fixture/ponytail/hooks/hooks.json',
+        handlerType: 'command',
+        command: 'python3 "${PLUGIN_ROOT}/hooks/session-start.py" <script>alert(1)</script>',
+        mcpTarget: null,
+        matcher: 'startup',
+      },
+      {
+        key: 'fixture-prompt',
+        eventName: 'userPromptSubmit',
+        trustStatus: 'modified',
+        enabled: false,
+        sourcePath: '/fixture/ponytail/hooks/hooks.json',
+        handlerType: 'command',
+        command: 'python3 "${PLUGIN_ROOT}/hooks/prompt.py"',
+        mcpTarget: null,
+        matcher: null,
+      },
+    ]
+    const wrapper = mount(BehaviorPlugins, { props: { service } })
+    await flushPromises()
+    const list = wrapper.get('[aria-label="Ponytail Hook 明细"]')
+    expect(list.findAll('.hook-row')).toHaveLength(2)
+    expect(list.text()).toContain('会话启动时')
+    expect(list.text()).toContain('提交消息时')
+    expect(list.text()).toContain('SessionStart')
+    expect(list.text()).toContain('ponytail@atelier-companions')
+    expect(list.text()).toContain('/fixture/ponytail/hooks/hooks.json')
+    expect(list.text()).toContain('定义已变化')
+    expect(list.text()).toContain('此 Hook 已单独停用')
+    expect(list.get('.hook-command').text()).toContain('<script>alert(1)</script>')
+    expect(list.find('script').exists()).toBe(false)
+    expect(wrapper.find('[aria-label="Stop That Shit Hook 明细"]').exists()).toBe(false)
+    expect(service.setEnabled).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
   it('reads trust again on refresh and distinguishes changed definitions', async () => {
     const { data, service } = fixture()
     data.plugins[0]!.hookTrust = {

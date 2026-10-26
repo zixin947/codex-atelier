@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import Panel from '../../shared/components/Panel.vue'
 import Modal from '../../shared/components/Modal.vue'
 import Icon from '../../shared/components/Icon.vue'
+import HookList from './HookList.vue'
 import { useAtelier } from '../../app/store'
 import { behaviorPluginService } from '../../services/plugins'
 import type {
@@ -212,6 +213,11 @@ onMounted(refresh)
             </p>
           </div>
         </div>
+        <HookList
+          :plugin-name="plugin.name"
+          :plugin-id="plugin.pluginId"
+          :hooks="plugin.hookTrust.hooks"
+        />
         <dl class="behavior-meta">
           <dt>固定版本</dt>
           <dd class="mono">{{ plugin.tag }}</dd>

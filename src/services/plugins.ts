@@ -26,6 +26,7 @@ export function browserSnapshot(): PluginSnapshot {
         modified: 0,
         disabled: 0,
         reason: '浏览器无法读取本机 Hook 信任状态。',
+        hooks: [],
       },
     })),
   }

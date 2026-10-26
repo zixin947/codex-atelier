@@ -2067,6 +2067,105 @@ main {
   color: var(--orange-ink);
   background: #f2e5ce;
 }
+.hook-list {
+  margin-top: var(--space-3);
+}
+.hook-list-intro {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  line-height: 1.8;
+  margin: 0 0 var(--space-2);
+}
+.hook-list ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--edge);
+}
+.hook-row {
+  padding: var(--space-3);
+  background: var(--highlight);
+}
+.hook-row + .hook-row {
+  border-top: 1px solid var(--edge);
+}
+.hook-row-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.hook-number {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+.hook-owner {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.hook-row h3 {
+  margin: 2px 0 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.hook-state {
+  margin-left: auto;
+  color: var(--green);
+  white-space: nowrap;
+  font-size: var(--text-xs);
+}
+.hook-state.review {
+  color: var(--orange-ink);
+}
+.hook-event {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-2) 0;
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+.hook-event code {
+  color: var(--ink);
+}
+.hook-details {
+  font-size: var(--text-xs);
+  line-height: 1.8;
+}
+.hook-details summary {
+  cursor: pointer;
+  color: var(--green);
+  width: fit-content;
+}
+.hook-details summary:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.hook-details summary:focus-visible {
+  outline: 2px solid var(--green);
+  outline-offset: 4px;
+}
+.hook-details dl {
+  margin: var(--space-3) 0;
+}
+.hook-details dt {
+  color: var(--muted);
+  margin-top: var(--space-2);
+}
+.hook-details dd {
+  margin: var(--space-1) 0 0;
+  padding: var(--space-2);
+  border: 1px solid var(--edge);
+  background: var(--paper);
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+.hook-details code {
+  white-space: pre-wrap;
+}
+.hook-details p {
+  color: var(--muted);
+  margin-bottom: 0;
+}
 .plugin-unavailable {
   padding: 15px 18px;
   background: #e7dac2;
