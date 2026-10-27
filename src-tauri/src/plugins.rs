@@ -254,9 +254,30 @@ impl Context {
         cmd
     }
     fn cli(&self, args: &[&str]) -> Result<Value, String> {
-        let output = run(self.command(args), Duration::from_secs(90))?;
+        self.cli_with_timeout(args, Duration::from_secs(90))
+    }
+    fn cli_with_timeout(&self, args: &[&str], timeout: Duration) -> Result<Value, String> {
+        let output = run(self.command(args), timeout)?;
         serde_json::from_slice(&output)
             .map_err(|_| "Codex 未返回预期 JSON，请更新 CLI 后重试。".into())
+    }
+    fn installed_plugins(&self) -> Result<Vec<Value>, String> {
+        // Unfiltered `plugin list` also queries unrelated remote marketplaces.
+        // Loading switches must depend only on our three known source names.
+        let mut entries = Vec::new();
+        for market in [MARKETPLACE, "ponytail", "stop-that-shit"] {
+            let list = self
+                .cli_with_timeout(
+                    &["plugin", "list", "--marketplace", market, "--json"],
+                    Duration::from_secs(8),
+                )
+                .map_err(|_| {
+                    format!("无法读取受管插件市场 {market}，最新状态未确认。请刷新后重试。")
+                })?;
+            let rows = list["installed"].as_array().ok_or("插件清单格式不兼容。")?;
+            entries.extend(rows.iter().cloned());
+        }
+        Ok(entries)
     }
     fn rpc(&self) -> Result<Rpc, String> {
         Rpc::start(self.command(&["app-server", "--stdio"]))
@@ -268,11 +289,7 @@ impl Context {
         let mut rpc = self.rpc()?;
         let config = rpc.call("config/read", json!({"includeLayers":true}))?;
         let revision = user_revision(&config)?;
-        let installed = self.cli(&["plugin", "list", "--json"])?;
-        let entries = installed
-            .get("installed")
-            .and_then(Value::as_array)
-            .ok_or("插件清单格式不兼容。")?;
+        let entries = self.installed_plugins()?;
         // Discovery only: no thread/start, model turn, Hook execution, or trust write.
         // A missing/failed method must not disable installation and loading controls.
         let hooks = rpc.call("hooks/list", json!({"cwds":[self.home]}));
@@ -889,8 +906,20 @@ mod tests {
     fn isolated_codex_roundtrip() {
         let root = std::env::temp_dir().join(format!("atelier-plugin-test-{}", std::process::id()));
         fs::create_dir_all(&root).unwrap();
+        let binary = find_codex().expect("Codex installed");
+        #[cfg(unix)]
+        let binary = {
+            use std::os::unix::fs::PermissionsExt;
+            let wrapper = root.join("codex-filtered-only");
+            // Simulate an unrelated marketplace outage: any global enumeration
+            // fails, while scoped reads still go through the real Codex CLI.
+            let quoted = binary.to_string_lossy().replace('\'', "'\\''");
+            fs::write(&wrapper, format!("#!/bin/sh\nif [ \"$1\" = plugin ] && [ \"$2\" = list ]; then\ncase \" $* \" in *\" --marketplace \"*) ;; *) exit 86 ;; esac\nfi\nexec '{quoted}' \"$@\"\n")).unwrap();
+            fs::set_permissions(&wrapper, fs::Permissions::from_mode(0o700)).unwrap();
+            wrapper
+        };
         let ctx = Context {
-            binary: find_codex().expect("Codex installed"),
+            binary,
             data: root.join("data"),
             home: root.join("codex"),
             isolated: true,
@@ -961,13 +990,24 @@ mod tests {
             .set(PluginId::StopThatShit, false, &restored.revision)
             .unwrap();
         assert_eq!(off.plugins[1].enabled, Some(false));
+        let both_off = ctx.set(PluginId::Ponytail, false, &off.revision).unwrap();
+        assert!(both_off.plugins.iter().all(|p| p.enabled == Some(false)));
+        // A fresh host process must preserve both disabled values.
+        assert!(ctx
+            .snapshot()
+            .unwrap()
+            .plugins
+            .iter()
+            .all(|p| p.enabled == Some(false)));
         let content = fs::read_to_string(ctx.home.join("config.toml")).unwrap();
         assert!(content.contains("# preserve me"));
         assert!(content.contains("example-model"));
         let mut altered = content;
         altered = altered.replace("example-model", "external-model");
         fs::write(ctx.home.join("config.toml"), altered).unwrap();
-        assert!(ctx.rollback(PluginId::StopThatShit, &off.revision).is_err());
+        assert!(ctx
+            .rollback(PluginId::Ponytail, &both_off.revision)
+            .is_err());
         let _ = fs::remove_dir_all(root);
     }
 }

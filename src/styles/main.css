@@ -2036,6 +2036,22 @@ main {
   align-items: center;
   margin-bottom: 20px;
 }
+.plugin-operation-result {
+  border-left: 2px solid var(--green);
+  padding: var(--space-2) var(--space-3);
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-xs);
+  line-height: 1.8;
+  color: var(--green);
+}
+.plugin-operation-result.failed {
+  color: var(--red);
+  border-color: var(--red);
+}
+.plugin-operation-result .button {
+  display: block;
+  margin-top: var(--space-2);
+}
 .behavior-actions .tiny {
   font-size: 8px;
   letter-spacing: 0.6px;

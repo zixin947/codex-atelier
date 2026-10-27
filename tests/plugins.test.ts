@@ -38,6 +38,42 @@ function fixture() {
   return { data, service }
 }
 describe('real plugin controls', () => {
+  it('disables a running plugin only after readback and keeps the saved state after remount', async () => {
+    const { data, service } = fixture()
+    data.plugins.forEach((p) => {
+      p.enabled = true
+    })
+    let complete!: (value: PluginSnapshot) => void
+    service.setEnabled = vi.fn(
+      () =>
+        new Promise<PluginSnapshot>((resolve) => {
+          complete = resolve
+        }),
+    )
+    const wrapper = mount(BehaviorPlugins, { props: { service } })
+    await flushPromises()
+    await wrapper.get('[aria-label="Ponytail 插件加载"]').trigger('click')
+    expect(service.setEnabled).toHaveBeenCalledWith('ponytail', false, 'v1')
+    expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('aria-checked')).toBe('true')
+    expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.text()).not.toContain('Ponytail 已停用 · 已保存')
+    data.plugins[0]!.enabled = false
+    data.revision = 'v2'
+    complete(structuredClone(data))
+    await flushPromises()
+    expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('aria-checked')).toBe('false')
+    expect(wrapper.get('.plugin-operation-result').text()).toContain('已停用 · 已保存并读回')
+    expect(wrapper.get('[aria-label="Stop That Shit 插件加载"]').attributes('aria-checked')).toBe(
+      'true',
+    )
+    wrapper.unmount()
+    const reopened = mount(BehaviorPlugins, { props: { service } })
+    await flushPromises()
+    expect(reopened.get('[aria-label="Ponytail 插件加载"]').attributes('aria-checked')).toBe(
+      'false',
+    )
+    reopened.unmount()
+  })
   it('identifies each hook by plugin, event and exact review details without rendering commands as HTML', async () => {
     const { data, service } = fixture()
     data.plugins[0]!.hookTrust.hooks = [
@@ -159,15 +195,21 @@ describe('real plugin controls', () => {
     wrapper.unmount()
   })
   it('keeps the last real state and shows errors when a write fails', async () => {
-    const { service } = fixture()
+    const { data, service } = fixture()
+    data.plugins[0]!.enabled = true
     service.setEnabled = vi.fn().mockRejectedValue('配置已被外部修改')
     const wrapper = mount(BehaviorPlugins, { props: { service } })
     await flushPromises()
     await wrapper.get('[aria-label="Ponytail 插件加载"]').trigger('click')
     await flushPromises()
     expect(wrapper.get('[role=alert]').text()).toContain('外部修改')
-    expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('aria-checked')).toBe('false')
+    expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('aria-checked')).toBe('true')
+    expect(wrapper.get('.plugin-operation-result.failed').text()).toContain('操作未确认成功')
     expect(service.status).toHaveBeenCalledTimes(2)
+    await wrapper.get('.plugin-operation-result.failed .button').trigger('click')
+    await flushPromises()
+    expect(service.status).toHaveBeenCalledTimes(3)
+    expect(wrapper.find('.plugin-operation-result.failed').exists()).toBe(false)
     wrapper.unmount()
   })
   it('requires the install preview before installing a fixed version', async () => {

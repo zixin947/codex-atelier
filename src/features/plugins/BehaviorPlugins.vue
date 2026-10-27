@@ -17,8 +17,10 @@ const adapter = props.service ?? behaviorPluginService
 const store = useAtelier(),
   snapshot = ref<PluginSnapshot | null>(null),
   busy = ref(''),
+  pendingAction = ref(''),
   error = ref(''),
-  installing = ref<BehaviorPlugin | null>(null)
+  installing = ref<BehaviorPlugin | null>(null),
+  receipts = ref<Record<string, { error: boolean; message: string }>>({})
 function trustLabel(trust: HookTrust) {
   switch (trust.state) {
     case 'trusted':
@@ -36,6 +38,7 @@ function trustLabel(trust: HookTrust) {
 async function refresh() {
   busy.value = 'refresh'
   error.value = ''
+  receipts.value = {}
   try {
     snapshot.value = await adapter.status()
   } catch (e) {
@@ -47,8 +50,17 @@ async function refresh() {
 async function mutate(plugin: BehaviorPlugin, operation: 'install' | 'toggle' | 'rollback') {
   if (!snapshot.value?.available || busy.value) return
   busy.value = plugin.id
+  pendingAction.value =
+    operation === 'toggle'
+      ? plugin.enabled
+        ? '正在停用并保存…'
+        : '正在启用并保存…'
+      : operation === 'rollback'
+        ? '正在回退并读回…'
+        : '正在安装…'
   error.value = ''
   const revision = snapshot.value.revision
+  delete receipts.value[plugin.id]
   try {
     snapshot.value =
       operation === 'install'
@@ -57,13 +69,16 @@ async function mutate(plugin: BehaviorPlugin, operation: 'install' | 'toggle' | 
           ? await adapter.rollback(plugin.id, revision)
           : await adapter.setEnabled(plugin.id, !plugin.enabled, revision)
     installing.value = null
-    store.notify(
+    const updated = snapshot.value.plugins.find((p) => p.id === plugin.id)
+    const message =
       operation === 'install'
         ? `${plugin.name} 已安装，默认停用 · Hook 状态见卡片`
-        : `${plugin.name} 配置已读回 · 请在新会话中确认效果`,
-    )
+        : `${plugin.name} ${updated?.enabled ? '已启用' : '已停用'} · 已保存并读回，作用于新会话`
+    receipts.value[plugin.id] = { error: false, message }
+    store.notify(message)
   } catch (e) {
     error.value = String(e)
+    receipts.value[plugin.id] = { error: true, message: `操作未确认成功：${String(e)}` }
     try {
       snapshot.value = await adapter.status()
     } catch {
@@ -71,6 +86,7 @@ async function mutate(plugin: BehaviorPlugin, operation: 'install' | 'toggle' | 
     }
   } finally {
     busy.value = ''
+    pendingAction.value = ''
   }
 }
 onMounted(refresh)
@@ -136,7 +152,7 @@ onMounted(refresh)
             ><b>插件加载开关</b
             ><small>{{
               busy === plugin.id
-                ? '正在操作并读回验证…'
+                ? pendingAction
                 : plugin.installed
                   ? '作用于新会话 · 不切换会话模式'
                   : '先安装，再启用'
@@ -151,6 +167,22 @@ onMounted(refresh)
             @click="mutate(plugin, 'toggle')"
           >
             <span />
+          </button>
+        </div>
+        <div
+          v-if="receipts[plugin.id]"
+          class="plugin-operation-result"
+          :class="{ failed: receipts[plugin.id]!.error }"
+          :role="receipts[plugin.id]!.error ? 'alert' : 'status'"
+        >
+          <span>{{ receipts[plugin.id]!.message }}</span>
+          <button
+            v-if="receipts[plugin.id]!.error"
+            class="button"
+            :disabled="!!busy"
+            @click="refresh"
+          >
+            刷新状态
           </button>
         </div>
         <div class="behavior-actions">
