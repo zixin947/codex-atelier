@@ -20,6 +20,7 @@ const store = useAtelier(),
   pendingAction = ref(''),
   error = ref(''),
   installing = ref<BehaviorPlugin | null>(null),
+  connecting = ref(false),
   receipts = ref<Record<string, { error: boolean; message: string }>>({})
 function trustLabel(trust: HookTrust) {
   switch (trust.state) {
@@ -76,7 +77,7 @@ async function mutate(plugin: BehaviorPlugin, operation: 'install' | 'toggle' | 
     const message =
       operation === 'install'
         ? `${plugin.name} 已安装，默认停用 · Hook 状态见卡片`
-        : `${plugin.name} ${updated?.enabled ? '已启用' : '已停用'} · 已保存并读回，作用于新会话`
+        : `${plugin.name} ${updated?.enabled ? '已启用' : '已停用'} · 已保存并读回，${snapshot.value.runtimeReceipt ?? '作用于新会话；Desktop 热重载未连接'}`
     receipts.value[plugin.id] = { error: false, message }
     store.notify(message)
   } catch (e) {
@@ -90,6 +91,18 @@ async function mutate(plugin: BehaviorPlugin, operation: 'install' | 'toggle' | 
   } finally {
     busy.value = ''
     pendingAction.value = ''
+  }
+}
+async function launchDesktop() {
+  busy.value = 'connect'
+  error.value = ''
+  try {
+    store.notify(await adapter.launchDesktop())
+    connecting.value = false
+  } catch (e) {
+    error.value = String(e)
+  } finally {
+    busy.value = ''
   }
 }
 onMounted(refresh)
@@ -113,8 +126,8 @@ onMounted(refresh)
       <div>
         <b>真实插件配置，与演示数据分开</b>
         <p>
-          开关只控制新会话加载，不会热停用已打开会话中的 Hook。关闭后请新建会话。 Hook 信任状态由
-          CLI 只读查询；项目配置也可能覆盖用户设置。
+          连接桥接宿主后，开关会等待 Desktop 热重载确认，并显示覆盖的会话数量。
+          未连接时只影响新会话，不热停用旧会话。项目配置可能覆盖用户设置；信任状态只读。
         </p>
       </div>
       <span class="badge">USER SCOPE</span>
@@ -124,7 +137,27 @@ onMounted(refresh)
       <Icon name="terminal" :size="20" /><span>{{ snapshot.reason }}</span>
     </div>
     <div v-if="!snapshot" class="empty" role="status">正在连接本机 Codex CLI…</div>
-    <div v-else class="behavior-grid">
+    <div v-if="snapshot" class="plugin-desktop-bridge inset" aria-label="Desktop 宿主连接">
+      <div>
+        <p class="eyebrow">DESKTOP / LIVE CONTROL</p>
+        <b>{{
+          snapshot.desktopBridge.state === 'connected'
+            ? '宿主已连接'
+            : snapshot.desktopBridge.state === 'error'
+              ? '连接异常，操作将停止'
+              : '即时停用 · 待连接 Desktop'
+        }}</b>
+        <p>{{ snapshot.desktopBridge.message }}</p>
+        <span v-if="snapshot.desktopBridge.state === 'connected'" class="badge"
+          >{{ snapshot.desktopBridge.hosts }} 个宿主 ·
+          {{ snapshot.desktopBridge.loadedThreads }} 个已加载会话</span
+        >
+      </div>
+      <button class="button" :disabled="!snapshot.available || !!busy" @click="connecting = true">
+        {{ snapshot.desktopBridge.state === 'connected' ? '连接说明' : '连接 Desktop' }}
+      </button>
+    </div>
+    <div v-if="snapshot" class="behavior-grid">
       <Panel
         v-for="plugin in snapshot.plugins"
         :key="plugin.id"
@@ -157,7 +190,9 @@ onMounted(refresh)
               busy === plugin.id
                 ? pendingAction
                 : plugin.installed
-                  ? '作用于新会话 · 不切换会话模式'
+                  ? snapshot.desktopBridge.state === 'connected'
+                    ? '保存后热重载已连接宿主'
+                    : '作用于新会话 · Desktop 尚未连接'
                   : '先安装，再启用'
             }}</small></span
           ><button
@@ -235,7 +270,8 @@ onMounted(refresh)
                   : 'Hooks · 状态未检测'
             }}</b>
             <p v-if="hooksOff(plugin)">
-              总开关已关闭，新会话不加载该插件的 Hook。关闭不会清除信任记录。
+              总开关已关闭，新会话不加载该插件的
+              Hook。已连接宿主以切换后的热重载回执为准；关闭不会清除信任记录。
             </p>
             <template v-else>
               <p>信任状态 · {{ trustLabel(plugin.hookTrust) }}</p>
@@ -301,7 +337,14 @@ onMounted(refresh)
         <div>
           <span class="eyebrow">TARGET</span><b>{{ snapshot.configTarget }}</b>
         </div>
-        <div><span class="eyebrow">SESSION EFFECT</span><b>新会话生效 · 不热停用旧会话</b></div>
+        <div>
+          <span class="eyebrow">SESSION EFFECT</span
+          ><b>{{
+            snapshot.desktopBridge.state === 'connected'
+              ? '已连接宿主支持热重载'
+              : '新会话生效 · 不热停用旧会话'
+          }}</b>
+        </div>
       </div>
       <p class="plugin-footnote">
         Hook 状态按 CLI 用户目录发现结果读取，不包含项目覆盖，也不代表 Codex Desktop 当前会话。
@@ -310,6 +353,25 @@ onMounted(refresh)
         再读回。
       </p></Panel
     >
+    <Modal v-if="connecting" title="连接 Desktop 宿主" @close="connecting = false">
+      <p>
+        首次接入需要先退出 Codex Desktop，再从 Atelier
+        启动。原有聊天保留，重新打开原来的聊天即可；之后开关无需重启或新建会话。
+      </p>
+      <p>
+        桥接只使用当前用户专属的本地 Unix socket，随 Desktop
+        退出回收。不会替换应用文件、启动常驻服务或自动批准 Hook。
+      </p>
+      <p>已执行的 Hook 和已注入内容不能撤回。其他独立启动的宿主不受此连接控制。</p>
+      <p>恢复普通启动：退出 Desktop，再从「应用程序」正常打开即可。</p>
+      <p v-if="error" role="alert" class="error-state">{{ error }}</p>
+      <div class="modal-actions">
+        <button class="button" :disabled="!!busy" @click="connecting = false">稍后连接</button
+        ><button class="button primary" :disabled="!!busy" @click="launchDesktop">
+          已退出 Desktop，启动桥接
+        </button>
+      </div>
+    </Modal>
     <Modal
       v-if="installing"
       :title="`安装 ${installing.name}`"

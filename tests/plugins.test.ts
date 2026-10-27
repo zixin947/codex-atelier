@@ -34,10 +34,68 @@ function fixture() {
       return structuredClone(data)
     }),
     rollback: vi.fn(async () => structuredClone(data)),
+    launchDesktop: vi.fn(async () => '已请求通过桥接启动 Desktop'),
   }
   return { data, service }
 }
 describe('real plugin controls', () => {
+  it('reports current-session reload only after the native owner acknowledges it', async () => {
+    const { data, service } = fixture()
+    data.desktopBridge = {
+      state: 'connected',
+      hosts: 1,
+      loadedThreads: 2,
+      message: '已连接 Desktop 桥接宿主',
+    }
+    data.plugins[0]!.enabled = true
+    service.setEnabled = vi.fn(async () => {
+      data.plugins[0]!.enabled = false
+      data.runtimeReceipt = 'Desktop 宿主已确认热重载 · 覆盖 2 个已加载会话'
+      return structuredClone(data)
+    })
+    const wrapper = mount(BehaviorPlugins, { props: { service } })
+    await flushPromises()
+    expect(wrapper.get('[aria-label="Desktop 宿主连接"]').text()).toContain('2 个已加载会话')
+    expect(wrapper.text()).not.toContain('已确认热重载')
+    await wrapper.get('[aria-label="Ponytail 插件加载"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.get('.plugin-operation-result').text()).toContain('已确认热重载')
+    expect(wrapper.get('.plugin-operation-result').text()).toContain('覆盖 2 个已加载会话')
+    wrapper.unmount()
+  })
+  it('requires the Desktop connection preview and retains its failure reason', async () => {
+    const { service } = fixture()
+    service.launchDesktop = vi.fn().mockRejectedValue('请先退出 Codex Desktop')
+    const wrapper = mount(BehaviorPlugins, { props: { service }, attachTo: document.body })
+    await flushPromises()
+    await wrapper.get('[aria-label="Desktop 宿主连接"] button').trigger('click')
+    expect(service.launchDesktop).not.toHaveBeenCalled()
+    expect(wrapper.get('dialog').text()).toContain('首次接入需要先退出')
+    await wrapper.get('dialog .primary').trigger('click')
+    await flushPromises()
+    expect(service.launchDesktop).toHaveBeenCalledOnce()
+    expect(wrapper.get('dialog [role=alert]').text()).toContain('请先退出')
+    expect(service.setEnabled).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+  it('does not claim hot reload when the host disconnects after a saved write', async () => {
+    const { data, service } = fixture()
+    data.desktopBridge = { state: 'connected', hosts: 1, loadedThreads: 1, message: '已连接' }
+    data.plugins[0]!.enabled = true
+    service.setEnabled = vi.fn(async () => {
+      data.plugins[0]!.enabled = false
+      data.desktopBridge.state = 'error'
+      throw new Error('配置已保存，但 Desktop 宿主未确认热重载')
+    })
+    const wrapper = mount(BehaviorPlugins, { props: { service } })
+    await flushPromises()
+    await wrapper.get('[aria-label="Ponytail 插件加载"]').trigger('click')
+    await flushPromises()
+    expect(wrapper.get('.plugin-operation-result.failed').text()).toContain('未确认热重载')
+    expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('aria-checked')).toBe('false')
+    expect(wrapper.get('[aria-label="Desktop 宿主连接"]').text()).toContain('连接异常')
+    wrapper.unmount()
+  })
   it('disables a running plugin only after readback and keeps the saved state after remount', async () => {
     const { data, service } = fixture()
     data.plugins.forEach((p) => {

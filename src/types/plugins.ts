@@ -46,8 +46,16 @@ export interface PluginSnapshot {
   revision: string
   configTarget: string
   plugins: BehaviorPlugin[]
+  desktopBridge: {
+    state: 'connected' | 'disconnected' | 'error'
+    hosts: number
+    loadedThreads: number
+    message: string
+  }
+  runtimeReceipt: string | null
 }
 export interface BehaviorPluginService {
+  launchDesktop(): Promise<string>
   status(): Promise<PluginSnapshot>
   install(id: BehaviorPluginId, revision: string): Promise<PluginSnapshot>
   setEnabled(id: BehaviorPluginId, enabled: boolean, revision: string): Promise<PluginSnapshot>

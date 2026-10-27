@@ -8,6 +8,13 @@ export function browserSnapshot(): PluginSnapshot {
     hostVersion: null,
     revision: '',
     configTarget: 'Codex 用户级插件配置',
+    desktopBridge: {
+      state: 'disconnected',
+      hosts: 0,
+      loadedThreads: 0,
+      message: '浏览器无法连接 Desktop 宿主。',
+    },
+    runtimeReceipt: null,
     plugins: catalog.map((p) => ({
       ...p,
       id: p.id as BehaviorPluginId,
@@ -36,6 +43,7 @@ function native<T>(command: string, args?: Record<string, unknown>): Promise<T> 
   return invoke<T>(command, args)
 }
 export const behaviorPluginService: BehaviorPluginService = {
+  launchDesktop: () => native('desktop_bridge_launch'),
   status: () =>
     isTauri() ? native('behavior_plugins_status') : Promise.resolve(browserSnapshot()),
   install: (id, expectedRevision) => native('behavior_plugin_install', { id, expectedRevision }),

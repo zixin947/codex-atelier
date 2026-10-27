@@ -1,0 +1,516 @@
+{
+  "date": "2026-10-27",
+  "scope": "Isolated clients using the real Atelier Rust switching path; live Desktop client acceptance left to user",
+  "engines": [
+    {
+      "cli": "codex-cli 0.164.0-alpha.11.1",
+      "isolation": "temporary CODEX_HOME and plugin state; loopback response fixture; no real model or credentials",
+      "sources": [
+        {
+          "plugin": "ponytail",
+          "version": "5.3.2",
+          "commit": "16352ac229eb08a9598dcae48fe9f2b342567d86"
+        },
+        {
+          "plugin": "stop-that-shit",
+          "version": "0.2.5",
+          "commit": "8bc1ac558167121e7f28d9fb0bec05c039952206"
+        }
+      ],
+      "stages": [
+        {
+          "stage": "bridge_positive",
+          "turnStatus": "completed",
+          "hookExecutions": 4
+        },
+        {
+          "stage": "bridge_disabled_same_thread",
+          "turnStatus": "completed",
+          "hookExecutions": 0
+        },
+        {
+          "stage": "bridge_reenabled_same_thread",
+          "turnStatus": "completed",
+          "hookExecutions": 3
+        },
+        {
+          "stage": "bridge_disabled_new_thread",
+          "turnStatus": "completed",
+          "hookExecutions": 0
+        }
+      ],
+      "hookRuns": [
+        {
+          "stage": "bridge_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 115,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "bridge_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 114,
+          "entries": []
+        },
+        {
+          "stage": "bridge_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 57,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "bridge_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 62,
+          "entries": []
+        },
+        {
+          "stage": "bridge_reenabled_same_thread",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 111,
+          "entries": []
+        },
+        {
+          "stage": "bridge_reenabled_same_thread",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 55,
+          "entries": []
+        },
+        {
+          "stage": "bridge_reenabled_same_thread",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 61,
+          "entries": []
+        },
+        {
+          "stage": "bridge_midturn_before",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 116,
+          "entries": []
+        },
+        {
+          "stage": "bridge_midturn_before",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 54,
+          "entries": []
+        },
+        {
+          "stage": "bridge_midturn_before",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 59,
+          "entries": []
+        }
+      ],
+      "commandCompletions": [
+        {
+          "stage": "bridge_positive",
+          "exitCode": 0,
+          "status": "completed"
+        },
+        {
+          "stage": "bridge_disabled_same_thread",
+          "exitCode": 0,
+          "status": "completed"
+        },
+        {
+          "stage": "bridge_reenabled_same_thread",
+          "exitCode": 0,
+          "status": "completed"
+        },
+        {
+          "stage": "bridge_midturn_before",
+          "exitCode": 0,
+          "status": "completed"
+        },
+        {
+          "stage": "bridge_midturn_after",
+          "exitCode": 0,
+          "status": "completed"
+        },
+        {
+          "stage": "bridge_disabled_new_thread",
+          "exitCode": 0,
+          "status": "completed"
+        }
+      ],
+      "requests": 11,
+      "toolCalls": 6,
+      "isolatedTrust": [
+        {
+          "pluginId": "ponytail@atelier-companions",
+          "eventName": "sessionStart",
+          "trustStatus": "trusted"
+        },
+        {
+          "pluginId": "ponytail@atelier-companions",
+          "eventName": "userPromptSubmit",
+          "trustStatus": "trusted"
+        },
+        {
+          "pluginId": "ponytail@atelier-companions",
+          "eventName": "subagentStart",
+          "trustStatus": "trusted"
+        },
+        {
+          "pluginId": "stop-that-shit@atelier-companions",
+          "eventName": "preToolUse",
+          "trustStatus": "trusted"
+        },
+        {
+          "pluginId": "stop-that-shit@atelier-companions",
+          "eventName": "postToolUse",
+          "trustStatus": "trusted"
+        },
+        {
+          "pluginId": "stop-that-shit@atelier-companions",
+          "eventName": "sessionEnd",
+          "trustStatus": "trusted"
+        },
+        {
+          "pluginId": "stop-that-shit@atelier-companions",
+          "eventName": "userPromptSubmit",
+          "trustStatus": "trusted"
+        }
+      ],
+      "nativeControl": [
+        {
+          "action": "disable",
+          "result": {
+            "desktopBridge": {
+              "hosts": 1,
+              "loadedThreads": 1,
+              "message": "已连接 Desktop 桥接宿主。切换后会等待宿主热重载确认；其他独立启动的宿主不在此范围。",
+              "state": "connected"
+            },
+            "runtimeReceipt": "Desktop 宿主已确认热重载 · 覆盖 1 个已加载会话 · 已运行的 Hook 和已注入内容不会撤回"
+          }
+        },
+        {
+          "action": "conflict",
+          "result": {
+            "conflictRejected": true
+          }
+        },
+        {
+          "action": "enable",
+          "result": {
+            "desktopBridge": {
+              "hosts": 1,
+              "loadedThreads": 1,
+              "message": "已连接 Desktop 桥接宿主。切换后会等待宿主热重载确认；其他独立启动的宿主不在此范围。",
+              "state": "connected"
+            },
+            "runtimeReceipt": "Desktop 宿主已确认热重载 · 覆盖 1 个已加载会话 · 已运行的 Hook 和已注入内容不会撤回"
+          }
+        },
+        {
+          "action": "disable",
+          "result": {
+            "desktopBridge": {
+              "hosts": 1,
+              "loadedThreads": 1,
+              "message": "已连接 Desktop 桥接宿主。切换后会等待宿主热重载确认；其他独立启动的宿主不在此范围。",
+              "state": "connected"
+            },
+            "runtimeReceipt": "Desktop 宿主已确认热重载 · 覆盖 1 个已加载会话 · 已运行的 Hook 和已注入内容不会撤回"
+          }
+        },
+        {
+          "action": "stale",
+          "result": {
+            "staleRejected": true
+          }
+        }
+      ],
+      "bridgeCounts": {
+        "bridge_midturn_before": 3,
+        "bridge_midturn_after": 0,
+        "bridge_session_end": 0
+      },
+      "result": "completed"
+    },
+    {
+      "cli": "codex-cli 0.164.0",
+      "isolation": "temporary CODEX_HOME and plugin state; loopback response fixture; no real model or credentials",
+      "sources": [
+        {
+          "plugin": "ponytail",
+          "version": "5.3.2",
+          "commit": "16352ac229eb08a9598dcae48fe9f2b342567d86"
+        },
+        {
+          "plugin": "stop-that-shit",
+          "version": "0.2.5",
+          "commit": "8bc1ac558167121e7f28d9fb0bec05c039952206"
+        }
+      ],
+      "stages": [
+        {
+          "stage": "bridge_positive",
+          "turnStatus": "completed",
+          "hookExecutions": 4
+        },
+        {
+          "stage": "bridge_disabled_same_thread",
+          "turnStatus": "completed",
+          "hookExecutions": 0
+        },
+        {
+          "stage": "bridge_reenabled_same_thread",
+          "turnStatus": "completed",
+          "hookExecutions": 3
+        },
+        {
+          "stage": "bridge_disabled_new_thread",
+          "turnStatus": "completed",
+          "hookExecutions": 0
+        }
+      ],
+      "hookRuns": [
+        {
+          "stage": "bridge_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 121,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "bridge_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 117,
+          "entries": []
+        },
+        {
+          "stage": "bridge_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 60,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "bridge_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 66,
+          "entries": []
+        },
+        {
+          "stage": "bridge_reenabled_same_thread",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 111,
+          "entries": []
+        },
+        {
+          "stage": "bridge_reenabled_same_thread",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 57,
+          "entries": []
+        },
+        {
+          "stage": "bridge_reenabled_same_thread",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 65,
+          "entries": []
+        },
+        {
+          "stage": "bridge_midturn_before",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 116,
+          "entries": []
+        },
+        {
+          "stage": "bridge_midturn_before",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 58,
+          "entries": []
+        },
+        {
+          "stage": "bridge_midturn_before",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 62,
+          "entries": []
+        }
+      ],
+      "commandCompletions": [
+        {
+          "stage": "bridge_positive",
+          "exitCode": 0,
+          "status": "completed"
+        },
+        {
+          "stage": "bridge_disabled_same_thread",
+          "exitCode": 0,
+          "status": "completed"
+        },
+        {
+          "stage": "bridge_reenabled_same_thread",
+          "exitCode": 0,
+          "status": "completed"
+        },
+        {
+          "stage": "bridge_midturn_before",
+          "exitCode": 0,
+          "status": "completed"
+        },
+        {
+          "stage": "bridge_midturn_after",
+          "exitCode": 0,
+          "status": "completed"
+        },
+        {
+          "stage": "bridge_disabled_new_thread",
+          "exitCode": 0,
+          "status": "completed"
+        }
+      ],
+      "requests": 11,
+      "toolCalls": 6,
+      "isolatedTrust": [
+        {
+          "pluginId": "ponytail@atelier-companions",
+          "eventName": "sessionStart",
+          "trustStatus": "trusted"
+        },
+        {
+          "pluginId": "ponytail@atelier-companions",
+          "eventName": "userPromptSubmit",
+          "trustStatus": "trusted"
+        },
+        {
+          "pluginId": "ponytail@atelier-companions",
+          "eventName": "subagentStart",
+          "trustStatus": "trusted"
+        },
+        {
+          "pluginId": "stop-that-shit@atelier-companions",
+          "eventName": "preToolUse",
+          "trustStatus": "trusted"
+        },
+        {
+          "pluginId": "stop-that-shit@atelier-companions",
+          "eventName": "postToolUse",
+          "trustStatus": "trusted"
+        },
+        {
+          "pluginId": "stop-that-shit@atelier-companions",
+          "eventName": "sessionEnd",
+          "trustStatus": "trusted"
+        },
+        {
+          "pluginId": "stop-that-shit@atelier-companions",
+          "eventName": "userPromptSubmit",
+          "trustStatus": "trusted"
+        }
+      ],
+      "nativeControl": [
+        {
+          "action": "disable",
+          "result": {
+            "desktopBridge": {
+              "hosts": 1,
+              "loadedThreads": 1,
+              "message": "已连接 Desktop 桥接宿主。切换后会等待宿主热重载确认；其他独立启动的宿主不在此范围。",
+              "state": "connected"
+            },
+            "runtimeReceipt": "Desktop 宿主已确认热重载 · 覆盖 1 个已加载会话 · 已运行的 Hook 和已注入内容不会撤回"
+          }
+        },
+        {
+          "action": "conflict",
+          "result": {
+            "conflictRejected": true
+          }
+        },
+        {
+          "action": "enable",
+          "result": {
+            "desktopBridge": {
+              "hosts": 1,
+              "loadedThreads": 1,
+              "message": "已连接 Desktop 桥接宿主。切换后会等待宿主热重载确认；其他独立启动的宿主不在此范围。",
+              "state": "connected"
+            },
+            "runtimeReceipt": "Desktop 宿主已确认热重载 · 覆盖 1 个已加载会话 · 已运行的 Hook 和已注入内容不会撤回"
+          }
+        },
+        {
+          "action": "disable",
+          "result": {
+            "desktopBridge": {
+              "hosts": 1,
+              "loadedThreads": 1,
+              "message": "已连接 Desktop 桥接宿主。切换后会等待宿主热重载确认；其他独立启动的宿主不在此范围。",
+              "state": "connected"
+            },
+            "runtimeReceipt": "Desktop 宿主已确认热重载 · 覆盖 1 个已加载会话 · 已运行的 Hook 和已注入内容不会撤回"
+          }
+        },
+        {
+          "action": "stale",
+          "result": {
+            "staleRejected": true
+          }
+        }
+      ],
+      "bridgeCounts": {
+        "bridge_midturn_before": 3,
+        "bridge_midturn_after": 0,
+        "bridge_session_end": 0
+      },
+      "result": "completed"
+    }
+  ]
+}

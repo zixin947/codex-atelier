@@ -1,0 +1,1072 @@
+{
+  "date": "2026-10-27",
+  "scope": "Isolated stdio owner hosts; desktop bundled engine tested, live Desktop client connection not established",
+  "engines": [
+    {
+      "version": "codex-cli 0.164.0",
+      "sources": [
+        {
+          "plugin": "ponytail",
+          "version": "5.3.2",
+          "commit": "16352ac229eb08a9598dcae48fe9f2b342567d86"
+        },
+        {
+          "plugin": "stop-that-shit",
+          "version": "0.2.5",
+          "commit": "8bc1ac558167121e7f28d9fb0bec05c039952206"
+        }
+      ],
+      "cases": [
+        {
+          "case": "plugin_write_helper",
+          "afterExecutions": 3,
+          "afterEvents": [
+            [
+              "ponytail",
+              "userPromptSubmit",
+              "completed"
+            ],
+            [
+              "stop-that-shit",
+              "userPromptSubmit",
+              "completed"
+            ],
+            [
+              "stop-that-shit",
+              "preToolUse",
+              "completed"
+            ]
+          ],
+          "sessionEndExecutions": 1
+        },
+        {
+          "case": "plugin_batch_reload_helper",
+          "afterExecutions": 3,
+          "afterEvents": [
+            [
+              "ponytail",
+              "userPromptSubmit",
+              "completed"
+            ],
+            [
+              "stop-that-shit",
+              "userPromptSubmit",
+              "completed"
+            ],
+            [
+              "stop-that-shit",
+              "preToolUse",
+              "completed"
+            ]
+          ],
+          "sessionEndExecutions": 1
+        },
+        {
+          "case": "plugin_batch_reload_owner",
+          "afterExecutions": 0,
+          "afterEvents": [],
+          "sessionEndExecutions": 0
+        },
+        {
+          "case": "hook_state_write_helper",
+          "afterExecutions": 3,
+          "afterEvents": [
+            [
+              "ponytail",
+              "userPromptSubmit",
+              "completed"
+            ],
+            [
+              "stop-that-shit",
+              "userPromptSubmit",
+              "completed"
+            ],
+            [
+              "stop-that-shit",
+              "preToolUse",
+              "completed"
+            ]
+          ],
+          "sessionEndExecutions": 1
+        },
+        {
+          "case": "hook_state_batch_reload_owner",
+          "afterExecutions": 0,
+          "afterEvents": [],
+          "sessionEndExecutions": 0
+        },
+        {
+          "case": "per_turn_disabled_plugins",
+          "afterExecutions": 0,
+          "afterEvents": [],
+          "sessionEndExecutions": 0
+        }
+      ],
+      "completedCommands": 12,
+      "hookRuns": [
+        {
+          "stage": "plugin_write_helper_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 113,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "plugin_write_helper_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 112,
+          "entries": []
+        },
+        {
+          "stage": "plugin_write_helper_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 58,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "plugin_write_helper_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 68,
+          "entries": []
+        },
+        {
+          "stage": "plugin_write_helper_after",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 121,
+          "entries": []
+        },
+        {
+          "stage": "plugin_write_helper_after",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 65,
+          "entries": []
+        },
+        {
+          "stage": "plugin_write_helper_after",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 62,
+          "entries": []
+        },
+        {
+          "stage": "plugin_write_helper_session_end",
+          "plugin": "stop-that-shit",
+          "eventName": "sessionEnd",
+          "status": "completed",
+          "durationMs": 116,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_helper_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 117,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "plugin_batch_reload_helper_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 118,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_helper_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 64,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "plugin_batch_reload_helper_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 60,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_helper_after",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 114,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_helper_after",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 56,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_helper_after",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 63,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_helper_session_end",
+          "plugin": "stop-that-shit",
+          "eventName": "sessionEnd",
+          "status": "completed",
+          "durationMs": 53,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_owner_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 115,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "plugin_batch_reload_owner_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 115,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_owner_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 57,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "plugin_batch_reload_owner_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 63,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_write_helper_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 139,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "hook_state_write_helper_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 118,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_write_helper_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 69,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "hook_state_write_helper_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 79,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_write_helper_after",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 118,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_write_helper_after",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 59,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_write_helper_after",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 61,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_write_helper_session_end",
+          "plugin": "stop-that-shit",
+          "eventName": "sessionEnd",
+          "status": "completed",
+          "durationMs": 55,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_batch_reload_owner_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 112,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "hook_state_batch_reload_owner_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 114,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_batch_reload_owner_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 61,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "hook_state_batch_reload_owner_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 61,
+          "entries": []
+        },
+        {
+          "stage": "per_turn_disabled_plugins_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 111,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "per_turn_disabled_plugins_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 111,
+          "entries": []
+        },
+        {
+          "stage": "per_turn_disabled_plugins_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 56,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "per_turn_disabled_plugins_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 59,
+          "entries": []
+        }
+      ],
+      "midTurn": {
+        "counts": {
+          "positive": 4,
+          "midturn_before_reload": 3,
+          "midturn_after_reload": 0,
+          "midturn_session_end": 0
+        },
+        "commands": [
+          {
+            "stage": "positive",
+            "exitCode": 0,
+            "status": "completed"
+          },
+          {
+            "stage": "midturn_before_reload",
+            "exitCode": 0,
+            "status": "completed"
+          },
+          {
+            "stage": "midturn_after_reload",
+            "exitCode": 0,
+            "status": "completed"
+          }
+        ],
+        "hookRuns": [
+          {
+            "stage": "positive",
+            "plugin": "ponytail",
+            "eventName": "sessionStart",
+            "status": "completed",
+            "durationMs": 135,
+            "entries": [
+              {
+                "kind": "context"
+              }
+            ]
+          },
+          {
+            "stage": "positive",
+            "plugin": "ponytail",
+            "eventName": "userPromptSubmit",
+            "status": "completed",
+            "durationMs": 163,
+            "entries": []
+          },
+          {
+            "stage": "positive",
+            "plugin": "stop-that-shit",
+            "eventName": "userPromptSubmit",
+            "status": "completed",
+            "durationMs": 111,
+            "entries": [
+              {
+                "kind": "context"
+              }
+            ]
+          },
+          {
+            "stage": "positive",
+            "plugin": "stop-that-shit",
+            "eventName": "preToolUse",
+            "status": "completed",
+            "durationMs": 80,
+            "entries": []
+          },
+          {
+            "stage": "midturn_before_reload",
+            "plugin": "ponytail",
+            "eventName": "userPromptSubmit",
+            "status": "completed",
+            "durationMs": 185,
+            "entries": []
+          },
+          {
+            "stage": "midturn_before_reload",
+            "plugin": "stop-that-shit",
+            "eventName": "userPromptSubmit",
+            "status": "completed",
+            "durationMs": 112,
+            "entries": []
+          },
+          {
+            "stage": "midturn_before_reload",
+            "plugin": "stop-that-shit",
+            "eventName": "preToolUse",
+            "status": "completed",
+            "durationMs": 91,
+            "entries": []
+          }
+        ],
+        "result": "completed"
+      },
+      "result": "completed"
+    },
+    {
+      "version": "codex-cli 0.164.0-alpha.11.1",
+      "sources": [
+        {
+          "plugin": "ponytail",
+          "version": "5.3.2",
+          "commit": "16352ac229eb08a9598dcae48fe9f2b342567d86"
+        },
+        {
+          "plugin": "stop-that-shit",
+          "version": "0.2.5",
+          "commit": "8bc1ac558167121e7f28d9fb0bec05c039952206"
+        }
+      ],
+      "cases": [
+        {
+          "case": "plugin_write_helper",
+          "afterExecutions": 3,
+          "afterEvents": [
+            [
+              "ponytail",
+              "userPromptSubmit",
+              "completed"
+            ],
+            [
+              "stop-that-shit",
+              "userPromptSubmit",
+              "completed"
+            ],
+            [
+              "stop-that-shit",
+              "preToolUse",
+              "completed"
+            ]
+          ],
+          "sessionEndExecutions": 1
+        },
+        {
+          "case": "plugin_batch_reload_helper",
+          "afterExecutions": 3,
+          "afterEvents": [
+            [
+              "ponytail",
+              "userPromptSubmit",
+              "completed"
+            ],
+            [
+              "stop-that-shit",
+              "userPromptSubmit",
+              "completed"
+            ],
+            [
+              "stop-that-shit",
+              "preToolUse",
+              "completed"
+            ]
+          ],
+          "sessionEndExecutions": 1
+        },
+        {
+          "case": "plugin_batch_reload_owner",
+          "afterExecutions": 0,
+          "afterEvents": [],
+          "sessionEndExecutions": 0
+        },
+        {
+          "case": "hook_state_write_helper",
+          "afterExecutions": 3,
+          "afterEvents": [
+            [
+              "ponytail",
+              "userPromptSubmit",
+              "completed"
+            ],
+            [
+              "stop-that-shit",
+              "userPromptSubmit",
+              "completed"
+            ],
+            [
+              "stop-that-shit",
+              "preToolUse",
+              "completed"
+            ]
+          ],
+          "sessionEndExecutions": 1
+        },
+        {
+          "case": "hook_state_batch_reload_owner",
+          "afterExecutions": 0,
+          "afterEvents": [],
+          "sessionEndExecutions": 0
+        },
+        {
+          "case": "per_turn_disabled_plugins",
+          "afterExecutions": 0,
+          "afterEvents": [],
+          "sessionEndExecutions": 0
+        }
+      ],
+      "completedCommands": 12,
+      "hookRuns": [
+        {
+          "stage": "plugin_write_helper_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 118,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "plugin_write_helper_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 114,
+          "entries": []
+        },
+        {
+          "stage": "plugin_write_helper_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 58,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "plugin_write_helper_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 63,
+          "entries": []
+        },
+        {
+          "stage": "plugin_write_helper_after",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 146,
+          "entries": []
+        },
+        {
+          "stage": "plugin_write_helper_after",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 87,
+          "entries": []
+        },
+        {
+          "stage": "plugin_write_helper_after",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 66,
+          "entries": []
+        },
+        {
+          "stage": "plugin_write_helper_session_end",
+          "plugin": "stop-that-shit",
+          "eventName": "sessionEnd",
+          "status": "completed",
+          "durationMs": 67,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_helper_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 139,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "plugin_batch_reload_helper_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 185,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_helper_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 116,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "plugin_batch_reload_helper_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 80,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_helper_after",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 149,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_helper_after",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 88,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_helper_after",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 72,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_helper_session_end",
+          "plugin": "stop-that-shit",
+          "eventName": "sessionEnd",
+          "status": "completed",
+          "durationMs": 69,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_owner_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 165,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "plugin_batch_reload_owner_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 144,
+          "entries": []
+        },
+        {
+          "stage": "plugin_batch_reload_owner_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 90,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "plugin_batch_reload_owner_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 96,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_write_helper_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 138,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "hook_state_write_helper_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 142,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_write_helper_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 97,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "hook_state_write_helper_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 67,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_write_helper_after",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 124,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_write_helper_after",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 59,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_write_helper_after",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 71,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_write_helper_session_end",
+          "plugin": "stop-that-shit",
+          "eventName": "sessionEnd",
+          "status": "completed",
+          "durationMs": 53,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_batch_reload_owner_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 128,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "hook_state_batch_reload_owner_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 124,
+          "entries": []
+        },
+        {
+          "stage": "hook_state_batch_reload_owner_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 71,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "hook_state_batch_reload_owner_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 63,
+          "entries": []
+        },
+        {
+          "stage": "per_turn_disabled_plugins_positive",
+          "plugin": "ponytail",
+          "eventName": "sessionStart",
+          "status": "completed",
+          "durationMs": 123,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "per_turn_disabled_plugins_positive",
+          "plugin": "ponytail",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 136,
+          "entries": []
+        },
+        {
+          "stage": "per_turn_disabled_plugins_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "userPromptSubmit",
+          "status": "completed",
+          "durationMs": 69,
+          "entries": [
+            {
+              "kind": "context"
+            }
+          ]
+        },
+        {
+          "stage": "per_turn_disabled_plugins_positive",
+          "plugin": "stop-that-shit",
+          "eventName": "preToolUse",
+          "status": "completed",
+          "durationMs": 65,
+          "entries": []
+        }
+      ],
+      "midTurn": {
+        "counts": {
+          "positive": 4,
+          "midturn_before_reload": 3,
+          "midturn_after_reload": 0,
+          "midturn_session_end": 0
+        },
+        "commands": [
+          {
+            "stage": "positive",
+            "exitCode": 0,
+            "status": "completed"
+          },
+          {
+            "stage": "midturn_before_reload",
+            "exitCode": 0,
+            "status": "completed"
+          },
+          {
+            "stage": "midturn_after_reload",
+            "exitCode": 0,
+            "status": "completed"
+          }
+        ],
+        "hookRuns": [
+          {
+            "stage": "positive",
+            "plugin": "ponytail",
+            "eventName": "sessionStart",
+            "status": "completed",
+            "durationMs": 117,
+            "entries": [
+              {
+                "kind": "context"
+              }
+            ]
+          },
+          {
+            "stage": "positive",
+            "plugin": "ponytail",
+            "eventName": "userPromptSubmit",
+            "status": "completed",
+            "durationMs": 124,
+            "entries": []
+          },
+          {
+            "stage": "positive",
+            "plugin": "stop-that-shit",
+            "eventName": "userPromptSubmit",
+            "status": "completed",
+            "durationMs": 69,
+            "entries": [
+              {
+                "kind": "context"
+              }
+            ]
+          },
+          {
+            "stage": "positive",
+            "plugin": "stop-that-shit",
+            "eventName": "preToolUse",
+            "status": "completed",
+            "durationMs": 71,
+            "entries": []
+          },
+          {
+            "stage": "midturn_before_reload",
+            "plugin": "ponytail",
+            "eventName": "userPromptSubmit",
+            "status": "completed",
+            "durationMs": 170,
+            "entries": []
+          },
+          {
+            "stage": "midturn_before_reload",
+            "plugin": "stop-that-shit",
+            "eventName": "userPromptSubmit",
+            "status": "completed",
+            "durationMs": 104,
+            "entries": []
+          },
+          {
+            "stage": "midturn_before_reload",
+            "plugin": "stop-that-shit",
+            "eventName": "preToolUse",
+            "status": "completed",
+            "durationMs": 79,
+            "entries": []
+          }
+        ],
+        "result": "completed"
+      },
+      "result": "completed"
+    }
+  ]
+}

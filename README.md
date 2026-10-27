@@ -54,6 +54,8 @@
 
 在独立的「行为插件」页安装 Ponytail 5.3.2 与 Stop That Shit 0.2.5，并一键启停插件加载。安装默认停用，写入后读回验证；可回退上次切换，外部变更时停止覆盖。刷新会只读查询 CLI 的 Hook 信任状态，区分已信任、待审阅、定义变化、未加载和读取失败，不自动授权。浏览器预览禁用真实操作。详见[行为插件使用与边界](docs/behavior-plugins.md)。
 
+新增可选 [Desktop 本地桥接](docs/desktop-bridge.md)：首次由你退出 Desktop，再从 Atelier 的「连接 Desktop」启动；继续原有聊天后，开关会向同一宿主请求热重载。未连接或重载失败时不会声称当前会话已停用。真实客户端尚未启用此连接，由你自行验收。
+
 ![macOS 原生行为插件页：Ponytail 的三个 Hook 已信任，STS 停用且未枚举](docs/screenshots/behavior-plugins-trust-native.png)
 
 ### 主工作台

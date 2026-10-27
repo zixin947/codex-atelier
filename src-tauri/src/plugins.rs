@@ -1,3 +1,4 @@
+use crate::desktop_bridge::{self, BridgeStatus};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::{
@@ -209,6 +210,8 @@ pub struct Snapshot {
     revision: String,
     config_target: String,
     plugins: Vec<PluginStatus>,
+    desktop_bridge: BridgeStatus,
+    runtime_receipt: Option<String>,
 }
 #[derive(Serialize, Deserialize)]
 struct Rollback {
@@ -341,7 +344,22 @@ impl Context {
             revision,
             config_target: "Codex 用户级插件配置".into(),
             plugins,
+            desktop_bridge: if self.isolated {
+                BridgeStatus::disconnected()
+            } else {
+                desktop_bridge::status(&self.codex_home())
+            },
+            runtime_receipt: None,
         })
+    }
+    fn codex_home(&self) -> PathBuf {
+        if self.isolated {
+            self.home.clone()
+        } else {
+            std::env::var_os("CODEX_HOME")
+                .map(PathBuf::from)
+                .unwrap_or_else(|| self.home.join(".codex"))
+        }
     }
     fn set(&self, id: PluginId, enabled: bool, expected: &str) -> Result<Snapshot, String> {
         let before = self.snapshot()?;
@@ -362,11 +380,34 @@ impl Context {
         if plugin.enabled == Some(enabled) {
             return Ok(before);
         }
+        #[cfg(unix)]
+        let mut owners = if self.isolated {
+            Vec::new()
+        } else {
+            desktop_bridge::owners(&self.codex_home())?
+        };
+        #[cfg(unix)]
+        let connected_threads: usize = owners.iter().map(|h| h.threads).sum();
         fs::create_dir_all(&self.data).map_err(|_| "无法创建插件回退记录目录。")?;
         let pending = self.data.join(format!("pending-{}.json", id.key()));
         private_write(&pending, &serde_json::to_vec(&json!({"id":id,"pluginId":plugin.plugin_id,"before":plugin.enabled,"beforeVersion":expected})).unwrap())?;
+        #[cfg(unix)]
+        let connected = !owners.is_empty();
+        #[cfg(not(unix))]
+        let connected = false;
+        #[cfg(unix)]
+        let mut rpc = if connected {
+            Rpc::from_owner(owners.remove(0))
+        } else {
+            self.rpc()?
+        };
+        #[cfg(not(unix))]
         let mut rpc = self.rpc()?;
-        let result = write_enabled(&mut rpc, &plugin.plugin_id, enabled, expected)?;
+        let result = if connected {
+            rpc.call("config/batchWrite", json!({"edits":[{"keyPath":format!("plugins.\"{}\".enabled",plugin.plugin_id),"value":enabled,"mergeStrategy":"replace"}],"expectedVersion":expected,"reloadUserConfig":true}))?
+        } else {
+            write_enabled(&mut rpc, &plugin.plugin_id, enabled, expected)?
+        };
         let after_version = result["version"]
             .as_str()
             .ok_or("Codex 写入未返回版本号。")?
@@ -384,7 +425,12 @@ impl Context {
             &serde_json::to_vec(&backup).unwrap(),
         )?;
         let _ = fs::remove_file(pending);
-        let after = self.snapshot()?;
+        #[cfg(unix)]
+        for owner in &mut owners {
+            owner.call("config/batchWrite", json!({"edits":[],"expectedVersion":backup.after_version,"reloadUserConfig":true}))
+                .map_err(|_| "配置已保存，但部分 Desktop 宿主未确认热重载。请刷新；不能视为所有当前会话已停用。")?;
+        }
+        let mut after = self.snapshot()?;
         let verified = after
             .plugins
             .iter()
@@ -392,6 +438,10 @@ impl Context {
             .unwrap();
         if result["status"] != "ok" || verified.enabled != Some(enabled) {
             return Err("配置已写入，但有效状态未匹配（可能受项目或管理策略覆盖）。请刷新或回退；未确认会话生效。".into());
+        }
+        #[cfg(unix)]
+        if connected {
+            after.runtime_receipt = Some(format!("Desktop 宿主已确认热重载 · 覆盖 {} 个已加载会话 · 已运行的 Hook 和已注入内容不会撤回", connected_threads));
         }
         Ok(after)
     }
@@ -591,11 +641,23 @@ fn run(mut cmd: Command, timeout: Duration) -> Result<Vec<u8>, String> {
     }
 }
 struct Rpc {
-    process: Process,
+    process: Option<Process>,
+    #[cfg(unix)]
+    owner: Option<desktop_bridge::Owner>,
     lines: mpsc::Receiver<Value>,
     next: u64,
 }
 impl Rpc {
+    #[cfg(unix)]
+    fn from_owner(owner: desktop_bridge::Owner) -> Self {
+        let (_, lines) = mpsc::channel();
+        Self {
+            process: None,
+            owner: Some(owner),
+            lines,
+            next: 0,
+        }
+    }
     fn start(mut cmd: Command) -> Result<Self, String> {
         let mut process = Process(
             cmd.stdin(Stdio::piped())
@@ -617,7 +679,9 @@ impl Rpc {
             }
         });
         let mut rpc = Self {
-            process,
+            process: Some(process),
+            #[cfg(unix)]
+            owner: None,
             lines,
             next: 0,
         };
@@ -629,12 +693,20 @@ impl Rpc {
         Ok(rpc)
     }
     fn send(&mut self, v: Value) -> Result<(), String> {
-        let input = self.process.0.stdin.as_mut().ok_or("配置接口已关闭。")?;
+        let input = self
+            .process
+            .as_mut()
+            .and_then(|p| p.0.stdin.as_mut())
+            .ok_or("配置接口已关闭。")?;
         writeln!(input, "{}", v)
             .and_then(|_| input.flush())
             .map_err(|_| "配置接口通信失败。".into())
     }
     fn call(&mut self, method: &str, params: Value) -> Result<Value, String> {
+        #[cfg(unix)]
+        if let Some(owner) = &mut self.owner {
+            return owner.call(method, params);
+        }
         self.next += 1;
         let id = self.next;
         self.send(json!({"id":id,"method":method,"params":params}))?;
@@ -717,6 +789,8 @@ fn unavailable(reason: String) -> Snapshot {
                 hook_trust: HookTrust::unknown("未连接本机 Codex CLI，无法读取 Hook 信任状态。"),
             })
             .collect(),
+        desktop_bridge: BridgeStatus::disconnected(),
+        runtime_receipt: None,
     }
 }
 #[tauri::command]
@@ -775,6 +849,75 @@ pub async fn behavior_plugin_rollback(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    #[ignore = "called by the isolated Desktop bridge acceptance harness only"]
+    fn bridge_acceptance_control() {
+        let root = PathBuf::from(
+            std::env::var_os("ATELIER_BRIDGE_ACCEPTANCE_ROOT").expect("isolated root required"),
+        );
+        let root = fs::canonicalize(root).unwrap();
+        assert!(root.starts_with(fs::canonicalize(std::env::temp_dir()).unwrap()));
+        assert_eq!(
+            fs::read_to_string(root.join("acceptance-marker")).unwrap(),
+            "atelier-isolated-bridge-test"
+        );
+        assert_eq!(
+            PathBuf::from(std::env::var_os("CODEX_HOME").unwrap()),
+            root.join("codex")
+        );
+        assert_eq!(desktop_bridge::directory(), root.join("bridge"));
+        let ctx = Context {
+            binary: PathBuf::from(std::env::var_os("ATELIER_REAL_CODEX").unwrap()),
+            home: PathBuf::from(std::env::var_os("HOME").unwrap()),
+            data: root.join("control-data"),
+            isolated: false,
+        };
+        let action = std::env::var("ATELIER_BRIDGE_ACCEPTANCE_ACTION").unwrap();
+        let before = ctx.snapshot().unwrap();
+        if action == "stale" {
+            assert_eq!(before.desktop_bridge.state, "error");
+            assert!(ctx.set(PluginId::Ponytail, true, &before.revision).is_err());
+            assert_eq!(ctx.snapshot().unwrap().revision, before.revision);
+            println!("ATELIER_RESULT {{\"staleRejected\":true}}");
+            return;
+        }
+        assert_eq!(before.desktop_bridge.state, "connected");
+        assert_eq!(before.desktop_bridge.loaded_threads, 1);
+        if action == "conflict" {
+            let mut rpc = ctx.rpc().unwrap();
+            rpc.call("config/value/write", json!({"keyPath":"model","value":"atelier-conflict-probe","mergeStrategy":"replace","expectedVersion":before.revision})).unwrap();
+            assert!(ctx.set(PluginId::Ponytail, true, &before.revision).is_err());
+            let changed = ctx.snapshot().unwrap();
+            assert_eq!(
+                changed
+                    .plugins
+                    .iter()
+                    .map(|p| p.enabled)
+                    .collect::<Vec<_>>(),
+                before.plugins.iter().map(|p| p.enabled).collect::<Vec<_>>()
+            );
+            rpc.call("config/value/write", json!({"keyPath":"model","value":"atelier-local-probe","mergeStrategy":"replace","expectedVersion":changed.revision})).unwrap();
+            println!("ATELIER_RESULT {{\"conflictRejected\":true}}");
+            return;
+        }
+        assert!(matches!(action.as_str(), "enable" | "disable"));
+        let mut after = before;
+        for id in [PluginId::Ponytail, PluginId::StopThatShit] {
+            after = ctx.set(id, action == "enable", &after.revision).unwrap();
+            assert!(after
+                .runtime_receipt
+                .as_ref()
+                .is_some_and(|r| r.contains("热重载")));
+        }
+        assert!(after
+            .plugins
+            .iter()
+            .all(|p| p.enabled == Some(action == "enable")));
+        println!(
+            "ATELIER_RESULT {}",
+            json!({"runtimeReceipt":after.runtime_receipt,"desktopBridge":after.desktop_bridge})
+        );
+    }
     fn hook_fixture(hooks: Value) -> Result<Value, String> {
         Ok(json!({"data":[{"cwd":"/fixture", "hooks":hooks,"warnings":[],"errors":[]}]}))
     }

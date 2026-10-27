@@ -85,7 +85,7 @@ onMounted(() => store.load())
     <footer class="statusbar">
       <span
         ><i class="dot" /> {{ realPlugins ? 'LOCAL PLUGIN ADAPTER' : 'DEMO ADAPTER' }}
-        <b>{{ realPlugins ? '本机插件管理 · 新会话生效' : '本地演示 · 未连接 Codex' }}</b></span
+        <b>{{ realPlugins ? '本机插件管理 · 生效范围见回执' : '本地演示 · 未连接 Codex' }}</b></span
       ><span>无后台服务 <span>/</span> 无遥测 <span>/</span> v0.1.0</span>
     </footer>
   </div>

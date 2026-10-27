@@ -2273,3 +2273,21 @@ main {
     row-gap: 20px;
   }
 }
+
+.plugin-desktop-bridge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+  padding: var(--space-4, 16px);
+  margin-bottom: var(--space-4, 16px);
+}
+.plugin-desktop-bridge p {
+  margin: 6px 0;
+}
+.plugin-desktop-bridge > div {
+  min-width: 0;
+}
+.plugin-desktop-bridge > .button {
+  flex-shrink: 0;
+}
