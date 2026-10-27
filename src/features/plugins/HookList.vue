@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import type { HookDetail } from '../../types/plugins'
-defineProps<{ pluginName: string; pluginId: string; hooks: HookDetail[] }>()
+defineProps<{
+  pluginName: string
+  pluginId: string
+  pluginEnabled: boolean | null
+  hooks: HookDetail[]
+}>()
 const events: Record<string, string> = {
   sessionStart: '会话启动时',
   userPromptSubmit: '提交消息时',
@@ -49,6 +54,7 @@ function eventCode(event: string) {
         </div>
         <div class="hook-event">
           <code>{{ eventCode(hook.eventName) }}</code
+          ><span v-if="pluginEnabled === false">随插件停用</span
           ><span v-if="!hook.enabled">此 Hook 已单独停用</span>
         </div>
         <details class="hook-details">

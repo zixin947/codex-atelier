@@ -63,6 +63,9 @@ describe('real plugin controls', () => {
     await flushPromises()
     expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('aria-checked')).toBe('false')
     expect(wrapper.get('.plugin-operation-result').text()).toContain('已停用 · 已保存并读回')
+    const hooks = wrapper.get('[aria-label="Ponytail Hook 信任状态"]')
+    expect(hooks.text()).toContain('随插件停用')
+    expect(hooks.classes()).not.toContain('trust-ok')
     expect(wrapper.get('[aria-label="Stop That Shit 插件加载"]').attributes('aria-checked')).toBe(
       'true',
     )
@@ -115,10 +118,17 @@ describe('real plugin controls', () => {
     expect(list.find('script').exists()).toBe(false)
     expect(wrapper.find('[aria-label="Stop That Shit Hook 明细"]').exists()).toBe(false)
     expect(service.setEnabled).not.toHaveBeenCalled()
+    expect(list.text()).toContain('随插件停用')
+    await wrapper.get('[aria-label="Ponytail 插件加载"]').trigger('click')
+    await flushPromises()
+    expect(list.text()).not.toContain('随插件停用')
+    expect(list.text()).toContain('此 Hook 已单独停用')
+    expect(data.plugins[0]!.hookTrust.hooks[1]!.enabled).toBe(false)
     wrapper.unmount()
   })
   it('reads trust again on refresh and distinguishes changed definitions', async () => {
     const { data, service } = fixture()
+    data.plugins[0]!.enabled = true
     data.plugins[0]!.hookTrust = {
       ...data.plugins[0]!.hookTrust,
       state: 'trusted',
@@ -148,6 +158,7 @@ describe('real plugin controls', () => {
   })
   it('shows unavailable or unloaded trust without claiming it is untrusted', async () => {
     const { data, service } = fixture()
+    data.plugins[0]!.enabled = true
     data.plugins[0]!.hookTrust.reason = 'Hook 读取失败，稍后刷新'
     data.plugins[1]!.hookTrust = {
       ...data.plugins[1]!.hookTrust,
@@ -158,7 +169,7 @@ describe('real plugin controls', () => {
     await flushPromises()
     expect(wrapper.get('[aria-label="Ponytail Hook 信任状态"]').text()).toContain('无法读取')
     expect(wrapper.get('[aria-label="Stop That Shit Hook 信任状态"]').text()).toContain(
-      '未加载，无法判断信任',
+      '随插件停用',
     )
     expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('disabled')).toBeUndefined()
     expect(wrapper.text()).not.toContain('首次启用前')

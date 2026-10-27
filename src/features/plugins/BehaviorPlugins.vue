@@ -35,6 +35,9 @@ function trustLabel(trust: HookTrust) {
       return '无法读取'
   }
 }
+function hooksOff(plugin: BehaviorPlugin) {
+  return plugin.installed === true && plugin.enabled === false
+}
 async function refresh() {
   busy.value = 'refresh'
   error.value = ''
@@ -205,49 +208,67 @@ onMounted(refresh)
         <div
           class="inset behavior-trust"
           :class="{
-            'trust-ok': plugin.hookTrust.state === 'trusted',
-            'trust-review': plugin.hookTrust.state === 'reviewRequired',
+            'trust-ok': plugin.enabled === true && plugin.hookTrust.state === 'trusted',
+            'trust-review': plugin.enabled === true && plugin.hookTrust.state === 'reviewRequired',
           }"
           role="status"
           :aria-label="`${plugin.name} Hook 信任状态`"
         >
           <Icon
             :name="
-              plugin.hookTrust.state === 'trusted'
-                ? 'shield'
-                : plugin.hookTrust.state === 'reviewRequired'
-                  ? 'alert'
-                  : 'terminal'
+              hooksOff(plugin)
+                ? 'plug'
+                : plugin.hookTrust.state === 'trusted'
+                  ? 'shield'
+                  : plugin.hookTrust.state === 'reviewRequired'
+                    ? 'alert'
+                    : 'terminal'
             "
             :size="17"
           />
           <div>
-            <b>Hook 信任 · {{ trustLabel(plugin.hookTrust) }}</b>
-            <p v-if="plugin.hookTrust.total">
-              {{ plugin.hookTrust.trusted + plugin.hookTrust.managed }}/{{ plugin.hookTrust.total }}
-              已批准
-              <span v-if="plugin.hookTrust.managed">
-                · {{ plugin.hookTrust.managed }} 项由策略信任</span
-              >
-              <span v-if="plugin.hookTrust.untrusted">
-                · {{ plugin.hookTrust.untrusted }} 项待信任</span
-              >
-              <span v-if="plugin.hookTrust.modified">
-                · {{ plugin.hookTrust.modified }} 项定义变化</span
-              >
-              <span v-if="plugin.hookTrust.disabled">
-                · {{ plugin.hookTrust.disabled }} 项已单独停用</span
-              >
+            <b>{{
+              hooksOff(plugin)
+                ? 'Hooks · 随插件停用'
+                : plugin.enabled === true
+                  ? 'Hooks · 随插件加载'
+                  : 'Hooks · 状态未检测'
+            }}</b>
+            <p v-if="hooksOff(plugin)">
+              总开关已关闭，新会话不加载该插件的 Hook。关闭不会清除信任记录。
             </p>
-            <p v-if="plugin.hookTrust.reason">{{ plugin.hookTrust.reason }}</p>
-            <p v-if="plugin.hookTrust.state === 'reviewRequired'">
-              请在 Codex CLI 的 /hooks 中审阅当前定义并决定是否信任。
-            </p>
+            <template v-else>
+              <p>信任状态 · {{ trustLabel(plugin.hookTrust) }}</p>
+              <p v-if="plugin.enabled === true">各条 Hook 仍以自身启用与信任状态为准。</p>
+              <p v-if="plugin.hookTrust.total">
+                {{ plugin.hookTrust.trusted + plugin.hookTrust.managed }}/{{
+                  plugin.hookTrust.total
+                }}
+                已批准
+                <span v-if="plugin.hookTrust.managed">
+                  · {{ plugin.hookTrust.managed }} 项由策略信任</span
+                >
+                <span v-if="plugin.hookTrust.untrusted">
+                  · {{ plugin.hookTrust.untrusted }} 项待信任</span
+                >
+                <span v-if="plugin.hookTrust.modified">
+                  · {{ plugin.hookTrust.modified }} 项定义变化</span
+                >
+                <span v-if="plugin.hookTrust.disabled">
+                  · {{ plugin.hookTrust.disabled }} 项已单独停用</span
+                >
+              </p>
+              <p v-if="plugin.hookTrust.reason">{{ plugin.hookTrust.reason }}</p>
+              <p v-if="plugin.hookTrust.state === 'reviewRequired'">
+                请在 Codex CLI 的 /hooks 中审阅当前定义并决定是否信任。
+              </p>
+            </template>
           </div>
         </div>
         <HookList
           :plugin-name="plugin.name"
           :plugin-id="plugin.pluginId"
+          :plugin-enabled="plugin.enabled"
           :hooks="plugin.hookTrust.hooks"
         />
         <dl class="behavior-meta">
