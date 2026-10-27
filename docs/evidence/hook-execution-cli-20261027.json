@@ -1,0 +1,198 @@
+{
+  "cli": "codex-cli 0.164.0",
+  "isolation": "temporary CODEX_HOME and plugin state; loopback response fixture; no real model or credentials",
+  "sources": [
+    {
+      "plugin": "ponytail",
+      "version": "5.3.2",
+      "commit": "16352ac229eb08a9598dcae48fe9f2b342567d86"
+    },
+    {
+      "plugin": "stop-that-shit",
+      "version": "0.2.5",
+      "commit": "8bc1ac558167121e7f28d9fb0bec05c039952206"
+    }
+  ],
+  "stages": [
+    {
+      "stage": "enabled_existing_positive_control",
+      "threadId": "01a17c48-7b94-7753-8794-f5079b7b3125",
+      "turnId": "01a17c48-7bf9-7fa3-a2a5-bc030c0396ec",
+      "turnStatus": "completed",
+      "hookExecutions": 4
+    },
+    {
+      "stage": "disabled_existing_thread",
+      "threadId": "01a17c48-7b94-7753-8794-f5079b7b3125",
+      "turnId": "01a17c48-7de2-7850-9000-0a4db609d267",
+      "turnStatus": "completed",
+      "hookExecutions": 3
+    },
+    {
+      "stage": "disabled_new_thread_same_host",
+      "threadId": "01a17c48-7ef7-7d80-886d-b19517ee93cf",
+      "turnId": "01a17c48-7eff-7fe0-a750-f273fcabdd9b",
+      "turnStatus": "completed",
+      "hookExecutions": 0
+    },
+    {
+      "stage": "disabled_new_thread_fresh_host",
+      "threadId": "01a17c48-7f9e-7963-b12d-1111215f44a5",
+      "turnId": "01a17c48-7faa-7572-ae6c-187625803420",
+      "turnStatus": "completed",
+      "hookExecutions": 0
+    }
+  ],
+  "hookRuns": [
+    {
+      "stage": "enabled_existing_positive_control",
+      "threadId": "01a17c48-7b94-7753-8794-f5079b7b3125",
+      "runId": "session-start:0:/private/var/folders/3x/ckrb_0656ssfnn_qnrgwd5_00000gp/T/atelier-hook-runtime-lxkwroll/codex/plugins/cache/atelier-companions/ponytail/5.3.2/hooks/claude-codex-hooks.json",
+      "plugin": "ponytail",
+      "eventName": "sessionStart",
+      "status": "completed",
+      "durationMs": 113,
+      "entries": [
+        {
+          "kind": "context"
+        }
+      ]
+    },
+    {
+      "stage": "enabled_existing_positive_control",
+      "threadId": "01a17c48-7b94-7753-8794-f5079b7b3125",
+      "runId": "user-prompt-submit:1:/private/var/folders/3x/ckrb_0656ssfnn_qnrgwd5_00000gp/T/atelier-hook-runtime-lxkwroll/codex/plugins/cache/atelier-companions/ponytail/5.3.2/hooks/claude-codex-hooks.json",
+      "plugin": "ponytail",
+      "eventName": "userPromptSubmit",
+      "status": "completed",
+      "durationMs": 114,
+      "entries": []
+    },
+    {
+      "stage": "enabled_existing_positive_control",
+      "threadId": "01a17c48-7b94-7753-8794-f5079b7b3125",
+      "runId": "user-prompt-submit:6:/private/var/folders/3x/ckrb_0656ssfnn_qnrgwd5_00000gp/T/atelier-hook-runtime-lxkwroll/codex/plugins/cache/atelier-companions/stop-that-shit/0.2.5/hooks/codex-hooks.json",
+      "plugin": "stop-that-shit",
+      "eventName": "userPromptSubmit",
+      "status": "completed",
+      "durationMs": 58,
+      "entries": [
+        {
+          "kind": "context"
+        }
+      ]
+    },
+    {
+      "stage": "enabled_existing_positive_control",
+      "threadId": "01a17c48-7b94-7753-8794-f5079b7b3125",
+      "runId": "pre-tool-use:3:/private/var/folders/3x/ckrb_0656ssfnn_qnrgwd5_00000gp/T/atelier-hook-runtime-lxkwroll/codex/plugins/cache/atelier-companions/stop-that-shit/0.2.5/hooks/codex-hooks.json:call_probe_1",
+      "plugin": "stop-that-shit",
+      "eventName": "preToolUse",
+      "status": "completed",
+      "durationMs": 59,
+      "entries": []
+    },
+    {
+      "stage": "disabled_existing_thread",
+      "threadId": "01a17c48-7b94-7753-8794-f5079b7b3125",
+      "runId": "user-prompt-submit:1:/private/var/folders/3x/ckrb_0656ssfnn_qnrgwd5_00000gp/T/atelier-hook-runtime-lxkwroll/codex/plugins/cache/atelier-companions/ponytail/5.3.2/hooks/claude-codex-hooks.json",
+      "plugin": "ponytail",
+      "eventName": "userPromptSubmit",
+      "status": "completed",
+      "durationMs": 123,
+      "entries": []
+    },
+    {
+      "stage": "disabled_existing_thread",
+      "threadId": "01a17c48-7b94-7753-8794-f5079b7b3125",
+      "runId": "user-prompt-submit:6:/private/var/folders/3x/ckrb_0656ssfnn_qnrgwd5_00000gp/T/atelier-hook-runtime-lxkwroll/codex/plugins/cache/atelier-companions/stop-that-shit/0.2.5/hooks/codex-hooks.json",
+      "plugin": "stop-that-shit",
+      "eventName": "userPromptSubmit",
+      "status": "completed",
+      "durationMs": 72,
+      "entries": []
+    },
+    {
+      "stage": "disabled_existing_thread",
+      "threadId": "01a17c48-7b94-7753-8794-f5079b7b3125",
+      "runId": "pre-tool-use:3:/private/var/folders/3x/ckrb_0656ssfnn_qnrgwd5_00000gp/T/atelier-hook-runtime-lxkwroll/codex/plugins/cache/atelier-companions/stop-that-shit/0.2.5/hooks/codex-hooks.json:call_probe_3",
+      "plugin": "stop-that-shit",
+      "eventName": "preToolUse",
+      "status": "completed",
+      "durationMs": 61,
+      "entries": []
+    },
+    {
+      "stage": "disabled_existing_session_end",
+      "threadId": "01a17c48-7b94-7753-8794-f5079b7b3125",
+      "runId": "session-end:5:/private/var/folders/3x/ckrb_0656ssfnn_qnrgwd5_00000gp/T/atelier-hook-runtime-lxkwroll/codex/plugins/cache/atelier-companions/stop-that-shit/0.2.5/hooks/codex-hooks.json",
+      "plugin": "stop-that-shit",
+      "eventName": "sessionEnd",
+      "status": "completed",
+      "durationMs": 59,
+      "entries": []
+    }
+  ],
+  "commandCompletions": [
+    {
+      "stage": "enabled_existing_positive_control",
+      "exitCode": 0,
+      "status": "completed"
+    },
+    {
+      "stage": "disabled_existing_thread",
+      "exitCode": 0,
+      "status": "completed"
+    },
+    {
+      "stage": "disabled_new_thread_same_host",
+      "exitCode": 0,
+      "status": "completed"
+    },
+    {
+      "stage": "disabled_new_thread_fresh_host",
+      "exitCode": 0,
+      "status": "completed"
+    }
+  ],
+  "requests": 8,
+  "toolCalls": 4,
+  "isolatedTrust": [
+    {
+      "pluginId": "ponytail@atelier-companions",
+      "eventName": "sessionStart",
+      "trustStatus": "trusted"
+    },
+    {
+      "pluginId": "ponytail@atelier-companions",
+      "eventName": "userPromptSubmit",
+      "trustStatus": "trusted"
+    },
+    {
+      "pluginId": "ponytail@atelier-companions",
+      "eventName": "subagentStart",
+      "trustStatus": "trusted"
+    },
+    {
+      "pluginId": "stop-that-shit@atelier-companions",
+      "eventName": "preToolUse",
+      "trustStatus": "trusted"
+    },
+    {
+      "pluginId": "stop-that-shit@atelier-companions",
+      "eventName": "postToolUse",
+      "trustStatus": "trusted"
+    },
+    {
+      "pluginId": "stop-that-shit@atelier-companions",
+      "eventName": "sessionEnd",
+      "trustStatus": "trusted"
+    },
+    {
+      "pluginId": "stop-that-shit@atelier-companions",
+      "eventName": "userPromptSubmit",
+      "trustStatus": "trusted"
+    }
+  ],
+  "result": "completed"
+}

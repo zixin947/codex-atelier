@@ -113,8 +113,8 @@ onMounted(refresh)
       <div>
         <b>真实插件配置，与演示数据分开</b>
         <p>
-          开关控制插件在新会话中的加载。Hook 信任状态由 CLI 只读查询，刷新即可重读；
-          当前会话执行效果未验证，项目配置也可能覆盖用户设置。
+          开关只控制新会话加载，不会热停用已打开会话中的 Hook。关闭后请新建会话。 Hook 信任状态由
+          CLI 只读查询；项目配置也可能覆盖用户设置。
         </p>
       </div>
       <span class="badge">USER SCOPE</span>
@@ -301,7 +301,7 @@ onMounted(refresh)
         <div>
           <span class="eyebrow">TARGET</span><b>{{ snapshot.configTarget }}</b>
         </div>
-        <div><span class="eyebrow">SESSION EFFECT</span><b>未观测 · 新会话验证</b></div>
+        <div><span class="eyebrow">SESSION EFFECT</span><b>新会话生效 · 不热停用旧会话</b></div>
       </div>
       <p class="plugin-footnote">
         Hook 状态按 CLI 用户目录发现结果读取，不包含项目覆盖，也不代表 Codex Desktop 当前会话。

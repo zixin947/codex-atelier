@@ -202,7 +202,7 @@ describe('real plugin controls', () => {
     expect(wrapper.get('[aria-label="Stop That Shit 插件加载"]').attributes('aria-checked')).toBe(
       'false',
     )
-    expect(wrapper.text()).toContain('未观测')
+    expect(wrapper.text()).toContain('不热停用旧会话')
     wrapper.unmount()
   })
   it('keeps the last real state and shows errors when a write fails', async () => {
