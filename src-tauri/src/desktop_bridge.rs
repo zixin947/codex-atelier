@@ -298,8 +298,43 @@ mod native {
         if socket.exists() {
             return Err("桥接 socket 已存在，未覆盖。".into());
         }
+        let mut launch_args = args.to_vec();
+        if let Ok(base) = std::env::var("ATELIER_GATEWAY_URL") {
+            let url = url::Url::parse(&base).map_err(|_| "网关地址格式错误。")?;
+            if url.scheme() != "http"
+                || url.host_str() != Some("127.0.0.1")
+                || url.path() != "/v1"
+                || url.port().is_none()
+            {
+                return Err("只允许连接本机 Atelier 网关。".into());
+            }
+            let model = std::env::var("ATELIER_GATEWAY_MODEL").map_err(|_| "网关模型未指定。")?;
+            if std::env::var("ATELIER_GATEWAY_TOKEN")
+                .unwrap_or_default()
+                .is_empty()
+            {
+                return Err("网关访问密钥缺失。".into());
+            }
+            let overrides = [
+                "model_provider=\"atelier_gateway\"".to_string(),
+                format!("model={}", serde_json::to_string(&model).unwrap()),
+                "model_providers.atelier_gateway.name=\"Codex Atelier\"".to_string(),
+                format!(
+                    "model_providers.atelier_gateway.base_url={}",
+                    serde_json::to_string(&base).unwrap()
+                ),
+                "model_providers.atelier_gateway.env_key=\"ATELIER_GATEWAY_TOKEN\"".to_string(),
+                "model_providers.atelier_gateway.wire_api=\"responses\"".to_string(),
+                "model_providers.atelier_gateway.requires_openai_auth=false".to_string(),
+                "model_providers.atelier_gateway.supports_websockets=false".to_string(),
+            ];
+            for value in overrides {
+                launch_args.push("-c".into());
+                launch_args.push(value.into());
+            }
+        }
         let child = Command::new(binary)
-            .args(args)
+            .args(&launch_args)
             .arg("--listen")
             .arg(format!("unix://{}", socket.display()))
             .stdin(Stdio::null())
@@ -497,6 +532,13 @@ pub fn status(_: &Path) -> BridgeStatus {
 
 #[tauri::command]
 pub async fn desktop_bridge_launch() -> Result<String, String> {
+    launch_desktop(None)
+}
+
+pub fn launch_with_gateway(base: &str, token: &str, model: &str) -> Result<String, String> {
+    launch_desktop(Some((base, token, model)))
+}
+fn launch_desktop(gateway: Option<(&str, &str, &str)>) -> Result<String, String> {
     #[cfg(target_os = "macos")]
     {
         use std::process::{Command, Stdio};
@@ -513,13 +555,26 @@ pub async fn desktop_bridge_launch() -> Result<String, String> {
         if !real.is_file() {
             return Err("未找到受支持的 Desktop 安装路径。".into());
         }
-        Command::new("/Applications/ChatGPT.app/Contents/MacOS/ChatGPT")
+        let mut command = Command::new("/Applications/ChatGPT.app/Contents/MacOS/ChatGPT");
+        command
             .env(
                 "CODEX_CLI_PATH",
                 std::env::current_exe().map_err(|_| "无法定位 Atelier 桥接程序。")?,
             )
             .env("ATELIER_DESKTOP_BRIDGE", "1")
-            .env("ATELIER_REAL_CODEX", real)
+            .env("ATELIER_REAL_CODEX", real);
+        if let Some((base, token, model)) = gateway {
+            command
+                .env("ATELIER_GATEWAY_URL", base)
+                .env("ATELIER_GATEWAY_TOKEN", token)
+                .env("ATELIER_GATEWAY_MODEL", model);
+        } else {
+            command
+                .env_remove("ATELIER_GATEWAY_URL")
+                .env_remove("ATELIER_GATEWAY_TOKEN")
+                .env_remove("ATELIER_GATEWAY_MODEL");
+        }
+        command
             .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::null())

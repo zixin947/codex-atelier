@@ -13,3 +13,18 @@ serde_json = "1"
 libc = "0.2"
 signal-hook = "0.4"
 tungstenite = { version = "0.30", default-features = false, features = ["handshake"] }
+tokio = { version = "1", features = ["rt-multi-thread", "net", "sync", "time", "macros", "io-util", "process"] }
+axum = "0.8"
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
+futures-util = "0.3"
+async-stream = "0.3"
+bytes = "1"
+httpdate = "1"
+uuid = { version = "1", features = ["v4"] }
+base64 = "0.22"
+sha2 = "0.10"
+jsonwebtoken = { version = "10", default-features = false, features = ["rust_crypto"] }
+fs2 = "0.4"
+url = "2"
+toml = "0.9"
+time = { version = "0.3", features = ["parsing"] }

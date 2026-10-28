@@ -1,0 +1,2 @@
+# Preserve upstream contour sources and their original comments/formatting.
+src/shared/background/vendor/*.js

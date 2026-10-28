@@ -1,0 +1,370 @@
+@import '../tokens/endfield-account.css';
+
+/* Rounded Endfield housings with inset screens; layout and services stay separate. */
+[data-theme='endfield'] .account-card.panel {
+  background: var(--field-card-paper);
+  color: var(--field-card-ink);
+  border: 1px solid var(--field-card-rule);
+  border-radius: var(--field-card-radius);
+  box-shadow: var(--field-card-shadow);
+  transition:
+    box-shadow var(--motion),
+    border-color var(--motion);
+}
+[data-theme='endfield'] .account-card.panel:hover {
+  box-shadow: var(--field-card-hover-shadow);
+  border-color: var(--field-card-mint-edge);
+}
+[data-theme='endfield'] .account-card.current {
+  border-color: var(--field-card-current-edge);
+  box-shadow:
+    var(--field-card-shadow),
+    inset 0 0 0 1px var(--field-card-halo);
+}
+[data-theme='endfield'] .account-card.selected {
+  outline: 2px solid var(--field-card-signal-ink);
+  outline-offset: 3px;
+}
+[data-theme='endfield'] .account-card[aria-busy='true'] {
+  border-color: var(--field-card-blue);
+}
+[data-theme='endfield'] .account-card .account-card-top {
+  position: relative;
+  background: linear-gradient(120deg, var(--field-card-header), var(--field-card-paper));
+  color: var(--field-card-ink);
+  border-bottom: 1px solid var(--field-card-rule);
+  box-shadow: none;
+}
+[data-theme='endfield'] .account-card.current .account-card-top {
+  background: linear-gradient(120deg, var(--field-card-signal-wash), var(--field-card-paper) 88%);
+}
+[data-theme='endfield'] .account-card .account-card-top::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 13px;
+  height: 3px;
+  border-radius: 1px;
+  background: repeating-linear-gradient(90deg, var(--field-card-rule) 0 2px, transparent 2px 5px);
+}
+[data-theme='endfield'] .account-card.current .account-card-top::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12px;
+  width: 44px;
+  height: 3px;
+  background: var(--field-card-signal);
+  border-radius: 0 0 3px 3px;
+}
+[data-theme='endfield'] .account-card .account-identity {
+  color: var(--field-card-ink);
+  font-weight: 650;
+  letter-spacing: -0.15px;
+}
+[data-theme='endfield'] .account-card .account-identity:hover {
+  color: var(--field-card-green);
+  text-decoration: none;
+}
+[data-theme='endfield'] .account-card .account-edit {
+  color: var(--field-card-muted);
+  border-radius: var(--field-card-control-radius);
+}
+[data-theme='endfield'] .account-card .account-edit:hover:not(:disabled) {
+  color: var(--field-card-green);
+  background: var(--field-card-mint);
+}
+[data-theme='endfield'] .account-card .account-edit:disabled {
+  color: var(--field-card-disabled);
+  opacity: 1;
+}
+[data-theme='endfield'] .account-card .account-select-dot span {
+  border-radius: 50%;
+  background: var(--field-card-disabled);
+}
+[data-theme='endfield'] .account-card .account-select-dot.ready span {
+  background: var(--field-card-green);
+}
+[data-theme='endfield'] .account-card .account-select-dot.checked span {
+  background: var(--field-card-green);
+  box-shadow:
+    0 0 0 2px var(--field-card-paper),
+    0 0 0 3px var(--field-card-green);
+}
+[data-theme='endfield'] .account-card[data-status='error'] .account-select-dot span {
+  background: var(--field-card-error);
+}
+[data-theme='endfield'] .account-card :is(.account-plan, .account-current, .account-reset-count) {
+  border-radius: var(--field-card-icon-radius);
+  box-shadow: none;
+  line-height: 14px;
+}
+[data-theme='endfield'] .account-card .account-plan {
+  background: var(--field-card-neutral);
+  border-color: var(--field-card-rule);
+  color: var(--field-card-muted);
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+[data-theme='endfield'] .account-card :is(.account-plan-pro100, .account-plan-pro200) {
+  color: var(--field-card-gold);
+  background: var(--field-card-gold-wash);
+  border-color: var(--field-card-gold-edge);
+}
+[data-theme='endfield'] .account-card :is(.account-plan-pro500, .account-plan-organization) {
+  color: var(--field-card-violet);
+  background: var(--field-card-violet-wash);
+  border-color: var(--field-card-violet-edge);
+}
+[data-theme='endfield'] .account-card .account-plan-plus {
+  color: var(--field-card-blue);
+  background: var(--field-card-blue-wash);
+  border-color: var(--field-card-blue-edge);
+}
+[data-theme='endfield'] .account-card .account-plan svg {
+  flex-shrink: 0;
+  color: inherit;
+}
+[data-theme='endfield'] .account-card .account-current {
+  color: var(--field-card-muted);
+  background: var(--field-card-neutral);
+  border-color: var(--field-card-rule);
+}
+[data-theme='endfield'] .account-card.current .account-current {
+  color: var(--field-card-ink);
+  background: var(--field-card-signal);
+  border-color: var(--field-card-current-edge);
+}
+[data-theme='endfield'] .account-card .account-current i {
+  border-radius: 50%;
+}
+[data-theme='endfield'] .account-card .account-reset-count {
+  background: var(--field-card-blue-wash);
+  border-color: var(--field-card-blue-edge);
+  color: var(--field-card-blue);
+}
+[data-theme='endfield'] .account-card .account-reset-count:hover:not(:disabled) {
+  background: var(--field-card-blue-edge);
+  border-color: var(--field-card-blue);
+}
+[data-theme='endfield'] .account-card .account-reset-count:active:not(:disabled) {
+  transform: translateY(1px);
+}
+[data-theme='endfield'] .account-card .account-detail-grid {
+  background: var(--field-card-paper);
+  border-color: var(--field-card-rule);
+}
+[data-theme='endfield'] .account-card .account-detail-grid :is(dt, svg) {
+  color: var(--field-card-label);
+}
+[data-theme='endfield'] .account-card .account-detail-grid dd {
+  color: var(--field-card-ink);
+  font-weight: 650;
+}
+[data-theme='endfield'] .account-card .account-detail-grid > div:nth-child(1) > svg {
+  color: var(--field-card-blue);
+}
+[data-theme='endfield'] .account-card .account-detail-grid > div:nth-child(2) > svg {
+  color: var(--field-card-green);
+}
+[data-theme='endfield'] .account-card .account-detail-grid > div:nth-child(3) > svg {
+  color: var(--field-card-gold-ink);
+}
+[data-theme='endfield'] .account-card .account-detail-grid > div:nth-child(4) > svg {
+  color: var(--field-card-violet);
+}
+[data-theme='endfield'] .account-card .account-card-quotas {
+  margin: 8px 8px 0;
+  padding: 4px 4px 0;
+  min-height: 78px;
+  border: 1px solid var(--field-card-rule-soft);
+  border-radius: var(--field-card-screen-radius);
+  background: linear-gradient(120deg, var(--field-card-screen-raised), var(--field-card-screen));
+}
+[data-theme='endfield'] .account-card .account-quota {
+  --quota-color: var(--field-card-signal);
+}
+[data-theme='endfield'] .account-card .account-quota + .account-quota {
+  --quota-color: var(--field-card-screen-cyan);
+  border-color: var(--field-card-rule-soft);
+}
+[data-theme='endfield'] .account-card .account-quota.medium {
+  --quota-color: var(--field-card-screen-gold);
+}
+[data-theme='endfield'] .account-card .account-quota.low {
+  --quota-color: var(--field-card-screen-orange);
+}
+[data-theme='endfield'] .account-card .account-quota.exhausted {
+  --quota-color: var(--field-card-screen-red);
+}
+[data-theme='endfield'] .account-card .account-quota.stale,
+[data-theme='endfield'] .account-card .account-quota.failed,
+[data-theme='endfield'] .account-card .account-quota.loading,
+[data-theme='endfield'] .account-card .account-quota.unknown {
+  --quota-color: var(--field-card-screen-muted);
+}
+[data-theme='endfield'] .account-card .account-quota.failed .account-quota-grade {
+  color: var(--field-card-screen-red);
+}
+[data-theme='endfield'] .account-card .account-quota-ring {
+  border-radius: 50%;
+  background: var(--field-card-screen);
+}
+[data-theme='endfield'] .account-card .account-ring-track {
+  stroke: var(--field-card-track);
+  stroke-dasharray: none;
+  stroke-linecap: round;
+}
+[data-theme='endfield'] .account-card .account-ring-value {
+  stroke-linecap: round;
+}
+[data-theme='endfield'] .account-card .account-quota.stale .account-ring-value {
+  stroke: var(--field-card-stale);
+}
+[data-theme='endfield'] .account-card .account-quota.unknown .account-ring-track {
+  stroke-width: 3;
+  stroke-dasharray: 2 4;
+  opacity: 0.8;
+}
+[data-theme='endfield'] .account-card .account-ring-loading {
+  stroke: var(--field-card-signal);
+}
+[data-theme='endfield'] .account-card .account-quota-caption {
+  color: var(--field-card-screen-muted);
+}
+[data-theme='endfield'] .account-card .account-quota-caption b {
+  color: var(--field-card-screen-white);
+}
+[data-theme='endfield'] .account-card .account-card-bottom {
+  background: var(--field-card-footer);
+  color: var(--field-card-ink);
+  border-top: 1px solid var(--field-card-halo);
+}
+[data-theme='endfield'] .account-card .account-footer-status {
+  color: var(--field-card-green);
+}
+[data-theme='endfield'] .account-card .account-footer-status svg {
+  color: var(--field-card-green);
+}
+[data-theme='endfield'] .account-card .account-switch-action {
+  color: var(--field-card-green);
+  background: var(--field-card-mint);
+  border: 1px solid var(--field-card-mint-edge);
+  border-radius: var(--field-card-control-radius);
+  padding: 2px 5px;
+  text-decoration: none;
+}
+[data-theme='endfield'] .account-card .account-switch-action:hover:not(:disabled) {
+  background: var(--field-card-mint-edge);
+}
+[data-theme='endfield'] .account-card .account-switch-action:active:not(:disabled) {
+  transform: translateY(1px);
+}
+[data-theme='endfield'] .account-card .account-switch-action:disabled {
+  color: var(--field-card-disabled);
+  opacity: 1;
+}
+[data-theme='endfield'] .account-card .account-card-actions {
+  background: var(--field-card-white);
+  border-color: var(--field-card-rule);
+  border-radius: var(--field-card-control-radius);
+  padding: 2px;
+  gap: 2px;
+  box-shadow: var(--field-card-tray-shadow);
+}
+[data-theme='endfield'] .account-card .account-card-actions .icon-button {
+  color: var(--field-card-muted);
+  border: 0;
+  border-radius: var(--field-card-icon-radius);
+  box-shadow: none;
+}
+[data-theme='endfield'] .account-card .account-card-actions .icon-button:first-child {
+  color: var(--field-card-blue);
+}
+[data-theme='endfield'] .account-card .account-card-actions .icon-button:hover:not(:disabled) {
+  background: var(--field-card-signal);
+  color: var(--field-card-ink);
+}
+[data-theme='endfield']
+  .account-card
+  .account-card-actions
+  .icon-button:last-child:hover:not(:disabled) {
+  background: var(--field-card-error-surface);
+  color: var(--field-card-error);
+}
+[data-theme='endfield'] .account-card .account-card-actions .icon-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+[data-theme='endfield'] .account-card .account-card-actions .icon-button:disabled {
+  color: var(--field-card-disabled);
+  opacity: 1;
+}
+[data-theme='endfield'] .account-card button:focus-visible {
+  outline: 2px solid var(--field-card-signal-ink);
+  outline-offset: 3px;
+}
+[data-theme='endfield'] .account-card .account-quota:focus-visible {
+  outline-color: var(--field-card-signal);
+  outline-offset: 0;
+  border-radius: var(--field-card-control-radius);
+}
+[data-theme='endfield'] .account-card .account-card-error {
+  margin: 0;
+  padding: 7px var(--account-card-pad);
+  border-top: 1px solid var(--field-card-rule);
+  background: var(--field-card-error-surface);
+  color: var(--field-card-error);
+}
+[data-theme='endfield'] .account-list .account-card-top {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-right: 1px solid var(--field-card-rule);
+}
+[data-theme='endfield'] .account-list .account-card-quotas {
+  align-self: stretch;
+  align-items: center;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  border-top: 0;
+}
+[data-theme='endfield'] .account-list .account-detail-grid {
+  align-self: stretch;
+  align-content: center;
+}
+
+[data-theme='endfield'] .hover-preview-panel:has(.quota-preview-heading) {
+  background: var(--field-card-paper);
+  color: var(--field-card-ink);
+  border: 1px solid var(--field-card-rule);
+  border-radius: var(--field-card-radius);
+  box-shadow: var(--field-card-popover-shadow);
+}
+[data-theme='endfield'] .hover-preview-panel:has(.quota-preview-heading) .quota-preview-countdown {
+  color: var(--field-card-signal-ink);
+}
+[data-theme='endfield'] .hover-preview-panel:has(.quota-preview-heading) .quota-preview-note {
+  border-color: var(--field-card-rule);
+}
+[data-theme='endfield'] .modal:has(.reset-credit-preview) {
+  background: var(--field-card-paper);
+  color: var(--field-card-ink);
+  border: 1px solid var(--field-card-rule);
+  border-radius: var(--field-card-radius);
+  box-shadow: var(--field-card-dialog-shadow);
+}
+[data-theme='endfield'] .modal:has(.reset-credit-preview) .panel-head {
+  background: var(--field-card-header);
+  border-color: var(--field-card-rule);
+  box-shadow: none;
+}
+[data-theme='endfield'] .modal:has(.reset-credit-preview) .button {
+  border-radius: var(--field-card-control-radius);
+}
+[data-theme='endfield'] .modal:has(.reset-credit-preview) .button.primary {
+  background: var(--field-card-signal);
+  color: var(--field-card-ink);
+  border-color: var(--field-card-current-edge);
+}

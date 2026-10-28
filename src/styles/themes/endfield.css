@@ -1,0 +1,685 @@
+@import '../tokens/endfield.css';
+@import './endfield-accounts.css';
+
+/* Independent Atelier skin. No DSH selectors, injection runtime or game artwork. */
+[data-theme='endfield'] ::selection {
+  background: var(--field-signal);
+  color: var(--ink);
+}
+[data-theme='endfield'] body {
+  accent-color: var(--ink);
+}
+[data-theme='endfield'] :is(button, a, input, select, textarea):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+[data-theme='endfield'] .workstation {
+  background: var(--shell);
+  box-shadow: none;
+}
+[data-theme='endfield'] .topbar {
+  background: var(--panel);
+  box-shadow: none;
+  border-bottom: 2px solid var(--ink);
+}
+[data-theme='endfield'] .brand {
+  font-family: var(--field-font-display);
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+[data-theme='endfield'] .brand b {
+  font-weight: 900;
+}
+[data-theme='endfield'] .brand-mark {
+  background: var(--field-signal);
+  border-color: var(--ink);
+  box-shadow: none;
+}
+[data-theme='endfield'] .brand-mark i {
+  background: var(--ink);
+}
+[data-theme='endfield'] .brand-mark i:nth-child(2) {
+  background: var(--ink);
+  opacity: 0.65;
+}
+[data-theme='endfield'] .brand-mark i:nth-child(3) {
+  background: var(--ink);
+  opacity: 0.35;
+}
+[data-theme='endfield'] .top-context {
+  color: var(--muted);
+}
+[data-theme='endfield'] .top-actions .icon-button {
+  background: var(--paper);
+  box-shadow: none;
+}
+[data-theme='endfield'] .top-actions .icon-button:hover {
+  background: var(--field-signal);
+}
+[data-theme='endfield'] .sidebar {
+  position: relative;
+  background: transparent;
+  border-color: var(--line);
+  box-shadow: none;
+}
+[data-theme='endfield'] .sidebar-label {
+  font-weight: 700;
+  color: var(--ink);
+}
+[data-theme='endfield'] nav a {
+  color: var(--muted);
+  position: relative;
+  transition: none;
+}
+[data-theme='endfield'] nav a small {
+  color: var(--muted);
+}
+[data-theme='endfield'] nav a:hover {
+  background: var(--shell);
+  border-color: var(--edge);
+  color: var(--ink);
+}
+[data-theme='endfield'] nav a.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--field-signal);
+  box-shadow: none;
+}
+[data-theme='endfield'] nav a.active small {
+  color: var(--field-signal);
+}
+[data-theme='endfield'] nav a.active::after {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 9px;
+  bottom: 9px;
+  width: 4px;
+  background: var(--field-signal);
+}
+[data-theme='endfield'] .vent {
+  height: 7px;
+  border: 1px solid var(--line);
+  background: repeating-linear-gradient(135deg, var(--ink) 0 3px, var(--field-signal) 3px 7px);
+  opacity: 0.8;
+}
+[data-theme='endfield'] .sandbox-stamp {
+  background: var(--panel);
+}
+[data-theme='endfield'] .sandbox-stamp svg {
+  color: var(--ink);
+}
+/* The upstream canvas is one continuous sheet behind the entire workstation. */
+[data-theme='endfield'] .workstation {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+[data-theme='endfield'] .shell-body {
+  position: relative;
+  z-index: 1;
+}
+[data-theme='endfield'] .topbar {
+  background: transparent;
+}
+[data-theme='endfield'] .sandbox-stamp {
+  background: transparent;
+}
+[data-theme='endfield'] main {
+  background: transparent;
+}
+[data-theme='endfield'] main::before {
+  content: none;
+}
+[data-theme='endfield'] .statusbar {
+  position: relative;
+  z-index: 1;
+}
+[data-theme='endfield'] [data-endfield-contour] {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+[data-theme='endfield'] [data-endfield-contour] canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+/* Upstream persist-mode wordmark: 900 / .1em / 9.5vw / light alpha .13. */
+[data-theme='endfield'] .field-background-wordmark {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  user-select: none;
+  overflow: hidden;
+  font-family: var(--field-font-display);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  font-size: 9.5vw;
+  color: var(--field-background-ink);
+  opacity: 0.13;
+}
+[data-theme='endfield'] .field-background-wordmark::before {
+  content: 'ENDFIELD';
+  display: block;
+  white-space: nowrap;
+}
+[data-theme='endfield'] h1 {
+  font-family: var(--field-font-display);
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--ink);
+}
+[data-theme='endfield'] .eyebrow {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+[data-theme='endfield'] .dashboard .eyebrow::before {
+  content: '+';
+  color: var(--ink);
+  margin-right: 8px;
+}
+[data-theme='endfield'] .heading-dot {
+  color: var(--ink);
+  background: var(--field-signal);
+}
+[data-theme='endfield'] .edition {
+  border-left: 3px solid var(--field-signal);
+  padding-left: var(--space-3);
+}
+[data-theme='endfield'] :is(.panel, .extension-card, .account-card, .gw-console, .planned-mark) {
+  border-radius: 0;
+}
+[data-theme='endfield'] .panel {
+  background: var(--panel);
+  border-color: var(--edge);
+  box-shadow: none;
+}
+[data-theme='endfield'] .panel-head {
+  box-shadow: none;
+  border-bottom-color: var(--field-line-soft);
+  background: var(--paper);
+  letter-spacing: 0.4px;
+  font-weight: 700;
+}
+[data-theme='endfield'] .panel-head > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+[data-theme='endfield'] .panel-head > span:first-child::before {
+  content: '';
+  width: 4px;
+  height: 11px;
+  background: var(--ink);
+  flex-shrink: 0;
+}
+[data-theme='endfield'] .panel-code {
+  color: var(--muted);
+  font-weight: 400;
+}
+[data-theme='endfield'] .instrument {
+  background: var(--screen);
+  border: 1px solid var(--ink);
+  outline: none;
+  box-shadow: 4px 4px 0 var(--field-signal);
+}
+[data-theme='endfield'] .instrument::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 45%;
+  background: var(--field-signal);
+}
+[data-theme='endfield'] .instrument::after {
+  background: none;
+}
+[data-theme='endfield']
+  :is(
+    .instrument-header,
+    .instrument-header > span:last-child,
+    .screen-label,
+    .instrument-copy p,
+    .instrument-stats small,
+    .instrument-stats b em,
+    .coordinate,
+    .instrument-stats b span
+  ) {
+  color: var(--field-screen-muted);
+}
+[data-theme='endfield'] .instrument-header > span:first-child {
+  color: var(--field-signal);
+}
+[data-theme='endfield'] .instrument-copy h2 {
+  color: var(--screen-ink);
+  font-family: var(--field-font-display);
+  font-weight: 700;
+  letter-spacing: 0.1px;
+}
+[data-theme='endfield'] .cursor-block {
+  height: 7px;
+  width: 20px;
+  margin-left: 10px;
+  vertical-align: 2px;
+}
+[data-theme='endfield'] .screen-tags > span {
+  background: transparent;
+  border-color: var(--field-screen-line);
+  color: var(--screen-ink);
+}
+[data-theme='endfield'] .screen-tags > span:last-child {
+  background: var(--field-signal);
+  border-color: var(--field-signal);
+  color: var(--ink);
+}
+[data-theme='endfield'] .signal-art {
+  background-image:
+    linear-gradient(var(--field-screen-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--field-screen-line) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+[data-theme='endfield'] .orbit {
+  border-color: var(--field-signal);
+}
+[data-theme='endfield'] .orbit.two {
+  opacity: 0.5;
+}
+[data-theme='endfield'] .signal-chip {
+  color: var(--field-signal);
+}
+[data-theme='endfield'] .signal-point {
+  background: var(--field-signal);
+}
+[data-theme='endfield'] :is(.instrument-stats, .instrument-stats > div) {
+  border-color: var(--field-screen-line);
+}
+[data-theme='endfield'] .instrument-bottom {
+  border-color: var(--field-screen-line);
+  background: var(--screen);
+  color: var(--field-screen-muted);
+}
+[data-theme='endfield'] .instrument-stats b {
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+[data-theme='endfield'] :is(.inset, .search, select) {
+  border-color: var(--edge);
+  background-color: var(--paper);
+  box-shadow: none;
+}
+[data-theme='endfield'] select {
+  border-radius: 0;
+}
+[data-theme='endfield'] :is(.button, .account-toolbar select, .account-batchbar select) {
+  background: var(--paper);
+  border-color: var(--line);
+  box-shadow: none;
+}
+[data-theme='endfield'] .button:hover:not(:disabled) {
+  background: var(--shell);
+}
+[data-theme='endfield'] .button:active:not(:disabled) {
+  box-shadow: none;
+  transform: translate(1px, 1px);
+}
+[data-theme='endfield'] :is(.button.primary, .account-toolbar-actions .primary) {
+  background: var(--field-signal);
+  color: var(--ink);
+  border-color: var(--ink);
+  box-shadow: var(--key);
+}
+[data-theme='endfield'] .button.primary:hover:not(:disabled) {
+  background: var(--field-signal-hover);
+}
+[data-theme='endfield'] .button.primary:active:not(:disabled) {
+  box-shadow: none;
+}
+[data-theme='endfield'] .square-icon {
+  background: var(--shell);
+  border-color: var(--edge);
+  color: var(--ink);
+  box-shadow: none;
+}
+[data-theme='endfield']
+  :is(.text-link, .quick-action, .quick-action > svg:first-child, .quick-action > .tiny) {
+  color: var(--ink);
+}
+[data-theme='endfield'] :is(.text-link, .quick-action):hover {
+  color: var(--field-signal-ink);
+}
+[data-theme='endfield'] .badge {
+  background: var(--field-success-wash);
+  border-color: var(--green);
+  color: var(--green);
+}
+[data-theme='endfield'] .badge.orange {
+  background: var(--field-signal-wash);
+  border-color: var(--edge);
+  color: var(--field-signal-ink);
+}
+[data-theme='endfield'] .badge.orange .dot {
+  background: var(--field-signal-ink);
+}
+[data-theme='endfield'] .badge.neutral {
+  background: var(--shell);
+  border-color: var(--edge);
+  color: var(--muted);
+}
+[data-theme='endfield'] .activity-icon {
+  background: var(--field-success-wash);
+}
+[data-theme='endfield'] .warning-symbol {
+  background: var(--field-warning-wash);
+  color: var(--orange-ink);
+}
+[data-theme='endfield'] .issue-number {
+  color: var(--muted);
+}
+[data-theme='endfield'] .issue-row:hover {
+  background: var(--field-signal-wash);
+}
+[data-theme='endfield']
+  :is(.issue-row, .activity-row + .activity-row, .quick-action + .quick-action, .backup-row) {
+  border-color: var(--field-line-soft);
+}
+[data-theme='endfield'] .segment-meter i {
+  background: var(--field-line-soft);
+}
+[data-theme='endfield'] .segment-meter i.filled {
+  background: var(--ink);
+}
+[data-theme='endfield'] .extension-summary > svg {
+  color: var(--muted);
+}
+[data-theme='endfield'] .desk-note {
+  background: var(--field-signal);
+  border-color: var(--line);
+  box-shadow: none;
+}
+[data-theme='endfield']
+  :is(.desk-note p, .note-label, .note-label > svg, .note-bottom .mono, .pixel-buddy) {
+  color: var(--ink);
+}
+[data-theme='endfield'] .note-bottom {
+  border-color: var(--line);
+}
+[data-theme='endfield'] .desk-note h3 {
+  font-weight: 700;
+  letter-spacing: 0;
+}
+[data-theme='endfield'] .statusbar {
+  background: var(--panel);
+  border-color: var(--line);
+  color: var(--muted);
+  box-shadow: none;
+}
+[data-theme='endfield'] .statusbar .dot {
+  background: var(--green);
+}
+[data-theme='endfield'] .tabs {
+  background: var(--shell);
+  border-color: var(--edge);
+  box-shadow: none;
+  border-radius: 0;
+}
+[data-theme='endfield'] .tabs button.selected {
+  background: var(--ink);
+  color: var(--field-signal);
+  box-shadow: none;
+}
+[data-theme='endfield'] .tabs button.selected span {
+  color: var(--field-signal);
+}
+[data-theme='endfield'] .extension-card {
+  box-shadow: none;
+}
+[data-theme='endfield'] .extension-card:hover {
+  background: var(--paper);
+}
+[data-theme='endfield'] .extension-card.selected {
+  background: var(--paper);
+  border-color: var(--line);
+  box-shadow: inset 3px 0 0 var(--field-signal);
+}
+[data-theme='endfield'] .extension-card-footer {
+  color: var(--muted);
+  border-color: var(--field-line-soft);
+}
+[data-theme='endfield'] .setting-row {
+  border-color: var(--field-line-soft);
+}
+[data-theme='endfield'] .switch {
+  background: var(--edge);
+  box-shadow: none;
+}
+[data-theme='endfield'] .switch.on {
+  background: var(--field-signal);
+}
+[data-theme='endfield'] .switch span {
+  background: var(--paper);
+  box-shadow: none;
+}
+[data-theme='endfield'] .permission {
+  color: var(--muted);
+}
+[data-theme='endfield'] .tool-tags code {
+  background: var(--shell);
+  border-color: var(--edge);
+}
+[data-theme='endfield'] :is(.diagnostic-banner, .risk-box) {
+  background: var(--field-warning-wash);
+  border-color: var(--edge);
+}
+[data-theme='endfield'] .check-row {
+  border-color: var(--field-line-soft);
+}
+[data-theme='endfield'] .planned-mark {
+  color: var(--ink);
+  background: var(--field-signal);
+}
+[data-theme='endfield'] .planned-roadmap {
+  box-shadow: none;
+}
+[data-theme='endfield'] .modal {
+  background: var(--panel);
+  box-shadow: 5px 5px 0 var(--ink);
+}
+[data-theme='endfield'] .modal::backdrop {
+  background: #171a1870;
+  backdrop-filter: none;
+}
+[data-theme='endfield'] .modal .panel-head {
+  background: var(--ink);
+  color: var(--screen-ink);
+  border-color: var(--ink);
+}
+[data-theme='endfield'] .modal .panel-head > span:first-child::before {
+  background: var(--field-signal);
+}
+[data-theme='endfield'] .error-state {
+  background: var(--field-error-wash);
+}
+[data-theme='endfield'] .toast {
+  border-color: var(--ink);
+  box-shadow: 3px 3px 0 var(--field-signal);
+}
+[data-theme='endfield'] .account-page .account-title {
+  color: var(--ink);
+}
+[data-theme='endfield'] .account-toolbar {
+  border-color: var(--edge);
+  box-shadow: none;
+}
+[data-theme='endfield'] .account-view-toggle {
+  border-color: var(--edge);
+}
+[data-theme='endfield'] .account-view-toggle .active {
+  background: var(--ink);
+  color: var(--field-signal);
+  box-shadow: none;
+}
+[data-theme='endfield'] .hover-preview-panel {
+  box-shadow: 3px 3px 0 var(--ink);
+}
+[data-theme='endfield'] .quota-preview-countdown {
+  color: var(--ink);
+}
+[data-theme='endfield'] .gw-console {
+  border-width: 1px;
+  box-shadow: 3px 3px 0 var(--field-signal);
+}
+[data-theme='endfield'] :is(.gw-screen-label, .gw-number-unit, .gw-console-side p) {
+  color: var(--field-screen-muted);
+}
+[data-theme='endfield'] .gw-profile-card {
+  box-shadow: none;
+}
+
+/* Visual pass: remove excess vertical space without changing the dashboard grid. */
+@media (min-width: 1051px) {
+  [data-theme='endfield'] .dashboard .page-heading {
+    min-height: 0;
+    margin-bottom: 18px;
+  }
+  [data-theme='endfield'] .dashboard .page-heading .eyebrow {
+    margin-bottom: 5px;
+  }
+  [data-theme='endfield'] .dashboard .page-heading h1 {
+    font-size: 27px;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  [data-theme='endfield'] .dashboard .subtitle {
+    font-size: 12px;
+  }
+  [data-theme='endfield'] .dashboard .overview-main,
+  [data-theme='endfield'] .dashboard .overview-side {
+    gap: 16px;
+  }
+  [data-theme='endfield'] .dashboard .instrument-core {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+  [data-theme='endfield'] .dashboard .instrument-copy h2 {
+    line-height: 1.25;
+    margin-top: 9px;
+    margin-bottom: 6px;
+  }
+  [data-theme='endfield'] .dashboard .instrument-copy p {
+    margin-bottom: 10px;
+  }
+  [data-theme='endfield'] .dashboard .signal-art {
+    height: 100px;
+  }
+  [data-theme='endfield'] .dashboard .instrument-stats {
+    padding-top: 10px;
+    margin-bottom: 10px;
+  }
+  [data-theme='endfield'] .dashboard .instrument-stats small {
+    margin-bottom: 7px;
+  }
+  [data-theme='endfield'] .dashboard .instrument-bottom {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  [data-theme='endfield'] .dashboard .panel-body,
+  [data-theme='endfield'] .dashboard .dashboard-pair .panel-body {
+    padding: 12px;
+  }
+  [data-theme='endfield'] .dashboard .definition {
+    gap: 7px 4px;
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+  [data-theme='endfield'] .dashboard .connection-name {
+    margin-bottom: 10px;
+  }
+  [data-theme='endfield'] .dashboard .activity-row {
+    min-height: 28px;
+  }
+  [data-theme='endfield'] .dashboard .activity-row + .activity-row {
+    padding-top: 7px;
+    margin-top: 6px;
+  }
+  [data-theme='endfield'] .dashboard .issue-row {
+    padding-top: 9px;
+    padding-bottom: 9px;
+  }
+  [data-theme='endfield'] .dashboard .diagnostic-head {
+    margin-bottom: 10px;
+  }
+  [data-theme='endfield'] .dashboard .quick-action {
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  [data-theme='endfield'] .dashboard .desk-note {
+    padding: 11px 13px;
+  }
+  [data-theme='endfield'] .dashboard .note-label {
+    margin-bottom: 10px;
+  }
+  [data-theme='endfield'] .dashboard .desk-note h3 {
+    font-size: 17px;
+    line-height: 1.4;
+  }
+  [data-theme='endfield'] .dashboard .desk-note p {
+    font-size: 11px;
+    line-height: 1.7;
+  }
+  [data-theme='endfield'] .dashboard .note-bottom {
+    padding-top: 8px;
+  }
+}
+[data-theme='endfield']
+  :is(.instrument, .gw-console, .toast, .modal > .panel-head)
+  :is(button, a, input):focus-visible {
+  outline-color: var(--field-signal);
+}
+
+[data-theme='endfield'] .check-row.selected {
+  background: var(--field-signal-wash);
+  border-color: var(--line);
+  box-shadow: inset 3px 0 0 var(--field-signal);
+}
+[data-theme='endfield'] .check-row:hover {
+  background: var(--paper);
+}
+[data-theme='endfield'] .diagnostic-banner > span:last-child {
+  color: var(--muted);
+}
+[data-theme='endfield'] .plugin-scope {
+  background: var(--paper);
+  border-color: var(--edge);
+}
+[data-theme='endfield'] .behavior-logo {
+  background: var(--field-signal);
+  color: var(--ink);
+  border-color: var(--line);
+  box-shadow: none;
+}
+[data-theme='endfield'] .plugin-unavailable {
+  background: var(--field-warning-wash);
+  border-color: var(--edge);
+}
+
+/* Keep header overrides in the global skin sheet; never scope them to html alone. */
+[data-theme='endfield'] .theme-switcher .theme-trigger {
+  background: var(--paper);
+  box-shadow: none;
+}
+[data-theme='endfield'] .theme-switcher .theme-trigger:hover {
+  background: var(--field-signal);
+}
+[data-theme='endfield'] .theme-switcher .theme-menu {
+  box-shadow: 3px 3px 0 var(--ink);
+}

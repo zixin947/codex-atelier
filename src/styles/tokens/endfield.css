@@ -1,0 +1,36 @@
+/* Paper/ink/signal palette adapted from ymh0000123/dsh-theme-endfield (MIT).
+   Attribution and source boundaries: docs/endfield-theme.md. */
+:root[data-theme='endfield'] {
+  color-scheme: light;
+  --shell: #e8e8e2;
+  --panel: #f2f2ec;
+  --highlight: #fafaf5;
+  --edge: #c6c8c0;
+  --line: #252824;
+  --ink: #171a18;
+  --muted: #62665e;
+  --paper: #f8f8f2;
+  --screen: #1a1d1b;
+  --screen-ink: #f2f2e9;
+  --mint: #fff500;
+  --green: #2f684d;
+  --orange: #e19a43;
+  --orange-ink: #89520c;
+  --red: #b7342f;
+  --radius: 0px;
+  --raised: 0 2px 0 #25282412;
+  --sunken: inset 0 0 0 1px #25282408;
+  --key: 2px 2px 0 #252824;
+  --field-signal: #fff500;
+  --field-signal-hover: #e8df00;
+  --field-signal-ink: #655800;
+  --field-signal-wash: #f4f1cf;
+  --field-line-soft: #d5d7cf;
+  --field-background-ink: #101110;
+  --field-screen-line: #434942;
+  --field-screen-muted: #b6bcb2;
+  --field-success-wash: #e3eee4;
+  --field-warning-wash: #f2e6cf;
+  --field-error-wash: #f6e5df;
+  --field-font-display: 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}

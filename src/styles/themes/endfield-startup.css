@@ -1,0 +1,340 @@
+/* Horizontal cockpit follows the user's screenshot reference.
+ * Atelier insignia and CSS/SVG artwork are independently drawn for this project.
+ * Animation timing derives from dsh-theme-endfield (MIT); see notices. */
+[data-endfield-loader] {
+  --boot-paper: #edf0e9;
+  --boot-signal: #fff54b;
+  --boot-dark: #070b0c;
+  --boot-muted: #969f9e;
+  --boot-font: Arial, 'Helvetica Neue', 'PingFang SC', sans-serif;
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--boot-dark);
+  color: var(--boot-paper);
+  font-family: var(--boot-font);
+  font-variant-numeric: tabular-nums;
+}
+[data-endfield-loader] *,
+[data-endfield-loader] *::before,
+[data-endfield-loader] *::after {
+  box-sizing: border-box;
+}
+.field-boot-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(#929e9906 1px, transparent 1px),
+    linear-gradient(90deg, #929e9906 1px, transparent 1px),
+    radial-gradient(ellipse at 67% 48%, #12242535, transparent 57%);
+  background-size:
+    50px 50px,
+    50px 50px,
+    100% 100%;
+}
+.field-boot-grid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  background: repeating-linear-gradient(0deg, #0000 0 3px, #000 3px 4px);
+}
+.field-boot-orbit {
+  position: absolute;
+  left: 37.5%;
+  top: 51%;
+  width: min(100vh, 96vw);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+}
+.field-boot-orbit svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.field-boot-orbit-ticks {
+  stroke: #75807b33;
+  stroke-width: 15;
+  stroke-dasharray: 0.23 5.77;
+}
+.field-boot-orbit-arcs {
+  stroke: #8f989037;
+  stroke-width: 12;
+  stroke-dasharray: 38 52;
+  transform-origin: center;
+  transform: rotate(28deg);
+  animation: field-boot-orbit 48s linear infinite;
+}
+.field-boot-orbit-outline {
+  stroke: #8f98902b;
+  stroke-width: 1.4;
+}
+.field-boot-orbit-inner {
+  stroke: #58625d12;
+  stroke-width: 1;
+}
+.field-boot-orbit-core {
+  stroke: #fff54b15;
+  stroke-width: 1;
+}
+.field-boot-orbit-axis {
+  stroke: #8f989009;
+  stroke-width: 1;
+}
+.field-boot-spine {
+  position: absolute;
+  left: 66%;
+  top: 6%;
+  bottom: 19%;
+  width: 6px;
+  background: #fff54b23;
+}
+.field-boot-underline {
+  position: absolute;
+  left: 8%;
+  right: 44%;
+  bottom: 4%;
+  height: 6px;
+  background: #fff54b26;
+}
+[data-endfield-loader-track],
+[data-endfield-loader-fill] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 8px;
+  height: 100%;
+  background: #fff54b16;
+}
+[data-endfield-loader-fill] {
+  height: 0;
+  background: var(--boot-signal);
+}
+[data-endfield-loader-meter] {
+  position: absolute;
+  left: 5%;
+  top: 5.5%;
+}
+[data-endfield-loader-pct] {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-size: clamp(24px, 2.2vw, 38px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+[data-endfield-loader-pct] small {
+  margin-top: 3px;
+  color: var(--boot-signal);
+  font-size: 9px;
+  letter-spacing: 0;
+}
+[data-endfield-loader-status] {
+  display: block;
+  margin-top: 10px;
+  font-size: 10px;
+  color: var(--boot-muted);
+}
+.field-boot-insignia {
+  position: absolute;
+  top: 29%;
+  left: 29%;
+  width: 22%;
+  color: #a4aaa43d;
+  text-align: center;
+}
+.field-boot-insignia svg {
+  display: block;
+  width: 100%;
+}
+.field-boot-insignia span,
+.field-boot-insignia small {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 48%;
+  background: #090e0efa;
+  font-weight: 900;
+  font-size: clamp(13px, 1.6vw, 29px);
+  letter-spacing: -0.6px;
+  line-height: 1.2;
+}
+.field-boot-insignia small {
+  top: 60%;
+  font-size: clamp(5px, 0.43vw, 8px);
+  letter-spacing: 2px;
+}
+.field-boot-emblem {
+  position: absolute;
+  left: 60.5%;
+  top: 43%;
+  width: clamp(260px, 22vw, 440px);
+  height: auto;
+  aspect-ratio: 1900 / 828;
+  transform: translate(-50%, -50%);
+  background: #101615;
+}
+.field-boot-emblem img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+.field-boot-channel {
+  position: absolute;
+  top: 51%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 11.5%;
+  min-width: 130px;
+  padding-top: 9px;
+  border-top: 1px solid #a8b0a847;
+}
+.field-boot-channel-left {
+  left: 5%;
+}
+.field-boot-channel-right {
+  right: 5%;
+}
+.field-boot-channel > b {
+  font-size: 20px;
+  font-weight: 600;
+}
+.field-boot-channel span {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.field-boot-channel small {
+  font-size: 6px;
+  color: var(--boot-muted);
+  letter-spacing: 1.3px;
+}
+.field-boot-channel strong {
+  font-size: 7px;
+  letter-spacing: 1px;
+  color: var(--boot-signal);
+}
+[data-endfield-loader-brand] {
+  position: absolute;
+  top: 61.5%;
+  left: 15%;
+  right: 15%;
+  text-align: center;
+}
+[data-endfield-loader-brand] h1 {
+  margin: 0;
+  color: var(--boot-signal);
+  font-size: clamp(40px, 4.8vw, 94px);
+  font-weight: 900;
+  letter-spacing: -0.055em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+[data-endfield-loader-brand] p {
+  margin: 12px 0 0;
+  color: var(--boot-muted);
+  font-size: clamp(6px, 0.5vw, 10px);
+  letter-spacing: 2.3px;
+  font-weight: 600;
+}
+.field-boot-progress {
+  position: absolute;
+  left: 23%;
+  right: 23%;
+  bottom: 6%;
+}
+.field-boot-progress-track {
+  height: 4px;
+  background: #8f989026;
+}
+[data-endfield-loader-progress] {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--boot-signal) 0 65%,
+    #7de0c8 82%,
+    #6ccedf 89%,
+    #ed7a9e 100%
+  );
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+.field-boot-progress-caption {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: 12px;
+  font-size: 6px;
+  letter-spacing: 1.4px;
+  color: var(--boot-muted);
+}
+.field-boot-progress-caption b {
+  color: #d5d553;
+  font-size: inherit;
+  font-weight: 500;
+}
+[data-endfield-loader-wipe] {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 8px;
+  background: var(--boot-signal);
+  opacity: 0;
+}
+.field-boot-accessible {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@keyframes field-boot-orbit {
+  to {
+    transform: rotate(388deg);
+  }
+}
+@media (max-width: 1050px) {
+  .field-boot-emblem {
+    left: 60%;
+    width: 250px;
+    height: auto;
+  }
+  .field-boot-channel {
+    min-width: 112px;
+  }
+  .field-boot-insignia {
+    top: 31%;
+    left: 26%;
+    width: 27%;
+  }
+  .field-boot-progress {
+    left: 18%;
+    right: 18%;
+  }
+}
+@media (max-height: 580px) {
+  .field-boot-channel {
+    top: 48%;
+  }
+  .field-boot-emblem {
+    top: 40%;
+    width: 230px;
+    height: auto;
+  }
+  [data-endfield-loader-brand] {
+    top: 62%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .field-boot-orbit-arcs {
+    animation: none;
+  }
+}
