@@ -1,1 +1,6 @@
-{"identifier":"main-window","description":"Minimal window without privileged commands","windows":["main"],"permissions":[]}
+{
+  "identifier": "main-window",
+  "description": "Main window may receive native background refresh status; no frontend event emission or shell access",
+  "windows": ["main"],
+  "permissions": ["core:event:allow-listen", "core:event:allow-unlisten"]
+}

@@ -262,7 +262,7 @@ impl Context {
     fn cli_with_timeout(&self, args: &[&str], timeout: Duration) -> Result<Value, String> {
         let output = run(self.command(args), timeout)?;
         serde_json::from_slice(&output)
-            .map_err(|_| "Codex 未返回预期 JSON，请更新 CLI 后重试。".into())
+            .map_err(|_| "Codex 未返回预期 JSON，请更新 Desktop 后重试。".into())
     }
     fn installed_plugins(&self) -> Result<Vec<Value>, String> {
         // Unfiltered `plugin list` also queries unrelated remote marketplaces.
@@ -384,17 +384,17 @@ impl Context {
         let mut owners = if self.isolated {
             Vec::new()
         } else {
-            desktop_bridge::owners(&self.codex_home())?
+            desktop_bridge::owners(&self.codex_home()).unwrap_or_default()
         };
         #[cfg(unix)]
         let connected_threads: usize = owners.iter().map(|h| h.threads).sum();
-        fs::create_dir_all(&self.data).map_err(|_| "无法创建插件回退记录目录。")?;
-        let pending = self.data.join(format!("pending-{}.json", id.key()));
-        private_write(&pending, &serde_json::to_vec(&json!({"id":id,"pluginId":plugin.plugin_id,"before":plugin.enabled,"beforeVersion":expected})).unwrap())?;
         #[cfg(unix)]
         let connected = !owners.is_empty();
         #[cfg(not(unix))]
         let connected = false;
+        fs::create_dir_all(&self.data).map_err(|_| "无法创建插件回退记录目录。")?;
+        let pending = self.data.join(format!("pending-{}.json", id.key()));
+        private_write(&pending, &serde_json::to_vec(&json!({"id":id,"pluginId":plugin.plugin_id,"before":plugin.enabled,"beforeVersion":expected})).unwrap())?;
         #[cfg(unix)]
         let mut rpc = if connected {
             Rpc::from_owner(owners.remove(0))
@@ -442,6 +442,11 @@ impl Context {
         #[cfg(unix)]
         if connected {
             after.runtime_receipt = Some(format!("Desktop 宿主已确认热重载 · 覆盖 {} 个已加载会话 · 已运行的 Hook 和已注入内容不会撤回", connected_threads));
+        }
+        if after.runtime_receipt.is_none() {
+            after.runtime_receipt = Some(
+                "请新建 Desktop 对话加载最新开关，无需重启应用；已有对话不保证同步变化".into(),
+            );
         }
         Ok(after)
     }
@@ -640,7 +645,7 @@ fn run(mut cmd: Command, timeout: Duration) -> Result<Vec<u8>, String> {
         std::thread::sleep(Duration::from_millis(30));
     }
 }
-struct Rpc {
+pub(crate) struct Rpc {
     process: Option<Process>,
     #[cfg(unix)]
     owner: Option<desktop_bridge::Owner>,
@@ -658,7 +663,7 @@ impl Rpc {
             next: 0,
         }
     }
-    fn start(mut cmd: Command) -> Result<Self, String> {
+    pub(crate) fn start(mut cmd: Command) -> Result<Self, String> {
         let mut process = Process(
             cmd.stdin(Stdio::piped())
                 .stdout(Stdio::piped())
@@ -702,7 +707,7 @@ impl Rpc {
             .and_then(|_| input.flush())
             .map_err(|_| "配置接口通信失败。".into())
     }
-    fn call(&mut self, method: &str, params: Value) -> Result<Value, String> {
+    pub(crate) fn call(&mut self, method: &str, params: Value) -> Result<Value, String> {
         #[cfg(unix)]
         if let Some(owner) = &mut self.owner {
             return owner.call(method, params);
@@ -729,30 +734,14 @@ impl Rpc {
     }
 }
 fn find_codex() -> Option<PathBuf> {
-    let mut bins: Vec<PathBuf> =
-        std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default())
-            .map(|p| p.join("codex"))
-            .collect();
-    bins.extend([
-        PathBuf::from("/opt/homebrew/bin/codex"),
-        PathBuf::from("/usr/local/bin/codex"),
-    ]);
-    if let Some(home) = std::env::var_os("HOME") {
-        if let Ok(entries) = fs::read_dir(PathBuf::from(home).join(".nvm/versions/node")) {
-            let mut entries: Vec<_> = entries
-                .flatten()
-                .map(|e| e.path().join("bin/codex"))
-                .collect();
-            entries.sort();
-            entries.reverse();
-            bins.extend(entries)
-        }
-    }
-    bins.into_iter().find(|p| p.is_file())
+    crate::desktop_runtime::binary()
 }
+
 fn context(app: &tauri::AppHandle) -> Result<Context, String> {
     Ok(Context {
-        binary: find_codex().ok_or("未找到 Codex CLI。请先安装 CLI；Atelier 不会自动升级环境。")?,
+        binary: find_codex().ok_or(
+            "未找到受支持的 Codex Desktop 内置引擎。请安装 Desktop；Atelier 不会安装或升级 CLI。",
+        )?,
         data: app
             .path()
             .app_data_dir()
@@ -762,6 +751,79 @@ fn context(app: &tauri::AppHandle) -> Result<Context, String> {
             .map(PathBuf::from)
             .ok_or("无法取得用户目录。")?,
         isolated: false,
+    })
+}
+pub(crate) struct ModeInstallation {
+    pub source: PathBuf,
+    pub runtime_data: PathBuf,
+    pub enabled: bool,
+}
+pub(crate) fn mode_installation(
+    app: &tauri::AppHandle,
+    id: PluginId,
+) -> Result<ModeInstallation, String> {
+    let ctx = context(app)?;
+    let entries = ctx.installed_plugins()?;
+    let own = format!("{}@{MARKETPLACE}", id.key());
+    let upstream = format!("{}@{}", id.key(), id.key());
+    let matches: Vec<_> = entries
+        .iter()
+        .filter(|p| p["pluginId"] == own || p["pluginId"] == upstream)
+        .collect();
+    if matches.len() != 1 {
+        return Err("请先安装插件并保留唯一来源，再读取模式。".into());
+    }
+    let entry = matches[0];
+    let d = definition(id);
+    if entry["version"].as_str() != Some(&d.version) {
+        return Err("当前插件版本尚未适配模式控制，请使用 Atelier 固定版本。".into());
+    }
+    let source = ctx.data.join("marketplace").join(id.key());
+    verify_source(&source, &d)?;
+    let market = entry["pluginId"]
+        .as_str()
+        .and_then(|s| s.split_once('@'))
+        .map(|(_, m)| m)
+        .ok_or("插件来源无效。")?;
+    // Refuse a cache that differs from the verified source we execute to update
+    // STS state; do not silently use a changed schema or third-party controller.
+    let cache = ctx
+        .codex_home()
+        .join("plugins/cache")
+        .join(market)
+        .join(id.key())
+        .join(&d.version);
+    let sub = if id == PluginId::StopThatShit {
+        "src"
+    } else {
+        "hooks"
+    };
+    for file in fs::read_dir(source.join(sub)).map_err(|_| "模式适配源码不完整。")? {
+        let file = file.map_err(|_| "无法检查模式适配源码。")?;
+        if file
+            .path()
+            .extension()
+            .is_some_and(|s| s == "cjs" || s == "js")
+        {
+            let target = cache.join(sub).join(file.file_name());
+            if fs::symlink_metadata(&target)
+                .map_err(|_| "插件缓存不完整。")?
+                .file_type()
+                .is_symlink()
+                || fs::read(file.path()).map_err(|_| "无法校验插件源码。")?
+                    != fs::read(target).map_err(|_| "无法校验插件缓存。")?
+            {
+                return Err("插件缓存与固定源码不一致，未修改模式。".into());
+            }
+        }
+    }
+    Ok(ModeInstallation {
+        source,
+        runtime_data: ctx
+            .codex_home()
+            .join("plugins/data")
+            .join(format!("{}-{market}", id.key())),
+        enabled: entry["enabled"].as_bool() == Some(true),
     })
 }
 fn version(ctx: &Context) -> Result<String, String> {
@@ -786,7 +848,7 @@ fn unavailable(reason: String) -> Snapshot {
                 installed_version: None,
                 duplicates: false,
                 can_rollback: false,
-                hook_trust: HookTrust::unknown("未连接本机 Codex CLI，无法读取 Hook 信任状态。"),
+                hook_trust: HookTrust::unknown("未连接 Desktop 内置引擎，无法读取 Hook 信任状态。"),
             })
             .collect(),
         desktop_bridge: BridgeStatus::disconnected(),
@@ -876,9 +938,16 @@ mod tests {
         let before = ctx.snapshot().unwrap();
         if action == "stale" {
             assert_eq!(before.desktop_bridge.state, "error");
-            assert!(ctx.set(PluginId::Ponytail, true, &before.revision).is_err());
-            assert_eq!(ctx.snapshot().unwrap().revision, before.revision);
-            println!("ATELIER_RESULT {{\"staleRejected\":true}}");
+            let after = ctx.set(PluginId::Ponytail, true, &before.revision).unwrap();
+            assert_eq!(after.plugins[0].enabled, Some(true));
+            assert!(after
+                .runtime_receipt
+                .as_ref()
+                .unwrap()
+                .contains("新建 Desktop 对话"));
+            let restored = ctx.rollback(PluginId::Ponytail, &after.revision).unwrap();
+            assert_eq!(restored.plugins[0].enabled, before.plugins[0].enabled);
+            println!("ATELIER_RESULT {{\"staleControlRejected\":true,\"newConversationWriteAllowed\":true}}");
             return;
         }
         assert_eq!(before.desktop_bridge.state, "connected");
@@ -1125,6 +1194,12 @@ mod tests {
         assert_eq!(fs::read(ctx.home.join("config.toml")).unwrap(), untouched);
         let off = ctx.set(PluginId::Ponytail, false, &s.revision).unwrap();
         assert_eq!(off.plugins[0].enabled, Some(false));
+        assert!(off
+            .runtime_receipt
+            .as_ref()
+            .unwrap()
+            .contains("新建 Desktop 对话"));
+        assert!(!off.runtime_receipt.as_ref().unwrap().contains("热重载"));
         assert_eq!(off.plugins[0].hook_trust.state, HookTrustState::NotLoaded);
         assert!(ctx.set(PluginId::StopThatShit, false, &s.revision).is_err());
         let restored = ctx.rollback(PluginId::Ponytail, &off.revision).unwrap();

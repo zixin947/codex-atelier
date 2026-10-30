@@ -1,6 +1,7 @@
 import { invoke, isTauri } from '@tauri-apps/api/core'
 import type {
   AccountBatch,
+  AccountAutoRefreshStatus,
   AccountEdit,
   AccountLogin,
   AccountsSnapshot,
@@ -11,6 +12,10 @@ function native<T>(command: string, args?: Record<string, unknown>): Promise<T> 
   return invoke<T>(command, args)
 }
 export const accountsService = {
+  autoRefreshStatus: (): Promise<AccountAutoRefreshStatus> =>
+    native('accounts_auto_refresh_status'),
+  setAutoRefreshInterval: (intervalMs: number): Promise<AccountAutoRefreshStatus> =>
+    native('accounts_auto_refresh_set', { intervalMs }),
   snapshot: (): Promise<AccountsSnapshot> =>
     isTauri()
       ? native('accounts_snapshot')

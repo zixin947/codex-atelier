@@ -88,6 +88,16 @@ export interface AccountBatch {
   snapshot: AccountsSnapshot
   results: AccountResult[]
 }
+export interface AccountAutoRefreshStatus {
+  version: number
+  configured: boolean
+  intervalMs: number
+  running: boolean
+  startedAt: number | null
+  nextRefreshAt: number | null
+  lastRun: { finishedAt: number; updated: number; failed: number; error: string | null } | null
+  error: string | null
+}
 export interface AccountSwitch {
   ticket: string
   target: string

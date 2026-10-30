@@ -1,3 +1,4 @@
+mod background;
 mod local;
 mod metadata;
 mod rpc;
@@ -16,7 +17,7 @@ use std::{
     time::Duration,
 };
 use storage::Store;
-use tauri::{Manager, State};
+use tauri::{Emitter, Manager, State};
 use tokio::sync::Notify;
 use types::*;
 use uuid::Uuid;
@@ -30,6 +31,7 @@ struct Attempt {
 }
 struct Accounts {
     store: Store,
+    background: Arc<background::Controller>,
     attempts: Mutex<HashMap<String, Arc<Attempt>>>,
     tickets: Mutex<HashMap<String, switch::Ticket>>,
     login_gate: tokio::sync::Mutex<()>,
@@ -46,8 +48,10 @@ impl AccountsState {
                 .map_err(|_| "无法定位应用数据目录。")?
                 .join("codex-accounts"),
         )?;
+        let background = background::Controller::open(store.root.join("auto-refresh.json"));
         let value = Arc::new(Accounts {
             store,
+            background,
             attempts: Mutex::new(HashMap::new()),
             tickets: Mutex::new(HashMap::new()),
             login_gate: tokio::sync::Mutex::new(()),
@@ -56,7 +60,76 @@ impl AccountsState {
         Ok(value)
     }
 }
+pub fn start_background(app: &tauri::AppHandle) -> Result<(), String> {
+    let accounts = app.state::<AccountsState>().get(app)?;
+    if accounts.background.started.swap(true, Ordering::SeqCst) {
+        return Ok(());
+    }
+    let controller = accounts.background.clone();
+    let handle = app.clone();
+    tauri::async_runtime::spawn(controller.run(
+        move || {
+            let accounts = accounts.clone();
+            async move { accounts.refresh_background().await }
+        },
+        move |status| {
+            let _ = handle.emit("accounts-auto-refresh", status);
+        },
+    ));
+    Ok(())
+}
+#[tauri::command]
+pub fn accounts_auto_refresh_status(
+    app: tauri::AppHandle,
+    state: State<'_, AccountsState>,
+) -> Result<background::Status, String> {
+    start_background(&app)?;
+    state.get(&app)?.background.status()
+}
+#[tauri::command]
+pub fn accounts_auto_refresh_set(
+    app: tauri::AppHandle,
+    state: State<'_, AccountsState>,
+    interval_ms: u64,
+) -> Result<background::Status, String> {
+    start_background(&app)?;
+    let status = state.get(&app)?.background.configure(interval_ms)?;
+    let _ = app.emit("accounts-auto-refresh", &status);
+    Ok(status)
+}
 impl Accounts {
+    async fn refresh_background(&self) -> background::RunResult {
+        let mut result = background::RunResult::default();
+        let ids = match self.store.read() {
+            Ok(catalog) => catalog
+                .accounts
+                .into_iter()
+                .map(|a| a.id)
+                .collect::<Vec<_>>(),
+            Err(error) => {
+                return background::RunResult {
+                    finished_at: now_ms(),
+                    error: Some(error),
+                    ..result
+                }
+            }
+        };
+        for id in ids {
+            // Reuse the real quota path on Atelier-owned profiles. No local
+            // login detection, subscription scraping or model requests here.
+            match self.refresh(&id, false, false).await {
+                Ok(()) => result.updated += 1,
+                Err(error) => {
+                    result.failed += 1;
+                    if result.error.is_none() {
+                        result.error = Some(error);
+                    }
+                }
+            }
+        }
+        result.finished_at = now_ms();
+        result
+    }
     fn snapshot(&self) -> Result<Snapshot, String> {
         let mut c = self.store.read()?;
         // Backfill old managed records in the returned view, without reading the real Codex home.

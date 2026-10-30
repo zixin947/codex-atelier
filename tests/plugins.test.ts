@@ -15,7 +15,13 @@ function fixture() {
     ...browserSnapshot(),
     available: true,
     reason: null,
-    hostVersion: 'codex-cli test',
+    hostVersion: 'Desktop engine fixture',
+    desktopBridge: {
+      state: 'disconnected',
+      hosts: 0,
+      loadedThreads: 0,
+      message: '离线配置读写夹具',
+    },
     revision: 'v1',
     plugins: browserSnapshot().plugins.map((p) => ({
       ...p,
@@ -34,11 +40,47 @@ function fixture() {
       return structuredClone(data)
     }),
     rollback: vi.fn(async () => structuredClone(data)),
-    launchDesktop: vi.fn(async () => '已请求通过桥接启动 Desktop'),
   }
   return { data, service }
 }
 describe('real plugin controls', () => {
+  it('allows rollback without current-session control and keeps Hook trust independent', async () => {
+    const { data, service } = fixture()
+    data.desktopBridge.state = 'error'
+    data.plugins[0]!.canRollback = true
+    data.plugins[0]!.enabled = true
+    data.plugins[0]!.hookTrust.state = 'trusted'
+    const wrapper = mount(BehaviorPlugins, { props: { service } })
+    await flushPromises()
+    const buttons = wrapper.findAll('.behavior-actions button')
+    expect(buttons[0]!.attributes('disabled')).toBeUndefined()
+    await buttons[0]!.trigger('click')
+    await flushPromises()
+    expect(service.rollback).toHaveBeenCalledWith('ponytail', 'v1')
+    expect(data.plugins[0]!.hookTrust.state).toBe('trusted')
+    expect(wrapper.text()).not.toContain('辅助功能')
+    wrapper.unmount()
+  })
+  it('saves for new conversations without a Desktop control connection or UI permission', async () => {
+    const { data, service } = fixture()
+    data.desktopBridge = {
+      state: 'disconnected',
+      hosts: 0,
+      loadedThreads: 0,
+      message: '私有 stdio 宿主不可外接',
+    }
+    const wrapper = mount(BehaviorPlugins, { props: { service } })
+    await flushPromises()
+    expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('.plugin-accessibility').exists()).toBe(false)
+    expect(wrapper.text()).toContain('新对话生效 · 无需重启 Desktop')
+    await wrapper.get('[aria-label="Ponytail 插件加载"]').trigger('click')
+    await flushPromises()
+    expect(service.setEnabled).toHaveBeenCalledWith('ponytail', true, 'v1')
+    expect(wrapper.get('.plugin-operation-result').text()).toContain('请新建 Desktop 对话')
+    expect(wrapper.get('.plugin-operation-result').text()).not.toContain('热重载')
+    wrapper.unmount()
+  })
   it('reports current-session reload only after the native owner acknowledges it', async () => {
     const { data, service } = fixture()
     data.desktopBridge = {
@@ -55,7 +97,7 @@ describe('real plugin controls', () => {
     })
     const wrapper = mount(BehaviorPlugins, { props: { service } })
     await flushPromises()
-    expect(wrapper.get('[aria-label="Desktop 宿主连接"]').text()).toContain('2 个已加载会话')
+    expect(wrapper.text()).toContain('2 个已加载会话')
     expect(wrapper.text()).not.toContain('已确认热重载')
     await wrapper.get('[aria-label="Ponytail 插件加载"]').trigger('click')
     await flushPromises()
@@ -63,20 +105,57 @@ describe('real plugin controls', () => {
     expect(wrapper.get('.plugin-operation-result').text()).toContain('覆盖 2 个已加载会话')
     wrapper.unmount()
   })
-  it('requires the Desktop connection preview and retains its failure reason', async () => {
+  it('recognizes Desktop automatically with no connection card, button or dialog', async () => {
     const { service } = fixture()
-    service.launchDesktop = vi.fn().mockRejectedValue('请先退出 Codex Desktop')
-    const wrapper = mount(BehaviorPlugins, { props: { service }, attachTo: document.body })
+    const wrapper = mount(BehaviorPlugins, { props: { service } })
     await flushPromises()
-    await wrapper.get('[aria-label="Desktop 宿主连接"] button').trigger('click')
-    expect(service.launchDesktop).not.toHaveBeenCalled()
-    expect(wrapper.get('dialog').text()).toContain('首次接入需要先退出')
-    await wrapper.get('dialog .primary').trigger('click')
-    await flushPromises()
-    expect(service.launchDesktop).toHaveBeenCalledOnce()
-    expect(wrapper.get('dialog [role=alert]').text()).toContain('请先退出')
+    expect(service.status).toHaveBeenCalledOnce()
+    expect(wrapper.find('.plugin-desktop-bridge').exists()).toBe(false)
+    expect(wrapper.find('dialog').exists()).toBe(false)
+    expect(wrapper.text()).not.toContain('连接 Desktop')
+    expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('disabled')).toBeUndefined()
     expect(service.setEnabled).not.toHaveBeenCalled()
     wrapper.unmount()
+  })
+  it('does not block configuration switches when current-session control is unavailable', async () => {
+    const { data, service } = fixture()
+    data.desktopBridge = {
+      state: 'disconnected',
+      hosts: 0,
+      loadedThreads: 0,
+      message: '当前 Desktop 未开放会话控制入口',
+    }
+    const wrapper = mount(BehaviorPlugins, { props: { service } })
+    await flushPromises()
+    expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('.plugin-runtime-unavailable').exists()).toBe(false)
+    expect(wrapper.text()).toContain('新对话生效')
+    expect(wrapper.text()).not.toContain('连接 Desktop')
+    expect(wrapper.find('dialog').exists()).toBe(false)
+    expect(service.setEnabled).not.toHaveBeenCalled()
+    wrapper.unmount()
+  })
+  it('rechecks Desktop on window focus and removes listeners on leaving the page', async () => {
+    const { data, service } = fixture()
+    data.desktopBridge = {
+      state: 'disconnected',
+      hosts: 0,
+      loadedThreads: 0,
+      message: '当前会话不可控制',
+    }
+    const wrapper = mount(BehaviorPlugins, { props: { service } })
+    await flushPromises()
+    expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('disabled')).toBeUndefined()
+    data.desktopBridge = { state: 'connected', hosts: 1, loadedThreads: 1, message: '已自动识别' }
+    window.dispatchEvent(new Event('focus'))
+    await flushPromises()
+    expect(service.status).toHaveBeenCalledTimes(2)
+    expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('disabled')).toBeUndefined()
+    expect(service.setEnabled).not.toHaveBeenCalled()
+    wrapper.unmount()
+    window.dispatchEvent(new Event('focus'))
+    await flushPromises()
+    expect(service.status).toHaveBeenCalledTimes(2)
   })
   it('does not claim hot reload when the host disconnects after a saved write', async () => {
     const { data, service } = fixture()
@@ -93,7 +172,7 @@ describe('real plugin controls', () => {
     await flushPromises()
     expect(wrapper.get('.plugin-operation-result.failed').text()).toContain('未确认热重载')
     expect(wrapper.get('[aria-label="Ponytail 插件加载"]').attributes('aria-checked')).toBe('false')
-    expect(wrapper.get('[aria-label="Desktop 宿主连接"]').text()).toContain('连接异常')
+    expect(wrapper.get('.plugin-operation-result.failed').text()).toContain('未确认热重载')
     wrapper.unmount()
   })
   it('disables a running plugin only after readback and keeps the saved state after remount', async () => {
@@ -260,7 +339,7 @@ describe('real plugin controls', () => {
     expect(wrapper.get('[aria-label="Stop That Shit 插件加载"]').attributes('aria-checked')).toBe(
       'false',
     )
-    expect(wrapper.text()).toContain('不热停用旧会话')
+    expect(wrapper.text()).toContain('已保存并读回')
     wrapper.unmount()
   })
   it('keeps the last real state and shows errors when a write fails', async () => {

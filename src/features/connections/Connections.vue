@@ -540,7 +540,7 @@ onUnmounted(() => {
         </article>
       </div>
       <section class="gw-bottom-grid">
-        <Panel title="接入你的客户端" code="CLIENT ACCESS"
+        <Panel title="接入 Codex Desktop" code="DESKTOP ACCESS"
           ><div class="gw-access">
             <p>
               网关支持 Responses HTTP/SSE。客户端工具仍由 Codex 执行；本版不提供 WebSocket 或 Chat
@@ -650,7 +650,10 @@ onUnmounted(() => {
       </div></Modal
     >
     <Modal v-if="preview !== null" title="接入配置 / PREVIEW" @close="preview = null"
-      ><p>此处只展示配置。可由你复制应用，也可使用主面板的 Desktop 启动入口，按进程参数接入。</p>
+      ><p>
+        此处展示 Desktop 接入参数供核对；使用主面板的 Desktop 启动入口按进程参数接入。CLI
+        接入后续再提供。
+      </p>
       <pre class="gw-code-preview" tabindex="0">{{ preview }}</pre>
       <div class="modal-actions">
         <button class="button" @click="preview = null">关闭</button

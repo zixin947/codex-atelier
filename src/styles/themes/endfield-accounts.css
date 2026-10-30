@@ -7,13 +7,32 @@
   border: 1px solid var(--field-card-rule);
   border-radius: var(--field-card-radius);
   box-shadow: var(--field-card-shadow);
+  animation: field-card-enter var(--field-card-enter-motion) var(--field-card-ease) backwards;
+  animation-delay: calc(var(--account-motion-order, 0) * var(--field-card-stagger));
   transition:
-    box-shadow var(--motion),
-    border-color var(--motion);
+    transform var(--field-card-motion) var(--field-card-ease),
+    box-shadow var(--field-card-motion) var(--field-card-ease),
+    border-color var(--field-card-motion) var(--field-card-ease);
 }
-[data-theme='endfield'] .account-card.panel:hover {
+[data-theme='endfield'] .account-card.panel:focus-within {
   box-shadow: var(--field-card-hover-shadow);
   border-color: var(--field-card-mint-edge);
+}
+@media (hover: hover) and (pointer: fine) {
+  [data-theme='endfield'] .account-card.panel:hover:not([aria-busy='true']) {
+    transform: translateY(var(--field-card-lift));
+    box-shadow: var(--field-card-hover-shadow);
+    border-color: var(--field-card-mint-edge);
+  }
+}
+[data-theme='endfield'] .account-card button {
+  transition:
+    transform var(--motion) var(--field-card-ease),
+    background-color var(--motion),
+    color var(--motion);
+}
+[data-theme='endfield'] .account-card button:active:not(:disabled) {
+  transform: translateY(var(--field-card-press-offset));
 }
 [data-theme='endfield'] .account-card.current {
   border-color: var(--field-card-current-edge);
@@ -57,6 +76,11 @@
   height: 3px;
   background: var(--field-card-signal);
   border-radius: 0 0 3px 3px;
+  transform-origin: left;
+  transition: transform var(--field-card-motion) var(--field-card-ease);
+}
+[data-theme='endfield'] .account-card.current:focus-within .account-card-top::before {
+  transform: scaleX(1.2);
 }
 [data-theme='endfield'] .account-card .account-identity {
   color: var(--field-card-ink);
@@ -218,6 +242,11 @@
 }
 [data-theme='endfield'] .account-card .account-ring-value {
   stroke-linecap: round;
+  animation: field-quota-reveal var(--field-card-gauge-motion) var(--field-card-ease);
+  transition:
+    stroke-dasharray var(--field-card-gauge-motion) var(--field-card-ease),
+    stroke var(--field-card-motion) var(--field-card-ease),
+    opacity var(--field-card-motion);
 }
 [data-theme='endfield'] .account-card .account-quota.stale .account-ring-value {
   stroke: var(--field-card-stale);
@@ -367,4 +396,28 @@
   background: var(--field-card-signal);
   color: var(--field-card-ink);
   border-color: var(--field-card-current-edge);
+}
+
+@keyframes field-card-enter {
+  from {
+    opacity: 0;
+    translate: 0 var(--field-card-enter-offset);
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+@keyframes field-quota-reveal {
+  from {
+    stroke-dasharray: 0 100;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-theme='endfield'] .account-card.panel,
+  [data-theme='endfield'] .account-card button:active:not(:disabled),
+  [data-theme='endfield'] .account-card.current .account-card-top::before {
+    transform: none !important;
+    translate: none !important;
+  }
 }

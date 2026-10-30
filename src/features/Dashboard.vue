@@ -37,7 +37,7 @@ async function scan() {
               <h2>运行状态良好<span class="cursor-block" /></h2>
               <p>工作配置已就位，随时进入心流。</p>
               <div class="screen-tags">
-                <span><Icon name="check" :size="13" /> CLI 就绪</span
+                <span><Icon name="check" :size="13" /> Desktop 就绪</span
                 ><span><Icon name="check" :size="13" /> 连接正常</span><span>DEMO</span>
               </div>
             </div>

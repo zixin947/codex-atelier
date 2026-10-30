@@ -19,7 +19,8 @@ pub struct Rpc {
 }
 impl Rpc {
     pub async fn start(home: &Path) -> Result<Self, String> {
-        let binary = binary().ok_or("未找到 Codex CLI。请安装 CLI；Atelier 不会自动升级。")?;
+        let binary = binary()
+            .ok_or("未找到 Codex Desktop 内置引擎。请安装 Desktop；Atelier 不会安装或升级 CLI。")?;
         let mut command = Command::new(&binary);
         command
             .args([
@@ -156,28 +157,5 @@ impl Rpc {
     }
 }
 fn binary() -> Option<PathBuf> {
-    let mut bins: Vec<PathBuf> =
-        std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default())
-            .map(|p| p.join("codex"))
-            .collect();
-    bins.extend(
-        [
-            "/opt/homebrew/bin/codex",
-            "/usr/local/bin/codex",
-            "/Applications/ChatGPT.app/Contents/Resources/codex",
-        ]
-        .map(PathBuf::from),
-    );
-    if let Some(home) = std::env::var_os("HOME") {
-        if let Ok(entries) = std::fs::read_dir(PathBuf::from(home).join(".nvm/versions/node")) {
-            let mut paths: Vec<_> = entries
-                .flatten()
-                .map(|e| e.path().join("bin/codex"))
-                .collect();
-            paths.sort();
-            paths.reverse();
-            bins.extend(paths);
-        }
-    }
-    bins.into_iter().find(|p| p.is_file())
+    crate::desktop_runtime::binary()
 }

@@ -13,8 +13,13 @@ pub struct BridgeStatus {
 }
 impl BridgeStatus {
     pub fn disconnected() -> Self {
-        Self { state: "disconnected".into(), hosts: 0, loaded_threads: 0,
-            message: "Desktop 尚未通过 Atelier 桥接启动；当前开关仅影响新会话。首次接入需退出并重新打开 Desktop，原有聊天可继续使用。".into() }
+        Self {
+            state: "disconnected".into(),
+            hosts: 0,
+            loaded_threads: 0,
+            message: "当前 Desktop 尚未提供可确认的会话控制入口，暂不能修改当前会话的 Hook 开关。"
+                .into(),
+        }
     }
 }
 
@@ -113,6 +118,13 @@ mod native {
         matches!(e, tungstenite::Error::Io(e) if matches!(e.kind(), io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut))
     }
     fn connect(path: &Path, pid: u32) -> Result<WebSocket<UnixStream>, String> {
+        connect_existing(path, Some(pid), None).map(|(ws, _)| ws)
+    }
+    fn connect_existing(
+        path: &Path,
+        expected_pid: Option<u32>,
+        desktop: Option<(u32, &Path)>,
+    ) -> Result<(WebSocket<UnixStream>, u32), String> {
         secure(path, true)?;
         let stream = UnixStream::connect(path).map_err(|_| "Desktop 桥接连接失败。")?;
         stream
@@ -123,7 +135,7 @@ mod native {
             .map_err(|_| "无法设置桥接超时。")?;
         // Socket ownership alone does not prove the expected process owns it.
         #[cfg(target_os = "macos")]
-        {
+        let pid = {
             let mut actual: libc::pid_t = 0;
             let mut length = std::mem::size_of_val(&actual) as libc::socklen_t;
             let result = unsafe {
@@ -135,17 +147,26 @@ mod native {
                     &mut length,
                 )
             };
-            if result != 0 || actual as u32 != pid {
+            if result != 0 || actual <= 0 || expected_pid.is_some_and(|pid| actual as u32 != pid) {
                 return Err("桥接宿主身份不匹配。".into());
             }
-        }
+            if let Some((desktop_pid, home)) = desktop {
+                crate::desktop_attach::verify(desktop_pid, actual as u32, home)?;
+            }
+            actual as u32
+        };
         #[cfg(not(target_os = "macos"))]
-        let _ = pid;
+        let pid = {
+            if desktop.is_some() {
+                return Err("不重启连接目前仅支持 macOS。".into());
+            }
+            expected_pid.ok_or("缺少宿主身份。")?
+        };
         let (ws, _) = client("ws://localhost/rpc", stream).map_err(|_| "Desktop 桥接握手失败。")?;
         ws.get_ref()
             .set_read_timeout(Some(Duration::from_millis(50)))
             .map_err(|_| "无法设置桥接超时。")?;
-        Ok(ws)
+        Ok((ws, pid))
     }
     pub struct Owner {
         ws: WebSocket<UnixStream>,
@@ -195,8 +216,12 @@ mod native {
             if d.protocol != 1 || d.socket.parent() != Some(socket_directory().as_path()) {
                 return Err("桥接记录版本或路径不兼容。".into());
             }
+            let ws = connect(&d.socket, d.engine_pid)?;
+            Self::initialize(ws, codex_home)
+        }
+        fn initialize(ws: WebSocket<UnixStream>, codex_home: &Path) -> Result<Self, String> {
             let mut owner = Self {
-                ws: connect(&d.socket, d.engine_pid)?,
+                ws,
                 next: 0,
                 threads: 0,
             };
@@ -226,6 +251,23 @@ mod native {
             Err("宿主会话清单超过检查上限，未确认范围。".into())
         }
     }
+    fn control_socket(home: &Path) -> PathBuf {
+        home.join("app-server-control/app-server-control.sock")
+    }
+    #[cfg(target_os = "macos")]
+    fn running_owner(codex_home: &Path) -> Result<Owner, String> {
+        let socket = control_socket(codex_home);
+        let mut last_error = "当前 Desktop 会话控制入口不可用。".to_string();
+        for desktop in crate::desktop_attach::desktops()? {
+            let result = connect_existing(&socket, None, Some((desktop, codex_home)))
+                .and_then(|(ws, _)| Owner::initialize(ws, codex_home));
+            match result {
+                Ok(owner) => return Ok(owner),
+                Err(error) => last_error = error,
+            }
+        }
+        Err(last_error)
+    }
     impl Drop for Owner {
         fn drop(&mut self) {
             let _ = self.ws.close(None);
@@ -233,6 +275,24 @@ mod native {
     }
 
     pub fn owners(codex_home: &Path) -> Result<Vec<Owner>, String> {
+        // Discover the running Desktop directly; no pairing file or process launch.
+        #[cfg(target_os = "macos")]
+        if control_socket(codex_home).exists() {
+            match running_owner(codex_home) {
+                Ok(owner) => return Ok(vec![owner]),
+                Err(native_error) => {
+                    let hosts = recorded_owners(codex_home)?;
+                    return if hosts.is_empty() {
+                        Err(native_error)
+                    } else {
+                        Ok(hosts)
+                    };
+                }
+            }
+        }
+        recorded_owners(codex_home)
+    }
+    fn recorded_owners(codex_home: &Path) -> Result<Vec<Owner>, String> {
         let root = directory();
         if !root.exists() {
             return Ok(Vec::new());
@@ -257,7 +317,7 @@ mod native {
         match owners(codex_home) {
             Ok(hosts) if !hosts.is_empty() => BridgeStatus { state: "connected".into(), hosts: hosts.len(),
                 loaded_threads: hosts.iter().map(|h| h.threads).sum(),
-                message: "已连接 Desktop 桥接宿主。切换后会等待宿主热重载确认；其他独立启动的宿主不在此范围。".into() },
+                message: "已连接 Desktop 宿主。切换后会等待热重载确认；影响此宿主的全部已加载会话，其他独立宿主不在此范围。".into() },
             Ok(_) => BridgeStatus::disconnected(),
             Err(message) => BridgeStatus { state: "error".into(), hosts: 0, loaded_threads: 0, message },
         }
@@ -517,6 +577,36 @@ mod native {
             assert!(secure(&link, false).is_err());
             fs::remove_dir_all(root).unwrap();
         }
+        #[test]
+        fn rejects_unknown_or_redirected_legacy_records_before_connecting() {
+            let root = std::env::temp_dir()
+                .join(format!("atelier-bridge-descriptor-{}", std::process::id()));
+            private_dir(&root).unwrap();
+            let record = root.join("host.json");
+            for descriptor in [
+                Descriptor {
+                    protocol: 2,
+                    engine_pid: 1,
+                    socket: control_socket(&root),
+                },
+                Descriptor {
+                    protocol: 1,
+                    engine_pid: 1,
+                    socket: root.join("other.sock"),
+                },
+                Descriptor {
+                    protocol: 99,
+                    engine_pid: 1,
+                    socket: socket_directory().join("other.sock"),
+                },
+            ] {
+                fs::write(&record, serde_json::to_vec(&descriptor).unwrap()).unwrap();
+                fs::set_permissions(&record, fs::Permissions::from_mode(0o600)).unwrap();
+                let result = Owner::from_descriptor(&record, &root);
+                assert!(matches!(result, Err(message) if message.contains("版本或路径不兼容")));
+            }
+            fs::remove_dir_all(root).unwrap();
+        }
     }
 }
 #[cfg(unix)]
@@ -528,11 +618,6 @@ pub fn cli() -> i32 {
 #[cfg(not(unix))]
 pub fn status(_: &Path) -> BridgeStatus {
     BridgeStatus::disconnected()
-}
-
-#[tauri::command]
-pub async fn desktop_bridge_launch() -> Result<String, String> {
-    launch_desktop(None)
 }
 
 pub fn launch_with_gateway(base: &str, token: &str, model: &str) -> Result<String, String> {

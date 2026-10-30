@@ -52,4 +52,12 @@
   --field-card-dialog-shadow: 0 18px 60px #26352b26;
   --field-card-shadow: 0 5px 18px #34483410, 0 1px 3px #34483408;
   --field-card-hover-shadow: 0 8px 24px #34483418, 0 2px 5px #3448340a;
+  --field-card-lift: -2px;
+  --field-card-enter-offset: 6px;
+  --field-card-press-offset: 1px;
+  --field-card-motion: 180ms;
+  --field-card-enter-motion: 280ms;
+  --field-card-stagger: 32ms;
+  --field-card-gauge-motion: 440ms;
+  --field-card-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
 }

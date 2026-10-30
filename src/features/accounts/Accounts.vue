@@ -6,6 +6,7 @@ import QuotaMeter from './QuotaMeter.vue'
 import ResetCreditsPreview from './ResetCreditsPreview.vue'
 import { accountPlanBadge } from './plan'
 import { useAtelier } from '../../app/store'
+import { useAccountRefresh } from '../../app/accountRefresh'
 import { accountsService as service } from '../../services/accounts'
 import type {
   AccountLogin,
@@ -19,19 +20,15 @@ import '../../styles/gateway.css'
 import './accounts.css'
 
 const store = useAtelier()
-const refreshIntervals = [0, 30_000, 60_000, 180_000, 300_000]
-function savedInterval() {
-  try {
-    const value = Number(localStorage.getItem('atelier.accounts.refreshInterval'))
-    return refreshIntervals.includes(value) ? value : 0
-  } catch {
-    return 0
-  }
-}
-const autoRefreshInterval = ref(savedInterval())
+const accountRefresh = useAccountRefresh()
+const autoRefreshInterval = computed({
+  get: () => accountRefresh.status?.intervalMs ?? 0,
+  set: (value: number) => {
+    void accountRefresh.setInterval(value)
+  },
+})
 const clock = ref(Date.now())
 let clockTimer: ReturnType<typeof setInterval> | undefined
-let refreshTimer: ReturnType<typeof setTimeout> | undefined
 const data = ref<AccountsSnapshot | null>(null),
   busy = ref(''),
   error = ref('')
@@ -189,13 +186,13 @@ function subscriptionStatus(account: CodexAccount) {
   }
   return m.error ? '获取失败' : account.plan ? '已识别套餐' : '未知'
 }
-function quotaStale(account: CodexAccount) {
+function quotaStale(account: CodexAccount, window: QuotaWindow | null) {
   if (account.status !== 'ready' || !account.quota) return true
   return (
     clock.value - account.quota.checkedAt > 300_000 ||
-    [account.quota.primary, account.quota.secondary].some(
-      (window) => window?.resetsAt != null && window.resetsAt <= clock.value,
-    )
+    (window?.resetsAt != null &&
+      window.resetsAt > account.quota.checkedAt &&
+      window.resetsAt <= clock.value)
   )
 }
 function metadataHint(account: CodexAccount) {
@@ -257,38 +254,40 @@ async function detectCurrent() {
 function detectOnReturn() {
   void detectCurrent()
 }
-function scheduleAutoRefresh() {
-  clearTimeout(refreshTimer)
-  if (!alive || !autoRefreshInterval.value) return
-  refreshTimer = setTimeout(async () => {
-    if (
-      !busy.value &&
-      !detectingCurrent.value &&
-      document.visibilityState === 'visible' &&
-      accounts.value.length &&
-      !editing.value &&
-      !add.value &&
-      !switching.value &&
-      !removeIds.value.length &&
-      !exportOpen.value &&
-      !groupOpen.value &&
-      !reportOpen.value &&
-      !resetPreviewId.value
-    )
-      await refresh(
-        accounts.value.map((a) => a.id),
-        true,
-      )
-    scheduleAutoRefresh()
-  }, autoRefreshInterval.value)
-}
-watch(autoRefreshInterval, (value) => {
+let backgroundReadPending = false
+let backgroundReadInFlight = false
+async function syncBackgroundSnapshot() {
+  if (
+    !alive ||
+    !backgroundReadPending ||
+    backgroundReadInFlight ||
+    busy.value ||
+    detectingCurrent.value
+  )
+    return
+  backgroundReadPending = false
+  backgroundReadInFlight = true
   try {
-    localStorage.setItem('atelier.accounts.refreshInterval', String(value))
-  } catch {
-    /* Refresh still works for this page. */
+    const value = await service.snapshot()
+    if (alive) apply(value)
+  } catch (e) {
+    if (alive) error.value = String(e)
+  } finally {
+    backgroundReadInFlight = false
+    if (backgroundReadPending && alive) void syncBackgroundSnapshot()
   }
-  scheduleAutoRefresh()
+}
+watch(
+  () => accountRefresh.status?.lastRun?.finishedAt,
+  (value, previous) => {
+    if (value && value !== previous) {
+      backgroundReadPending = true
+      void syncBackgroundSnapshot()
+    }
+  },
+)
+watch([busy, detectingCurrent], () => {
+  void syncBackgroundSnapshot()
 })
 function date(value: number) {
   return new Date(value).toLocaleString('zh-CN', {
@@ -535,18 +534,17 @@ async function exportAccounts() {
 }
 onMounted(() => {
   void read()
+  void accountRefresh.initialize()
   detectionTimer = setInterval(detectOnReturn, 10_000)
   window.addEventListener('focus', detectOnReturn)
   document.addEventListener('visibilitychange', detectOnReturn)
   clockTimer = setInterval(() => {
     clock.value = Date.now()
   }, 30_000)
-  scheduleAutoRefresh()
 })
 onUnmounted(() => {
   alive = false
   clearTimeout(timer)
-  clearTimeout(refreshTimer)
   clearInterval(clockTimer)
   clearInterval(detectionTimer)
   window.removeEventListener('focus', detectOnReturn)
@@ -669,7 +667,11 @@ onUnmounted(() => {
         </span>
         <button class="button" :disabled="!canWrite" @click="detectCurrent">重新检测</button>
         <label
-          >自动刷新<select v-model.number="autoRefreshInterval" aria-label="账号自动刷新频率">
+          >自动刷新<select
+            v-model.number="autoRefreshInterval"
+            :disabled="!accountRefresh.ready || accountRefresh.saving || !accountRefresh.status"
+            aria-label="账号自动刷新频率"
+          >
             <option :value="0">手动</option>
             <option :value="30000">30 秒</option>
             <option :value="60000">1 分钟</option>
@@ -678,6 +680,14 @@ onUnmounted(() => {
           </select></label
         >
       </div>
+      <p
+        v-if="autoRefreshInterval || accountRefresh.error || accountRefresh.status?.error"
+        class="account-auto-refresh-note"
+        role="status"
+      >
+        {{ accountRefresh.saving ? '正在保存后台刷新设置…' : accountRefresh.message }}
+        <span>切换页面、最小化或隐藏窗口仍会刷新；退出 Atelier 后停止。</span>
+      </p>
       <p
         v-if="detectionError || data?.currentAccount.state === 'unavailable'"
         class="account-detection-note"
@@ -737,11 +747,12 @@ onUnmounted(() => {
       </div>
       <div v-else class="account-cards" :class="{ 'account-list': view === 'list' }">
         <article
-          v-for="account in rows"
+          v-for="(account, index) in rows"
           :key="account.id"
           class="account-card panel"
+          :style="{ '--account-motion-order': Math.min(index, 7) }"
           :data-status="account.status"
-          :aria-busy="refreshingIds.includes(account.id)"
+          :aria-busy="refreshingIds.includes(account.id) || accountRefresh.status?.running"
           :class="{
             current: isCurrent(account),
             selected: selected.includes(account.id),
@@ -850,14 +861,14 @@ onUnmounted(() => {
               :now="clock"
               :checked-at="account.quota?.checkedAt"
               :fallback="index === 0 ? '5小时' : '1周'"
-              :stale="quotaStale(account)"
+              :stale="quotaStale(account, window)"
               :failed="account.status === 'error'"
-              :loading="refreshingIds.includes(account.id)"
+              :loading="refreshingIds.includes(account.id) || accountRefresh.status?.running"
             />
           </div>
           <footer class="account-card-bottom">
             <span
-              v-if="refreshingIds.includes(account.id)"
+              v-if="refreshingIds.includes(account.id) || accountRefresh.status?.running"
               class="account-footer-status"
               role="status"
               ><Icon name="refresh" :size="12" class="spinning" />正在刷新</span
@@ -917,7 +928,7 @@ onUnmounted(() => {
       </div>
       <p class="account-footnote">
         当前文件登录会自动加入列表，仅将副本保存到
-        Atelier。额度需主动刷新，缺失值显示未知；不会修改客户端登录。
+        Atelier。额度可手动查询或按所选频率自动刷新，缺失值显示未知；不会修改客户端登录。
       </p>
     </div>
     <ResetCreditsPreview

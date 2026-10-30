@@ -6,13 +6,13 @@ Atelier 的「行为插件」页是实际本机管理功能，与其他页面的
 
 ## 使用
 
-1. 打开 Tauri 桌面应用，进入侧栏「行为插件」。需要本机 Codex CLI 与 Git。
+1. 打开 Tauri 桌面应用，进入侧栏「行为插件」。需要受支持的 Codex Desktop 与 Git，不要求独立 CLI。
 2. 点击「安装固定版本」，查看来源及版本，再安装。新安装默认停用。
-3. 点击对应加载开关。界面仅在 Codex 写入并读回有效状态后显示已启用/停用。
-4. 点击「刷新本机状态」，读取 CLI 发现的 Hook 信任状态。有待信任或定义变化时，在 CLI 的 `/hooks` 中按宿主提示自行审阅、信任当前定义，再回到 Atelier 刷新。已信任不需要重复授权。
-5. 如需当前会话热重载，由你在「连接 Desktop」中完成首次桥接启动，然后继续原有聊天。未连接时仍只影响新会话。关闭不会删除已经注入的规则，也不会向聊天发送命令。详见 [Desktop 桥接](desktop-bridge.md)。
+3. 点击对应加载开关，Atelier 在后台保存并读回；无需连接当前会话或申请辅助功能权限。新建 Desktop 对话加载最新开关，无需重启应用。
+4. 点击「刷新本机状态」，读取 Desktop 内置引擎发现的 Hook 信任状态。有待信任或定义变化时，在 Desktop 的 Hook 设置中自行审阅、信任当前定义，再回到 Atelier 刷新。已信任不需要重复授权。
+5. 无需手动连接或配对，不打开 Desktop 设置。首次使用或定义变化时，由用户在 Desktop 中审阅并信任 Hook；同一定义的信任会保留。旧对话不保证同步变化。已有兼容共享宿主时可附加热重载，但不作为普通开关的前提。详见 [Desktop 控制](desktop-bridge.md)。
 
-Ponytail 的 lite/full/ultra 与 STS 的 review/change/watch/off 是插件自己的会话模式。本页开关管理**插件是否加载**，没有替代会话模式选择。STS 插件启用后仍需要明确任务指令才能进入 Guard 模式。
+加载开关与模式选择独立。Ponytail 下方可设置新对话默认 lite/full/ultra/off；STS 下方可选择已有插件状态的目标对话，设置 answer/review/monitor/change/open 任务模式与 watch/guard/lock/off 控制等级。STS 没有全局默认模式，未选择明确任务前不能进入 Guard/Lock。详见[插件模式控制与隔离验证](plugin-modes.md)。
 
 ## Hook 信任只读检测
 
@@ -44,24 +44,24 @@ Ponytail 的 lite/full/ultra 与 STS 的 review/change/watch/off 是插件自己
 | Ponytail       | DietrichGebert/ponytail | v5.3.2   | 16352ac229eb08a9598dcae48fe9f2b342567d86 |
 | Stop That Shit | lennney/stop-that-shit  | 0.2.5    | 8bc1ac558167121e7f28d9fb0bec05c039952206 |
 
-来源保存在 `integrations/behavior-plugins.json`。安装下载官方 GitHub 源码至 Atelier 应用数据目录，检查 Git 提交、工作树与插件声明，再通过 Codex CLI 注册 `atelier-companions` 本地市场并安装。下载仓库中保留上游 MIT 许可证；上游实现没有复制进 Atelier 源码，也没有重新包装成自己的规则引擎。
+来源保存在 `integrations/behavior-plugins.json`。安装下载官方 GitHub 源码至 Atelier 应用数据目录，检查 Git 提交、工作树与插件声明，再通过 Desktop 内置引擎注册 `atelier-companions` 本地市场并安装。下载仓库中保留上游 MIT 许可证；上游实现没有复制进 Atelier 源码，也没有重新包装成自己的规则引擎。
 
 已有官方市场安装时优先管理它，不强制重装或降级；同时存在官方与 Atelier 来源时禁用切换，要求用户在 Codex 中保留一个来源，以免同名规则重复加载。其他市场中名字相似的插件不在管理范围内。
 
 ## 写入与回退
 
-- 只暴露四个受限 Tauri 命令：状态、安装、启停、回退。插件参数是固定枚举；不接收 shell、任意命令、任意仓库或文件路径。
-- Codex 可执行文件从 PATH、常见 Homebrew 路径或 nvm 安装中发现，Finder 启动时补齐对应 Node 的 PATH。
+- 加载管理提供四个受限 Tauri 命令：状态、安装、启停、回退；模式控制另外提供七个类型约束命令。插件、任务与控制等级是固定枚举，不接收 shell、任意命令或任意仓库。STS 文件边界仅存入指定会话契约，不作为任意文件写入接口。
+- 只使用受支持 Desktop 安装包中的内置引擎，不从 PATH、Homebrew 或 nvm 选择独立 CLI。
 - 状态使用带 `--marketplace` 的 `codex plugin list --json`，只查询 `atelier-companions`、`ponytail`、`stop-that-shit` 三个受管来源，每次查询最多 8 秒；不枚举无关远程市场。配置版本使用短时 stdio app-server 的 `config/read`。只向前端返回这两个插件的状态、版本与 Hook 明细，不返回完整配置内容。
-- 启停通过官方 `config/value/write` 写入单个 `plugins."<id>".enabled`。携带配置版本令牌；过期状态停止写入，不覆盖外部变更。
+- 普通开关通过短时 Desktop 内置引擎的 `config/value/write` 写入单个 `plugins."<id>".enabled`，使用 `expectedVersion` 拒绝过期状态，并读回结果。没有当前会话控制入口仍可保存；这证明配置已保存，不能冒充旧对话已卸载。已有兼容共享宿主时可附加热重载回执。
 - 写入前保存原启用值和官方配置版本；成功后保存写入版本。回退仅还原该布尔值，不复制整份配置或凭据。记录存放应用数据目录，macOS 新文件权限为 0600。
 - 回退仅在配置版本和插件来源仍匹配时可用；有后续外部变更时，刷新并显式切换，不覆盖旧快照。
 - Codex 用户级配置可能被项目或管理策略覆盖；写入返回 `okOverridden` 或读回不匹配会显示错误，不能冒充会话生效。
 - 每次操作结束会回收短时子进程；没有常驻 daemon 或 WebSocket 监听。下载需要 GitHub 网络，启停不请求模型。
 
-Atelier 不主动读取 auth.json、钥匙串或会话数据库，不接管 Provider、代理、LaunchAgent、人设和记忆。Codex 官方子进程按其自身机制加载必要配置；Atelier 不展示、复制或记录其中的凭据。这里授权范围由用户本轮要求扩展到两个插件的安装与启用配置，其他模块仍保留演示边界。
+行为插件模块不主动读取 auth.json、钥匙串或会话数据库，不接管 Provider、代理、LaunchAgent、人设和记忆。Codex 官方子进程按其自身机制加载必要配置；Atelier 不展示、复制或记录其中的凭据。受管写入包括两个插件的启用字段、Ponytail 默认档位及用户选定 STS 对话的契约。对话列表使用官方元信息 API，限制为 app-server 来源，不请求聊天正文。
 
-## 验证
+## 历史验证（早期 CLI 隔离路径）
 
 ```sh
 pnpm test
@@ -113,3 +113,5 @@ cargo test --manifest-path src-tauri/Cargo.toml -- --include-ignored
 - 停用只改变受管插件的加载字段，不撤销 Hook 信任；此前已加载规则的会话仍需另行结束或新建，不能用配置读回冒充当前聊天已卸载。
 
 ![原生窗口关闭成功：两个插件均已停用并读回](screenshots/behavior-plugins-disabled-native.png)
+
+当前 Desktop 优先接入、只读端点归属校验与待用户验收范围见 [Desktop 宿主连接](desktop-bridge.md)。上面的历史 CLI 测试不能替代当前 Desktop 真机验收。

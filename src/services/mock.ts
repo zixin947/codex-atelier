@@ -77,7 +77,7 @@ const checks: Check[] = [
     title: '应用运行环境',
     group: '运行环境',
     status: 'pass',
-    detail: '示例环境中的 CLI、运行时与工作目录均可用。未检测本机 Codex。',
+    detail: '示例环境中的 Desktop、内置引擎与工作目录均可用。未检测本机 Codex。',
     risk: '只读检查的演示结果，不代表本机状态。',
   },
   {

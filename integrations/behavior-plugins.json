@@ -17,7 +17,7 @@
     "tag": "0.2.5",
     "version": "0.2.5",
     "summary": "明确授权，约束任务越界",
-    "description": "Skill 提供工程判断，Guard 检查任务模式、文件范围、依赖与子代理预算。启用插件后仍需在会话中声明任务模式。",
+    "description": "Skill 提供工程判断，Guard 检查任务模式、文件范围、依赖与子代理预算。在下方选择目标对话，明确任务与控制等级。",
     "license": "MIT",
     "commit": "8bc1ac558167121e7f28d9fb0bec05c039952206"
   }

@@ -37,7 +37,7 @@ function eventCode(event: string) {
 </script>
 <template>
   <section v-if="hooks.length" class="hook-list" :aria-label="`${pluginName} Hook 明细`">
-    <p class="hook-list-intro">在 CLI /hooks 中，按插件来源和下列触发事件核对。</p>
+    <p class="hook-list-intro">在 Desktop 的 Hook 设置中，按插件来源和下列触发事件核对。</p>
     <ol>
       <li v-for="(hook, index) in hooks" :key="hook.key ?? index" class="hook-row">
         <div class="hook-row-heading">
@@ -66,7 +66,7 @@ function eventCode(event: string) {
             </dd>
             <dt>配置来源</dt>
             <dd>
-              <code>{{ hook.sourcePath ?? 'CLI 未返回来源路径' }}</code>
+              <code>{{ hook.sourcePath ?? '桌面引擎未返回来源路径' }}</code>
             </dd>
             <dt>处理类型</dt>
             <dd>{{ hook.handlerType }}</dd>

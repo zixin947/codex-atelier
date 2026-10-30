@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref, computed, nextTick } from 'vue'
+import { onMounted, onUnmounted, ref, computed, nextTick } from 'vue'
+import { isTauri } from '@tauri-apps/api/core'
+import { useAccountRefresh } from './app/accountRefresh'
 import { useRoute } from 'vue-router'
 import { useAtelier } from './app/store'
 import Icon from './shared/components/Icon.vue'
@@ -21,6 +23,10 @@ const realManagement = computed(
 )
 const store = useAtelier(),
   settings = ref(false)
+const accountRefresh = useAccountRefresh()
+function syncAccountRefresh() {
+  void accountRefresh.sync()
+}
 function skip() {
   document.getElementById('main-content')?.focus()
 }
@@ -35,12 +41,17 @@ const nav = [
   { path: '/diagnostics', label: '诊断与回滚', icon: 'pulse' },
 ]
 onMounted(async () => {
+  if (isTauri()) {
+    void accountRefresh.initialize()
+    window.addEventListener('focus', syncAccountRefresh)
+  }
   try {
     await store.load()
   } finally {
     finishStartupInitialization()
   }
 })
+onUnmounted(() => window.removeEventListener('focus', syncAccountRefresh))
 async function previewStartup() {
   settings.value = false
   await nextTick()
@@ -131,7 +142,10 @@ async function previewStartup() {
         <b>{{
           realManagement ? '本地管理 · 运行状态见当前页面' : '本地演示 · 未连接 Codex'
         }}</b></span
-      ><span>无后台常驻 <span>/</span> 无遥测 <span>/</span> v0.1.0</span>
+      ><span
+        >{{ accountRefresh.status?.intervalMs ? '额度后台刷新已启用' : '无独立后台服务' }}
+        <span>/</span> 无遥测 <span>/</span> v0.1.0</span
+      >
     </footer>
   </div>
   <div v-if="store.notice" class="toast" role="status">
