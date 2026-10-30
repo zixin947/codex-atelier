@@ -69,7 +69,6 @@
 [data-theme='endfield'] nav a {
   color: var(--muted);
   position: relative;
-  transition: none;
 }
 [data-theme='endfield'] nav a small {
   color: var(--muted);
@@ -96,6 +95,22 @@
   bottom: 9px;
   width: 4px;
   background: var(--field-signal);
+  transform-origin: center;
+  animation: nav-signal-engage var(--nav-select-duration) var(--ease);
+}
+@keyframes nav-signal-engage {
+  0% {
+    transform: scaleY(0.25);
+    opacity: 0.45;
+  }
+  65% {
+    transform: scaleY(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 [data-theme='endfield'] .vent {
   height: 7px;

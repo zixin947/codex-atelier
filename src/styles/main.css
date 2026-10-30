@@ -297,6 +297,32 @@ nav a.active {
 nav a.active small {
   color: #426b49;
 }
+.sidebar nav a {
+  transform-origin: center;
+  transition:
+    background-color var(--motion) var(--ease),
+    color var(--motion) var(--ease),
+    border-color var(--motion) var(--ease),
+    transform var(--nav-press-duration) var(--ease);
+}
+.sidebar nav a:active {
+  transform: translateY(var(--nav-press-offset)) scale(var(--nav-press-scale));
+}
+.sidebar nav a.active > svg {
+  transform-origin: center;
+  animation: nav-icon-engage var(--nav-select-duration) var(--ease);
+}
+@keyframes nav-icon-engage {
+  0% {
+    transform: translateX(0) scale(1);
+  }
+  45% {
+    transform: translateX(var(--nav-icon-travel)) scale(var(--nav-icon-scale));
+  }
+  100% {
+    transform: translateX(0) scale(1);
+  }
+}
 .sidebar-bottom {
   margin-top: auto;
   padding: 42px 8px 0;
@@ -1676,6 +1702,9 @@ pre {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+  .sidebar nav a:active {
+    transform: none;
   }
 }
 /* Visual review 01: clearer secondary text and more legible controls. */

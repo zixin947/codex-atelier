@@ -38,6 +38,12 @@
   --control: 36px;
   --motion: 120ms;
   --ease: cubic-bezier(0.2, 0.6, 0.3, 1);
+  --nav-press-duration: 90ms;
+  --nav-select-duration: 260ms;
+  --nav-press-offset: 1px;
+  --nav-press-scale: 0.985;
+  --nav-icon-travel: 2px;
+  --nav-icon-scale: 1.12;
 }
 /* Reserved palette, not exposed until visually validated. */
 [data-theme='dark-reserved'] {
