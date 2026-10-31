@@ -33,4 +33,9 @@
   --field-warning-wash: #f2e6cf;
   --field-error-wash: #f6e5df;
   --field-font-display: 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --field-nav-cut: 10px;
+  --field-nav-badge-cut: 4px;
+  --field-nav-hover-shift: 3px;
+  --field-nav-impact-duration: 460ms;
+  --field-nav-sweep: #fff50030;
 }

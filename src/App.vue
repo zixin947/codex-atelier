@@ -24,6 +24,7 @@ const realManagement = computed(
 const store = useAtelier(),
   settings = ref(false)
 const accountRefresh = useAccountRefresh()
+const navClicks = ref<Record<string, number>>({})
 function syncAccountRefresh() {
   void accountRefresh.sync()
 }
@@ -109,12 +110,20 @@ async function previewStartup() {
             v-for="(item, i) in nav"
             :key="item.path"
             :to="item.path"
+            @click="navClicks[item.path] = (navClicks[item.path] ?? 0) + 1"
             :class="{
               active:
                 $route.path === item.path ||
                 (item.path === '/accounts' && $route.path.startsWith('/accounts/')),
             }"
-            ><Icon :name="item.icon" /><span>{{ item.label }}</span
+            ><span class="nav-plate" aria-hidden="true" />
+            <span
+              v-if="navClicks[item.path]"
+              :key="navClicks[item.path]"
+              class="nav-impact"
+              aria-hidden="true"
+            />
+            <Icon :name="item.icon" /><span class="nav-label">{{ item.label }}</span
             ><small>0{{ i + 1 }}</small></RouterLink
           >
         </nav>

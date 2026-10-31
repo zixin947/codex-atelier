@@ -305,6 +305,10 @@ nav a.active small {
     border-color var(--motion) var(--ease),
     transform var(--nav-press-duration) var(--ease);
 }
+.nav-plate,
+.nav-impact {
+  display: none;
+}
 .sidebar nav a:active {
   transform: translateY(var(--nav-press-offset)) scale(var(--nav-press-scale));
 }

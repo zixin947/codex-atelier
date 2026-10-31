@@ -112,6 +112,142 @@
     opacity: 1;
   }
 }
+/* Cut console plates and one-shot signal feedback, specific to Endfield. */
+[data-theme='endfield'] .sidebar nav a {
+  --nav-frame: transparent;
+  --nav-fill: transparent;
+  isolation: isolate;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+[data-theme='endfield'] .sidebar nav a > :is(svg, .nav-label, small) {
+  position: relative;
+  z-index: 2;
+}
+[data-theme='endfield'] .nav-plate,
+[data-theme='endfield'] .nav-impact {
+  display: block;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  clip-path: polygon(
+    var(--field-nav-cut) 0,
+    100% 0,
+    100% calc(100% - var(--field-nav-cut)),
+    calc(100% - var(--field-nav-cut)) 100%,
+    0 100%,
+    0 var(--field-nav-cut)
+  );
+}
+[data-theme='endfield'] .nav-plate {
+  z-index: 0;
+  background: var(--nav-frame);
+  transition: background-color var(--motion) var(--ease);
+}
+[data-theme='endfield'] .nav-plate::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  clip-path: inherit;
+  background: var(--nav-fill);
+  transition: background-color var(--motion) var(--ease);
+}
+[data-theme='endfield'] .sidebar nav a:hover,
+[data-theme='endfield'] .sidebar nav a:focus-visible {
+  --nav-frame: var(--line);
+  --nav-fill: var(--paper);
+}
+[data-theme='endfield'] .sidebar nav a.active {
+  --nav-frame: var(--field-signal);
+  --nav-fill: var(--ink);
+}
+[data-theme='endfield'] .sidebar nav a small {
+  padding: 3px 4px;
+  line-height: 1;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% calc(100% - var(--field-nav-badge-cut)),
+    calc(100% - var(--field-nav-badge-cut)) 100%,
+    0 100%
+  );
+  transition:
+    color var(--motion) var(--ease),
+    background-color var(--motion) var(--ease);
+}
+[data-theme='endfield'] .sidebar nav a.active small {
+  background: var(--field-signal);
+  color: var(--ink);
+}
+[data-theme='endfield'] .nav-impact {
+  z-index: 1;
+  overflow: hidden;
+  opacity: 0;
+  animation: field-nav-impact var(--field-nav-impact-duration) linear;
+}
+[data-theme='endfield'] .nav-impact::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--field-nav-sweep);
+  animation: field-nav-sweep var(--field-nav-impact-duration) var(--ease);
+}
+[data-theme='endfield'] .nav-impact::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 5px;
+  height: 1px;
+  background: var(--field-signal);
+  transform-origin: left;
+  animation: field-nav-rule var(--field-nav-impact-duration) var(--ease);
+}
+@keyframes field-nav-impact {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  8%,
+  80% {
+    opacity: 1;
+  }
+}
+@keyframes field-nav-sweep {
+  from {
+    transform: translateX(-115%) skewX(-22deg);
+  }
+  to {
+    transform: translateX(115%) skewX(-22deg);
+  }
+}
+@keyframes field-nav-rule {
+  0% {
+    transform: scaleX(0);
+  }
+  60% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  [data-theme='endfield'] .sidebar nav a:hover {
+    transform: translateX(var(--field-nav-hover-shift));
+  }
+  [data-theme='endfield'] .sidebar nav a:active {
+    transform: translate(var(--field-nav-hover-shift), var(--nav-press-offset))
+      scale(var(--nav-press-scale));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-theme='endfield'] .nav-impact {
+    display: none;
+  }
+}
 [data-theme='endfield'] .vent {
   height: 7px;
   border: 1px solid var(--line);
