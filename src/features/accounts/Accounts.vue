@@ -560,125 +560,166 @@ onUnmounted(() => {
         {{ error }}<button class="button" :disabled="!!busy" @click="read">刷新列表</button>
       </div>
       <p v-if="data && !data.available" class="account-note inset">{{ data.reason }}</p>
-      <div class="account-toolbar panel" aria-label="账号工具栏">
-        <label class="search"
-          ><Icon name="search" :size="16" /><input
-            v-model="query"
-            aria-label="搜索账号"
-            placeholder="搜索账号…"
-        /></label>
-        <div class="account-view-toggle" aria-label="视图">
+      <div class="account-controls panel">
+        <div class="account-toolbar" aria-label="账号工具栏">
+          <label class="search"
+            ><Icon name="search" :size="16" /><input
+              v-model="query"
+              aria-label="搜索账号"
+              placeholder="搜索账号…"
+          /></label>
+          <div class="account-view-toggle" aria-label="视图">
+            <button
+              class="icon-button"
+              :class="{ active: view === 'list' }"
+              :aria-pressed="view === 'list'"
+              title="列表视图"
+              aria-label="列表视图"
+              @click="view = 'list'"
+            >
+              <Icon name="list" /></button
+            ><button
+              class="icon-button"
+              :class="{ active: view === 'grid' }"
+              :aria-pressed="view === 'grid'"
+              title="卡片视图"
+              aria-label="卡片视图"
+              @click="view = 'grid'"
+            >
+              <Icon name="grid" />
+            </button>
+          </div>
+          <select v-model="filter" aria-label="账号状态">
+            <option value="all">全部 ({{ accounts.length }})</option>
+            <option value="ready">额度已同步</option>
+            <option value="attention">待处理</option>
+            <option value="current">当前账号</option>
+          </select>
+          <select v-model="sort" aria-label="账号排序">
+            <option value="created">按创建时间</option>
+            <option value="name">按账号名称</option>
+            <option value="quota">按剩余额度</option>
+          </select>
           <button
             class="icon-button"
-            :class="{ active: view === 'list' }"
-            :aria-pressed="view === 'list'"
-            title="列表视图"
-            aria-label="列表视图"
-            @click="view = 'list'"
+            :aria-label="ascending ? '改为降序' : '改为升序'"
+            :title="ascending ? '升序' : '降序'"
+            @click="ascending = !ascending"
           >
-            <Icon name="list" /></button
-          ><button
-            class="icon-button"
-            :class="{ active: view === 'grid' }"
-            :aria-pressed="view === 'grid'"
-            title="卡片视图"
-            aria-label="卡片视图"
-            @click="view = 'grid'"
-          >
-            <Icon name="grid" />
+            <Icon name="arrow" class="account-sort-arrow" :class="{ ascending }" />
           </button>
+          <div class="account-toolbar-actions">
+            <button
+              class="icon-button primary"
+              :disabled="!canWrite"
+              title="添加账号"
+              aria-label="添加账号"
+              @click="openAdd()"
+            >
+              <Icon name="plus" />
+            </button>
+            <button
+              class="icon-button"
+              :disabled="!canWrite || !accounts.length"
+              title="刷新全部额度"
+              aria-label="刷新全部额度"
+              @click="refresh(accounts.map((a) => a.id))"
+            >
+              <Icon name="refresh" :class="{ spinning: busy === 'quota' }" />
+            </button>
+            <button
+              class="icon-button"
+              :disabled="!canWrite || !accounts.length"
+              title="导出账号"
+              aria-label="导出账号"
+              @click="exportOpen = true"
+            >
+              <Icon name="download" />
+            </button>
+            <button
+              class="icon-button"
+              :disabled="!canWrite"
+              title="导入账号"
+              aria-label="导入账号"
+              @click="openAdd('import')"
+            >
+              <Icon name="upload" />
+            </button>
+          </div>
         </div>
-        <select v-model="filter" aria-label="账号状态">
-          <option value="all">全部 ({{ accounts.length }})</option>
-          <option value="ready">额度已同步</option>
-          <option value="attention">待处理</option>
-          <option value="current">当前账号</option>
-        </select>
-        <select v-model="sort" aria-label="账号排序">
-          <option value="created">按创建时间</option>
-          <option value="name">按账号名称</option>
-          <option value="quota">按剩余额度</option>
-        </select>
-        <button
-          class="icon-button"
-          :aria-label="ascending ? '改为降序' : '改为升序'"
-          :title="ascending ? '升序' : '降序'"
-          @click="ascending = !ascending"
-        >
-          <Icon name="arrow" class="account-sort-arrow" :class="{ ascending }" />
-        </button>
-        <div class="account-toolbar-actions">
-          <button
-            class="icon-button primary"
-            :disabled="!canWrite"
-            title="添加账号"
-            aria-label="添加账号"
-            @click="openAdd()"
+        <div class="account-secondary-toolbar">
+          <div class="account-current-bar" role="status">
+            <span
+              :title="
+                [data?.currentAccount.path, data?.currentAccount.message].filter(Boolean).join('\n')
+              "
+            >
+              <Icon v-if="detectingCurrent" name="refresh" :size="12" class="spinning" />
+              {{
+                detectingCurrent
+                  ? '正在自动检测当前登录…'
+                  : detectionError
+                    ? '自动检测失败'
+                    : data?.currentAccount.state === 'matched'
+                      ? '当前文件账号 · 自动识别'
+                      : data?.currentAccount.state === 'unavailable'
+                        ? '暂未识别到文件登录'
+                        : '等待自动检测'
+              }}
+            </span>
+            <button class="button" :disabled="!canWrite" @click="detectCurrent">重新检测</button>
+          </div>
+          <div
+            v-if="accounts.length && (selected.length || groups.length || data?.rollbackAvailable)"
+            class="account-batchbar"
           >
-            <Icon name="plus" />
-          </button>
-          <button
-            class="icon-button"
-            :disabled="!canWrite || !accounts.length"
-            title="刷新全部额度"
-            aria-label="刷新全部额度"
-            @click="refresh(accounts.map((a) => a.id))"
+            <label class="account-check"
+              ><input
+                type="checkbox"
+                :checked="allSelected"
+                :indeterminate="selected.length > 0 && !allSelected"
+                :disabled="!!busy"
+                @change="toggleAll"
+              />全选当前结果</label
+            >
+            <template v-if="selected.length"
+              ><span>已选 {{ selected.length }} 项</span
+              ><button class="button" :disabled="!canWrite" @click="refresh([...selected])">
+                刷新额度</button
+              ><button class="button" :disabled="!canWrite" @click="askGroup">分组</button
+              ><button class="button" :disabled="!canWrite" @click="askRemove(selected)">
+                删除</button
+              ><button class="button" :disabled="!!busy" @click="selected = []">
+                取消选择
+              </button></template
+            >
+            <select v-if="groups.length" v-model="groupFilter" aria-label="分组筛选">
+              <option value="all">全部分组</option>
+              <option v-for="group in groups" :key="group" :value="group">{{ group }}</option>
+            </select>
+            <button
+              v-if="data?.rollbackAvailable"
+              class="account-rollback"
+              :disabled="!canWrite"
+              @click="prepareSwitch(null)"
+            >
+              回退上次切换
+            </button>
+          </div>
+          <label class="account-refresh-control"
+            >自动刷新<select
+              v-model.number="autoRefreshInterval"
+              :disabled="!accountRefresh.ready || accountRefresh.saving || !accountRefresh.status"
+              aria-label="账号自动刷新频率"
+            >
+              <option :value="0">手动</option>
+              <option :value="30000">30 秒</option>
+              <option :value="60000">1 分钟</option>
+              <option :value="180000">3 分钟</option>
+              <option :value="300000">5 分钟</option>
+            </select></label
           >
-            <Icon name="refresh" :class="{ spinning: busy === 'quota' }" />
-          </button>
-          <button
-            class="icon-button"
-            :disabled="!canWrite || !accounts.length"
-            title="导出账号"
-            aria-label="导出账号"
-            @click="exportOpen = true"
-          >
-            <Icon name="download" />
-          </button>
-          <button
-            class="icon-button"
-            :disabled="!canWrite"
-            title="导入账号"
-            aria-label="导入账号"
-            @click="openAdd('import')"
-          >
-            <Icon name="upload" />
-          </button>
         </div>
-      </div>
-      <div class="account-current-bar" role="status">
-        <span
-          :title="
-            [data?.currentAccount.path, data?.currentAccount.message].filter(Boolean).join('\n')
-          "
-        >
-          <Icon v-if="detectingCurrent" name="refresh" :size="12" class="spinning" />
-          {{
-            detectingCurrent
-              ? '正在自动检测当前登录…'
-              : detectionError
-                ? '自动检测失败'
-                : data?.currentAccount.state === 'matched'
-                  ? '当前文件账号 · 自动识别'
-                  : data?.currentAccount.state === 'unavailable'
-                    ? '暂未识别到文件登录'
-                    : '等待自动检测'
-          }}
-        </span>
-        <button class="button" :disabled="!canWrite" @click="detectCurrent">重新检测</button>
-        <label
-          >自动刷新<select
-            v-model.number="autoRefreshInterval"
-            :disabled="!accountRefresh.ready || accountRefresh.saving || !accountRefresh.status"
-            aria-label="账号自动刷新频率"
-          >
-            <option :value="0">手动</option>
-            <option :value="30000">30 秒</option>
-            <option :value="60000">1 分钟</option>
-            <option :value="180000">3 分钟</option>
-            <option :value="300000">5 分钟</option>
-          </select></label
-        >
       </div>
       <p
         v-if="autoRefreshInterval || accountRefresh.error || accountRefresh.status?.error"
@@ -697,42 +738,6 @@ onUnmounted(() => {
       <div v-if="pending" class="account-pending" role="status">
         <span>有一项账号登录正在等待授权</span
         ><button class="button" @click="add = true">继续登录</button>
-      </div>
-      <div
-        v-if="accounts.length && (selected.length || groups.length || data?.rollbackAvailable)"
-        class="account-batchbar"
-      >
-        <label class="account-check"
-          ><input
-            type="checkbox"
-            :checked="allSelected"
-            :indeterminate="selected.length > 0 && !allSelected"
-            :disabled="!!busy"
-            @change="toggleAll"
-          />全选当前结果</label
-        >
-        <template v-if="selected.length"
-          ><span>已选 {{ selected.length }} 项</span
-          ><button class="button" :disabled="!canWrite" @click="refresh([...selected])">
-            刷新额度</button
-          ><button class="button" :disabled="!canWrite" @click="askGroup">分组</button
-          ><button class="button" :disabled="!canWrite" @click="askRemove(selected)">删除</button
-          ><button class="button" :disabled="!!busy" @click="selected = []">
-            取消选择
-          </button></template
-        >
-        <select v-if="groups.length" v-model="groupFilter" aria-label="分组筛选">
-          <option value="all">全部分组</option>
-          <option v-for="group in groups" :key="group" :value="group">{{ group }}</option>
-        </select>
-        <button
-          v-if="data?.rollbackAvailable"
-          class="account-rollback"
-          :disabled="!canWrite"
-          @click="prepareSwitch(null)"
-        >
-          回退上次切换
-        </button>
       </div>
       <div v-if="!data" class="empty" role="status">正在读取账号列表…</div>
       <div v-else-if="!accounts.length" class="account-empty">

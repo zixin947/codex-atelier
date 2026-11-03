@@ -34,6 +34,105 @@
   border-radius: var(--field-control-radius);
 }
 
+/* Two toolbar layers: collection tools, then detection/selection/refresh. */
+.account-controls {
+  margin-bottom: var(--space-5);
+  padding: 0;
+}
+.account-controls .account-toolbar {
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  flex-wrap: wrap;
+}
+.account-secondary-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--edge);
+}
+.account-secondary-toolbar .account-current-bar {
+  margin: 0;
+  gap: 10px;
+}
+.account-secondary-toolbar .account-batchbar {
+  margin: 0;
+  gap: 10px;
+}
+.account-refresh-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  font-size: var(--text-sm);
+}
+.account-refresh-control select {
+  height: var(--control);
+  padding: 0 8px;
+  border: var(--border);
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+}
+[data-theme='endfield'] .account-controls.panel {
+  background: var(--panel);
+  border-color: var(--edge);
+  border-radius: var(--field-control-radius);
+  box-shadow: var(--field-surface-shadow);
+}
+[data-theme='endfield'] .account-controls .account-toolbar {
+  background: none;
+  gap: 10px;
+  padding: 12px;
+}
+[data-theme='endfield'] .account-controls .search {
+  max-width: 360px;
+  background: var(--paper);
+  border-radius: var(--field-control-radius);
+}
+[data-theme='endfield'] .account-controls :is(select, .button, .icon-button) {
+  height: var(--field-control-height);
+  border-radius: var(--field-control-radius);
+  box-shadow: none;
+}
+[data-theme='endfield'] .account-controls .account-toolbar-actions {
+  border-left: 1px solid var(--edge);
+  padding-left: 12px;
+}
+[data-theme='endfield'] .account-view-toggle {
+  border: 0;
+  padding: 2px;
+  background: var(--shell);
+  border-radius: var(--field-control-radius);
+}
+[data-theme='endfield'] .account-controls .account-view-toggle .icon-button {
+  height: 30px;
+  width: 30px;
+}
+[data-theme='endfield'] .account-secondary-toolbar {
+  background: var(--paper);
+  border-radius: 0 0 var(--field-control-radius) var(--field-control-radius);
+}
+[data-theme='endfield'] .account-current-bar > span {
+  color: var(--ink);
+}
+[data-theme='endfield'] .account-controls .account-current-bar .button {
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
 [data-theme='endfield'] .field-background-wordmark {
   opacity: var(--field-wordmark-opacity);
+}
+@media (max-width: 1050px) {
+  [data-theme='endfield'] .account-toolbar .search {
+    max-width: none;
+    flex-basis: 260px;
+  }
+  .account-refresh-control {
+    margin-left: 0;
+  }
 }
