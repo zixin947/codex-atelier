@@ -124,6 +124,83 @@
   padding: 4px 10px;
 }
 
+/* Preserve identity / details / two gauges / actions, with readable type. */
+[data-theme='endfield'] .accounts-workspace {
+  --account-card-width: var(--field-account-width);
+  --account-card-height: var(--field-account-height);
+  --account-card-pad: var(--field-account-padding);
+  --account-ring-size: var(--field-account-ring);
+}
+[data-theme='endfield'] .account-cards {
+  gap: 20px;
+}
+[data-theme='endfield'] .account-card .account-card-top {
+  min-height: 76px;
+  padding-top: 14px;
+  padding-bottom: 12px;
+}
+[data-theme='endfield'] .account-card .account-identity {
+  font-size: var(--field-account-title);
+  line-height: 20px;
+}
+[data-theme='endfield'] .account-card :is(.account-plan, .account-current, .account-reset-count) {
+  font-size: 10px;
+  line-height: 16px;
+}
+[data-theme='endfield'] .account-card .account-edit {
+  width: 24px;
+  height: 24px;
+}
+[data-theme='endfield'] .account-card .account-detail-grid {
+  min-height: 102px;
+  padding-top: 13px;
+  padding-bottom: 13px;
+  gap: 10px;
+}
+[data-theme='endfield'] .account-card .account-detail-grid > div {
+  grid-template-rows: 15px 18px;
+}
+[data-theme='endfield'] .account-card .account-detail-grid dt {
+  font-size: var(--field-account-label);
+  line-height: 15px;
+}
+[data-theme='endfield'] .account-card .account-detail-grid dd {
+  font-size: var(--field-account-body);
+  line-height: 18px;
+}
+[data-theme='endfield'] .account-card .account-card-quotas {
+  min-height: 98px;
+  margin: 8px 10px 0;
+  padding-top: 8px;
+}
+[data-theme='endfield'] .account-card .account-quota-caption {
+  font-size: var(--field-account-label);
+  line-height: 16px;
+}
+[data-theme='endfield'] .account-card :is(.account-footer-status, .account-switch-action) {
+  font-size: var(--field-account-label);
+}
+[data-theme='endfield'] .account-card .account-card-actions .icon-button {
+  width: 28px;
+  height: 28px;
+}
+[data-theme='endfield'] .account-list .account-card {
+  min-height: 110px;
+}
+[data-theme='endfield'] .account-list .account-card-top {
+  min-height: 0;
+}
+[data-theme='endfield'] .account-list .account-card-quotas {
+  min-height: 0;
+  margin: 0;
+}
+[data-theme='endfield'] .account-list .account-card .account-quota-caption {
+  white-space: normal;
+  line-height: 16px;
+}
+[data-theme='endfield'] .account-list .account-card .account-quota-caption b {
+  display: block;
+}
 [data-theme='endfield'] .field-background-wordmark {
   opacity: var(--field-wordmark-opacity);
 }

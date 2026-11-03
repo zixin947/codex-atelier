@@ -43,5 +43,12 @@
   --field-header-veil: #f2f2ecf5;
   --field-control-radius: 4px;
   --field-control-height: 34px;
+  --field-account-width: 300px;
+  --field-account-height: 344px;
+  --field-account-padding: 15px;
+  --field-account-ring: 64px;
+  --field-account-title: 14px;
+  --field-account-body: 12px;
+  --field-account-label: 11px;
   --field-surface-shadow: 0 3px 12px #171a1808;
 }
