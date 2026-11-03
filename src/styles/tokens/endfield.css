@@ -38,4 +38,10 @@
   --field-nav-hover-shift: 3px;
   --field-nav-impact-duration: 460ms;
   --field-nav-sweep: #fff50030;
+  --field-reading-veil: #e8e8e2ed;
+  --field-wordmark-opacity: 0.06;
+  --field-header-veil: #f2f2ecf5;
+  --field-control-radius: 4px;
+  --field-control-height: 34px;
+  --field-surface-shadow: 0 3px 12px #171a1808;
 }

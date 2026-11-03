@@ -8,6 +8,7 @@ import { initializeTheme } from './app/theme'
 import { startStartupAnimation } from './app/startup'
 import './styles/themes/endfield.css'
 import './styles/themes/endfield-startup.css'
+import './styles/themes/endfield-polish.css'
 initializeTheme()
 startStartupAnimation()
 createApp(App).use(createPinia()).use(router).mount('#app')

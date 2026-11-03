@@ -1,0 +1,39 @@
+/* Reading surfaces above the original, continuous contour canvas. */
+[data-theme='endfield'] .topbar {
+  background: var(--field-header-veil);
+  border-bottom: 1px solid var(--edge);
+}
+[data-theme='endfield'] .sidebar {
+  background: var(--field-reading-veil);
+  border-right-color: var(--edge);
+}
+[data-theme='endfield'] .sidebar .sandbox-stamp {
+  background: var(--panel);
+}
+[data-theme='endfield'] .page-heading,
+[data-theme='endfield'] .account-page > .account-title {
+  background: linear-gradient(90deg, var(--field-reading-veil) 55%, transparent);
+  border-radius: var(--field-control-radius);
+}
+[data-theme='endfield'] .sidebar nav a.active {
+  --nav-frame: var(--ink);
+}
+[data-theme='endfield'] .sidebar nav a {
+  font-size: 13px;
+}
+[data-theme='endfield'] .sidebar nav a.active::after {
+  width: 3px;
+}
+[data-theme='endfield'] :is(.button, .theme-trigger, .topbar select) {
+  min-height: var(--field-control-height);
+  border-radius: var(--field-control-radius);
+}
+[data-theme='endfield'] .top-actions .icon-button {
+  width: var(--field-control-height);
+  height: var(--field-control-height);
+  border-radius: var(--field-control-radius);
+}
+
+[data-theme='endfield'] .field-background-wordmark {
+  opacity: var(--field-wordmark-opacity);
+}
