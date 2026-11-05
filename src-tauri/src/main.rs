@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod accounts;
+mod threads;
 mod desktop_attach;
 mod desktop_bridge;
 mod desktop_runtime;
@@ -21,6 +22,13 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            threads::threads_catalog,
+            threads::threads_export,
+            threads::threads_detail,
+            threads::threads_preview,
+            threads::threads_apply,
+            threads::threads_backups,
+            threads::threads_restore,
             plugins::behavior_plugins_status,
             plugins::behavior_plugin_install,
             plugins::behavior_plugin_set,
