@@ -19,7 +19,10 @@ const workstation = ref<HTMLElement | null>(null)
 const route = useRoute()
 const realPlugins = computed(() => route.path === '/plugins')
 const realManagement = computed(
-  () => ['/plugins', '/connections'].includes(route.path) || route.path.startsWith('/accounts'),
+  () =>
+    ['/plugins', '/connections'].includes(route.path) ||
+    (route.path === '/threads' && isTauri()) ||
+    route.path.startsWith('/accounts'),
 )
 const store = useAtelier(),
   settings = ref(false)
@@ -37,7 +40,7 @@ const nav = [
   { path: '/connections', label: '模型与连接', icon: 'chip' },
   { path: '/extensions', label: '扩展管理', icon: 'box' },
   { path: '/plugins', label: '行为插件', icon: 'shield' },
-  { path: '/planned/history', label: '会话与历史', icon: 'history' },
+  { path: '/threads', label: '线程管理', icon: 'history' },
   { path: '/planned/companions', label: '人设与陪伴', icon: 'heart' },
   { path: '/diagnostics', label: '诊断与回滚', icon: 'pulse' },
 ]
@@ -84,12 +87,24 @@ async function previewStartup() {
         </select>
       </div>
       <div v-else class="top-context mono tiny">
-        {{ realPlugins ? 'CODEX / USER PLUGINS' : 'ATELIER / LOCAL GATEWAY' }}
+        {{
+          realPlugins
+            ? 'CODEX / USER PLUGINS'
+            : route.path === '/threads'
+              ? 'ATELIER / THREAD ARCHIVE'
+              : 'ATELIER / LOCAL GATEWAY'
+        }}
       </div>
       <div class="top-actions">
         <span class="badge orange"
           ><i class="dot" />{{
-            realManagement ? (realPlugins ? '本机插件管理' : '本地账号与网关') : '演示数据'
+            realManagement
+              ? realPlugins
+                ? '本机插件管理'
+                : route.path === '/threads'
+                  ? '本机线程管理'
+                  : '本地账号与网关'
+              : '演示数据'
           }}</span
         >
         <ThemeSwitcher
@@ -132,6 +147,9 @@ async function previewStartup() {
           <div class="sandbox-stamp">
             <Icon name="shield" /><b>{{ realManagement ? '受限本机管理' : '安全沙盒' }}</b>
             <p v-if="realPlugins">仅管理两个指定插件<br />账号与代理不受影响</p>
+            <p v-else-if="realManagement && route.path === '/threads'">
+              按需读取 · 预览确认<br />索引修改保留备份
+            </p>
             <p v-else-if="realManagement">独立账号 · 手动连接<br />网关默认关闭</p>
             <p v-else>所有操作仅作用于演示数据<br />未连接本机 Codex</p>
           </div>

@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+import Threads from '../features/threads/Threads.vue'
 import Dashboard from '../features/Dashboard.vue'
 import Extensions from '../features/Extensions.vue'
 import Diagnostics from '../features/Diagnostics.vue'
@@ -11,6 +12,8 @@ export const router = createRouter({
   history: createWebHashHistory(),
   routes: [
     { path: '/', component: Dashboard },
+    { path: '/threads', component: Threads },
+    { path: '/planned/history', redirect: '/threads' },
     { path: '/extensions', component: Extensions },
     { path: '/plugins', component: BehaviorPlugins },
     { path: '/accounts', component: Accounts },
