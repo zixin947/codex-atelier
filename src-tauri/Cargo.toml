@@ -7,6 +7,7 @@ edition = "2021"
 tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
 
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -27,6 +28,7 @@ jsonwebtoken = { version = "10", default-features = false, features = ["rust_cry
 fs2 = "0.4"
 url = "2"
 toml = "0.9"
+toml_edit = "0.25.17"
 time = { version = "0.3", features = ["parsing"] }
 rusqlite = { version = "0.41.1", features = ["bundled"] }
 zstd = "0.14.3"

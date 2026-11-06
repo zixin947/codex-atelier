@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+import Maintenance from '../features/maintenance/Maintenance.vue'
 import Threads from '../features/threads/Threads.vue'
 import Dashboard from '../features/Dashboard.vue'
 import Extensions from '../features/Extensions.vue'
@@ -21,6 +22,7 @@ export const router = createRouter({
     { path: '/connections', component: Connections },
     { path: '/planned/accounts', redirect: '/accounts' },
     { path: '/planned/models', redirect: '/connections' },
+    { path: '/maintenance', component: Maintenance },
     { path: '/diagnostics', component: Diagnostics },
     { path: '/planned/:module', component: Planned },
   ],

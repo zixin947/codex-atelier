@@ -392,6 +392,18 @@ async fn forward(
             return failure(503, "storage_unavailable", "账号目录不可用。");
         }
     };
+    let image_compat = match server.store.image_compat_enabled() {
+        Ok(value) => value,
+        Err(_) => {
+            guard.finish(false, "compat_settings_unavailable", None);
+            return failure(
+                503,
+                "compat_settings_unavailable",
+                "Image 声明过滤设置不可读，请在维护工具中检查。",
+            );
+        }
+    };
+    crate::maintenance::utilities::filter_image_declarations(&mut body, image_compat);
     let preferred = match c
         .profiles
         .iter()
@@ -753,4 +765,116 @@ fn validate_plan(v: &mut Value) -> Result<(), &'static str> {
     v["store"] = json!(false);
     v["stream"] = json!(true);
     Ok(())
+}
+
+#[cfg(test)]
+mod image_compat_integration {
+    use super::*;
+    use crate::gateway::storage::{atomic_private, private_dir};
+    #[tokio::test]
+    async fn running_gateway_filters_next_request_and_restores_passthrough_without_restart() {
+        let root =
+            std::env::temp_dir().join(format!("atelier-gateway-image-test-{}", Uuid::new_v4()));
+        struct Cleanup(std::path::PathBuf);
+        impl Drop for Cleanup {
+            fn drop(&mut self) {
+                let _ = std::fs::remove_dir_all(&self.0);
+            }
+        }
+        let _cleanup = Cleanup(root.clone());
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let upstream_address = listener.local_addr().unwrap();
+        let captured = Arc::new(Mutex::new(Vec::<Value>::new()));
+        let captured_handler = captured.clone();
+        let mock = Router::new().route(
+            "/v1/responses",
+            post(move |Json(body): Json<Value>| {
+                let captured = captured_handler.clone();
+                async move {
+                    captured.lock().unwrap().push(body);
+                    Json(json!({"id":"fixture-response","status":"completed","output":[]}))
+                }
+            }),
+        );
+        let upstream = tokio::spawn(async move { axum::serve(listener, mock).await.unwrap() });
+        let reservation = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let port = reservation.local_addr().unwrap().port();
+        let store = Arc::new(Store::new(root.join("gateway")).unwrap());
+        let id = Uuid::new_v4().to_string();
+        store
+            .upsert(
+                Profile {
+                    id: id.clone(),
+                    kind: ProfileKind::ApiKey,
+                    name: "fixture".into(),
+                    email: None,
+                    enabled: true,
+                    priority: 0,
+                    base_url: format!("http://{upstream_address}/v1"),
+                    auth_status: "ready".into(),
+                    models: vec![GatewayModel {
+                        id: "fixture-model".into(),
+                        name: "fixture-model".into(),
+                    }],
+                    cooldown_until: None,
+                    last_error: None,
+                    requests: 0,
+                    input_tokens: 0,
+                    output_tokens: 0,
+                    created_at: 0,
+                },
+                Credential {
+                    api_key: Some("fixture-only-key".into()),
+                    ..Default::default()
+                },
+                None,
+            )
+            .unwrap();
+        store
+            .update(None, |c| {
+                c.settings.port = port;
+                c.settings.model = "fixture-model".into();
+                c.settings.preferred_profile_id = Some(id);
+                Ok(())
+            })
+            .unwrap();
+        private_dir(&root.join("maintenance")).unwrap();
+        let client = reqwest::Client::builder().no_proxy().build().unwrap();
+        let auth = Arc::new(AuthManager::new(store.clone(), client.clone()));
+        let server = Arc::new(GatewayServer::new(store, auth, client.clone()));
+        drop(reservation);
+        server.start().await.unwrap();
+        let key = server.local_key().unwrap();
+        let request = json!({"model":"fixture-model","input":[{"type":"message","role":"user","content":[{"type":"input_image","image_url":"fixture-only"}]}],"tools":[{"type":"image_generation"},{"type":"function","name":"keep"}]});
+        for enabled in [true, false] {
+            atomic_private(
+                &root.join("maintenance/utility-settings.json"),
+                &serde_json::to_vec(&json!({"imageCompat":enabled})).unwrap(),
+            )
+            .unwrap();
+            let response = client
+                .post(format!("http://127.0.0.1:{port}/v1/responses"))
+                .bearer_auth(&key)
+                .json(&request)
+                .send()
+                .await
+                .unwrap();
+            assert_eq!(response.status().as_u16(), 200);
+            assert_eq!(
+                response.json::<Value>().await.unwrap()["status"],
+                "completed"
+            );
+        }
+        server.stop().await.unwrap();
+        upstream.abort();
+        let bodies = captured.lock().unwrap();
+        assert_eq!(bodies.len(), 2);
+        assert_eq!(
+            bodies[0]["tools"],
+            json!([{"type":"function","name":"keep"}])
+        );
+        assert_eq!(bodies[1]["tools"], request["tools"]);
+        assert_eq!(bodies[0]["input"], request["input"]);
+        assert_eq!(bodies[1]["input"], request["input"]);
+    }
 }

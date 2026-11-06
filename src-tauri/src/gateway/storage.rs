@@ -36,6 +36,10 @@ impl Store {
         }
         Ok(store)
     }
+    pub fn image_compat_enabled(&self) -> Result<bool, String> {
+        let app_data = self.root.parent().ok_or("无法定位网关所属应用目录")?;
+        Ok(crate::maintenance::utilities::read_settings_at(app_data)?.image_compat)
+    }
     fn path(&self) -> PathBuf {
         self.root.join("catalog.json")
     }

@@ -21,7 +21,7 @@ const realPlugins = computed(() => route.path === '/plugins')
 const realManagement = computed(
   () =>
     ['/plugins', '/connections'].includes(route.path) ||
-    (route.path === '/threads' && isTauri()) ||
+    (['/threads', '/maintenance'].includes(route.path) && isTauri()) ||
     route.path.startsWith('/accounts'),
 )
 const store = useAtelier(),
@@ -43,6 +43,7 @@ const nav = [
   { path: '/threads', label: '线程管理', icon: 'history' },
   { path: '/planned/companions', label: '人设与陪伴', icon: 'heart' },
   { path: '/diagnostics', label: '诊断与回滚', icon: 'pulse' },
+  { path: '/maintenance', label: '维护工具', icon: 'settings' },
 ]
 onMounted(async () => {
   if (isTauri()) {
@@ -92,7 +93,9 @@ async function previewStartup() {
             ? 'CODEX / USER PLUGINS'
             : route.path === '/threads'
               ? 'ATELIER / THREAD ARCHIVE'
-              : 'ATELIER / LOCAL GATEWAY'
+              : route.path === '/maintenance'
+                ? 'ATELIER / MAINTENANCE'
+                : 'ATELIER / LOCAL GATEWAY'
         }}
       </div>
       <div class="top-actions">
@@ -103,7 +106,9 @@ async function previewStartup() {
                 ? '本机插件管理'
                 : route.path === '/threads'
                   ? '本机线程管理'
-                  : '本地账号与网关'
+                  : route.path === '/maintenance'
+                    ? '维护工具'
+                    : '本地账号与网关'
               : '演示数据'
           }}</span
         >
@@ -149,6 +154,9 @@ async function previewStartup() {
             <p v-if="realPlugins">仅管理两个指定插件<br />账号与代理不受影响</p>
             <p v-else-if="realManagement && route.path === '/threads'">
               按需读取 · 预览确认<br />索引修改保留备份
+            </p>
+            <p v-else-if="realManagement && route.path === '/maintenance'">
+              诊断只读 · 操作先预览<br />维护 Atelier 独立档案
             </p>
             <p v-else-if="realManagement">独立账号 · 手动连接<br />网关默认关闭</p>
             <p v-else>所有操作仅作用于演示数据<br />未连接本机 Codex</p>

@@ -15,6 +15,12 @@ use uuid::Uuid;
 
 #[derive(Default)]
 pub struct GatewayState(Mutex<Option<Arc<Gateway>>>);
+/// Observe an already-initialized gateway without creating files or starting services.
+pub(crate) fn diagnostic_runtime(app: &tauri::AppHandle) -> Option<RuntimeView> {
+    let state = app.try_state::<GatewayState>()?;
+    let guard = state.0.lock().ok()?;
+    guard.as_ref().map(|gateway| gateway.server.view())
+}
 struct Gateway {
     store: Arc<Store>,
     auth: Arc<AuthManager>,

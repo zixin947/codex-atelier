@@ -1,20 +1,25 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 mod accounts;
-mod threads;
 mod desktop_attach;
 mod desktop_bridge;
 mod desktop_runtime;
 mod gateway;
+mod maintenance;
 mod plugin_modes;
 mod plugins;
+mod threads;
 
 fn main() {
     if std::env::var_os("ATELIER_DESKTOP_BRIDGE").as_deref() == Some(std::ffi::OsStr::new("1")) {
         std::process::exit(desktop_bridge::cli());
     }
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .manage(gateway::GatewayState::default())
         .manage(accounts::AccountsState::default())
+        .manage(maintenance::MaintenanceState::default())
+        .manage(maintenance::diagnostics::DiagnosticState::default())
+        .manage(maintenance::image_config::ImageCompatState::default())
         .setup(|app| {
             if let Err(error) = accounts::start_background(app.handle()) {
                 eprintln!("Atelier 自动刷新未启动：{error}");
@@ -22,6 +27,19 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            maintenance::maintenance_snapshot,
+            maintenance::maintenance_diagnose,
+            maintenance::maintenance_preview,
+            maintenance::maintenance_apply,
+            maintenance::diagnostics::maintenance_run_diagnostics,
+            maintenance::diagnostics::maintenance_preview_repair,
+            maintenance::diagnostics::maintenance_apply_repair,
+            maintenance::utilities::maintenance_utility_settings,
+            maintenance::image_config::maintenance_preview_image_compat,
+            maintenance::image_config::maintenance_apply_image_compat,
+            maintenance::utilities::maintenance_export_bundle,
+            maintenance::utilities::maintenance_save_bundle,
+            maintenance::utilities::maintenance_send_bundle,
             threads::threads_catalog,
             threads::threads_export,
             threads::threads_detail,
