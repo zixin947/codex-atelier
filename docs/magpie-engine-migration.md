@@ -36,7 +36,7 @@ GO_BIN=/path/to/go pnpm tauri build --bundles app
 
 `beforeBuildCommand` 先执行 `scripts/build-router.mjs`，再构建前端。产物 `src-tauri/binaries/atelier-router` 不纳入 Git，打包时复制为应用资源；同时打包原 MIT 许可和上游第三方声明。
 
-本机安装版已同步并保留另一条工作线的桌宠功能；桌宠集成不包含在本 PR 中。
+桌宠由独立 PR #2 实现；三 PR 整合时已保留其导航、额度发布与打包资源，并与 PR #1 的诊断界面一起完成组合验证。
 
 ## Desktop 与维护修正
 
@@ -54,4 +54,8 @@ GO_BIN=/path/to/go pnpm tauri build --bundles app
 
 ## 回退
 
-停止网关、退出 Atelier，恢复此前应用包即可回退程序。保留 `gateway/routing-core` 目录及其备份；不要删除凭据或直接覆盖 Agent 配置。已由原版页面写入的 Agent 配置，应使用其原断开/恢复入口或已保存备份恢复。此 PR 不合入桌宠或其他开放 PR，也不包含远端发布。
+停止网关、退出 Atelier，恢复此前应用包即可回退程序。保留 `gateway/routing-core` 目录及其备份；不要删除凭据或直接覆盖 Agent 配置。已由原版页面写入的 Agent 配置，应使用其原断开/恢复入口或已保存备份恢复。三个 PR 已完成本地整合与组合验证；此处的回退说明不代表撤销已经写入的外部 Agent 配置。
+
+## 三 PR 整合验证
+
+PR #1 的诊断界面、PR #2 的桌宠与本引擎功能已在同一代码树验证：Rust 553 项通过、4 项忽略，前端 111 项通过，前端构建和 macOS App 打包通过。冲突仅人工整合了 App.vue 的导航/状态分支和 tauri.conf.json 的资源、构建与 CSP 设置；其余重叠文件自动合并。未扩大真实供应商与 Desktop 端到端验收范围。
