@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import Panel from '../../shared/components/Panel.vue'
+import EngineConfiguration from './EngineConfiguration.vue'
+import OriginalAgents from './OriginalAgents.vue'
+const engineConfiguration = ref(false)
 import Modal from '../../shared/components/Modal.vue'
 import Icon from '../../shared/components/Icon.vue'
 import { useAtelier } from '../../app/store'
@@ -177,6 +180,20 @@ function toggle(p: GatewayProfile) {
     '账号池状态已更新',
   )
 }
+async function syncSelectedModels() {
+  const id = selectedDraft.value!.id
+  await mutate('models', () => service.refreshModels(id), 'Codex 模型目录已同步')
+  if (!error.value && data.value) {
+    settingsRevision.value = data.value.revision
+    if (!draft.value.model) draft.value.model = selectedDraft.value?.models[0]?.id ?? ''
+  }
+}
+function changeAccount() {
+  editSettings()
+  const p = selectedDraft.value
+  if (p && !p.models.some((m) => m.id === draft.value.model))
+    draft.value.model = p.models[0]?.id ?? ''
+}
 function toggleAutoSwitch() {
   editSettings()
   draft.value.autoSwitch = !draft.value.autoSwitch
@@ -283,6 +300,7 @@ onUnmounted(() => {
 })
 </script>
 <template>
+  <EngineConfiguration v-if="engineConfiguration" @close="engineConfiguration = false" />
   <div class="page gateway-page">
     <div class="page-heading">
       <div>
@@ -290,14 +308,18 @@ onUnmounted(() => {
         <h1>让每次请求，各有所往<span class="heading-dot">.</span></h1>
         <p class="subtitle">
           API Provider、本地中转与自动切换，在同一个控制台。<RouterLink to="/accounts/official"
-            >管理网关官方授权</RouterLink
+            >管理独立网关授权</RouterLink
           >
         </p>
       </div>
+      <button class="button" :disabled="!!busy" @click="engineConfiguration = true">
+        协议与路由策略
+      </button>
       <button class="button" :disabled="!!busy" @click="refresh()">
         <Icon name="refresh" :size="16" />刷新状态
       </button>
     </div>
+    <OriginalAgents :running="running" @changed="refresh()" />
     <div v-if="error" role="alert" class="error-state">{{ error }}</div>
     <div v-if="data && !data.available" class="gw-native-note inset" role="status">
       <Icon name="terminal" />{{ data.reason }}
@@ -307,7 +329,7 @@ onUnmounted(() => {
       <section class="gw-connection-overview" aria-label="本地网关控制台">
         <div class="gw-console">
           <div class="gw-console-head">
-            <span>LOCAL GATEWAY / RESPONSES</span
+            <span>LOCAL GATEWAY / NATIVE CORE</span
             ><span class="gw-console-status"
               ><i class="dot" :class="{ 'gw-dot-off': !running }" />{{
                 running ? 'ONLINE' : 'OFFLINE'
@@ -370,11 +392,17 @@ onUnmounted(() => {
               ><select
                 v-model="draft.preferredProfileId"
                 :disabled="!canWrite"
-                @change="editSettings"
+                @change="changeAccount"
               >
                 <option :value="null">请选择账号</option>
                 <option v-for="p in data.profiles" :key="p.id" :value="p.id">
-                  {{ p.name }} · {{ p.kind === 'chatgpt' ? '订阅' : 'API'
+                  {{ p.name }} ·
+                  {{
+                    p.kind === 'codex'
+                      ? 'Codex 登录账号'
+                      : p.kind === 'chatgpt'
+                        ? '独立授权'
+                        : 'API'
                   }}{{ p.enabled ? '' : '（停用）' }}
                 </option>
               </select></label
@@ -393,6 +421,14 @@ onUnmounted(() => {
                 </option>
               </datalist></label
             >
+            <button
+              v-if="selectedDraft?.kind === 'codex'"
+              class="button"
+              :disabled="!canWrite"
+              @click="syncSelectedModels"
+            >
+              同步此账号模型
+            </button>
             <div class="gw-form-grid">
               <label class="gw-field"
                 ><span>本地端口</span
@@ -429,7 +465,8 @@ onUnmounted(() => {
               </button>
             </div>
             <p class="gw-inline-note">
-              只在明确拒绝且尚未开始输出时尝试备用账号。不会跨订阅/API计费，不会重发执行状态不明的请求。
+              默认候选池保持订阅与 API
+              账号隔离；具体重试、冷却、会话绑定与改道由原生路由核心执行。可在「协议与路由策略」中配置路由组。
             </p>
             <div class="gw-inline-actions">
               <button
@@ -464,7 +501,10 @@ onUnmounted(() => {
       <div v-if="!providers.length" class="gw-empty inset">
         <span class="square-icon"><Icon name="chip" :size="28" /></span>
         <h3>添加第一个上游连接</h3>
-        <p>支持 OpenAI Responses 协议的 API 服务。订阅账号在「账号与额度」中授权。</p>
+        <p>
+          默认地址用于 Responses，其他协议地址在「协议与路由策略」中配置。「账号与额度」中已登录的
+          Codex 账号可直接在上方选择。
+        </p>
         <button class="button" :disabled="!canWrite" @click="beginEdit()">
           配置 API Key 与地址
         </button>
@@ -543,8 +583,8 @@ onUnmounted(() => {
         <Panel title="接入 Codex Desktop" code="DESKTOP ACCESS"
           ><div class="gw-access">
             <p>
-              网关支持 Responses HTTP/SSE。客户端工具仍由 Codex 执行；本版不提供 WebSocket 或 Chat
-              Completions 协议转换。
+              内置核心支持 Responses HTTP/SSE、WebSocket 与多协议转换。客户端工具仍由 Codex
+              执行；真实 Desktop 接入仍需实际验收。
             </p>
             <div class="gw-inline-actions">
               <button class="button" :disabled="!canWrite" @click="showPreview">查看配置预览</button
@@ -586,7 +626,7 @@ onUnmounted(() => {
       </section>
       <p class="gw-page-footnote">
         <Icon name="shield" :size="15" />网关默认关闭，只监听本机。凭据保存在 Atelier
-        私有目录，不扫描或覆盖 Codex 的账号文件。
+        私有目录。默认不读取既有订阅登录；读取既有订阅需在原生配置中显式启用。
       </p>
     </template>
     <Modal

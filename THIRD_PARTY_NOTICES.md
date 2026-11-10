@@ -21,3 +21,39 @@
 ## cockpit-session-compat
 
 `src-tauri/src/` 下的 cockpit 兼容层来自 cockpit-session-compat crate，采用 CC BY-NC-SA 4.0 许可，仅用于本地线程工作区的兼容处理。该部分不随本次前端重写变动；使用与分发须遵守其非商业与相同方式共享条款。
+
+## magpie 路由展示
+
+来源：[yetone/magpie](https://github.com/yetone/magpie)，固定提交 `e6f151507f3c70f483d4bd476fa69faef155fe8c`。
+
+直接移植 `internal/gui/assets/plugins/routing/routing.css` 的 stage、候选列表、计数及尝试日志样式片段，保留原注释；`client.js` 中对应 DOM 结构和交互适配为 `src/features/routing/Routing.vue`。移植范围限路由观测页面，不包括 magpie 的整个 GUI、路由组编辑器、网关策略或协议转换。配色改接 Atelier 令牌，品牌改为 Atelier，事件来自 Atelier 自身转发链路；没有调用 magpie 进程或读取其配置。
+
+MIT 许可全文保留在 `src/features/routing/vendor/MAGPIE-LICENSE.txt`，同时打包进页面的「来源与许可」。
+
+```text
+MIT License
+
+Copyright (c) 2026 yetone
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
+
+## magpie 协议与路由核心
+
+`vendor/magpie` 固定于同一上游提交 `e6f151507f3c70f483d4bd476fa69faef155fe8c`，直接保留 gateway/provider/routes 的依赖闭包及上游测试；原始 GUI、API、供应商、账号和路由文件保持上游原样；先前的账号适配挂接已撤回。Atelier 仅增加宿主入口、本机认证传输、独立皮肤覆盖，以及暴露原有关闭顺序的 `AtelierShutdown` 方法。原 MIT 许可、上游第三方声明及来源清单分别保留在 `vendor/magpie/LICENSE`、`THIRD_PARTY_NOTICES`、`PROVENANCE.json`。核心已集成并同步本机安装版；应用资源中同时保留 MIT 许可与上游第三方声明。真实供应商、订阅与 Desktop 全链路尚未验收。

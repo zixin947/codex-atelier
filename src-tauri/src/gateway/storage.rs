@@ -124,6 +124,49 @@ impl Store {
         change(&mut c)?;
         self.write(&c)
     }
+    pub fn synchronize_accounts(&self, accounts: Vec<Profile>) -> Result<(), String> {
+        let current = self.read()?;
+        let changed = current
+            .profiles
+            .iter()
+            .filter(|p| p.kind == ProfileKind::Codex)
+            .count()
+            != accounts.len()
+            || accounts.iter().any(|a| {
+                !current.profiles.iter().any(|p| {
+                    p.id == a.id
+                        && p.kind == ProfileKind::Codex
+                        && p.name == a.name
+                        && p.email == a.email
+                        && p.auth_status == a.auth_status
+                })
+            });
+        if !changed {
+            return Ok(());
+        }
+        self.update(None, |c| {
+            c.profiles
+                .retain(|p| p.kind != ProfileKind::Codex || accounts.iter().any(|a| a.id == p.id));
+            for a in accounts {
+                if let Some(p) = c.profiles.iter_mut().find(|p| p.id == a.id) {
+                    p.name = a.name;
+                    p.email = a.email;
+                    p.auth_status = a.auth_status;
+                } else {
+                    c.profiles.push(a);
+                }
+            }
+            if c.settings
+                .preferred_profile_id
+                .as_ref()
+                .is_some_and(|id| !c.profiles.iter().any(|p| &p.id == id))
+            {
+                c.settings.preferred_profile_id = None;
+            }
+            Ok(())
+        })?;
+        Ok(())
+    }
     pub fn credential(&self, id: &str) -> Result<Credential, String> {
         valid_id(id)?;
         serde_json::from_slice(&read_private(&self.secret_path(id), 128 * 1024)?)

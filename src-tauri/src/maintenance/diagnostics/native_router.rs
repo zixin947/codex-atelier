@@ -432,6 +432,10 @@ fn availability(snapshot: &Snapshot, report: &mut VerificationReport, warnings: 
                     details.push("候选账号ID无效");
                     continue;
                 }
+                if profile.kind == ProfileKind::Codex {
+                    warnings.push("Codex 登录账号由账号模块提供凭据；此处未在线核验".into());
+                    continue;
+                }
                 let path = root
                     .join("credentials")
                     .join(format!("{}.json", profile.id));
@@ -447,6 +451,7 @@ fn availability(snapshot: &Snapshot, report: &mut VerificationReport, warnings: 
                     }
                 };
                 let ready = match profile.kind {
+                    ProfileKind::Codex => false,
                     ProfileKind::ApiKey => {
                         credential.api_key.as_ref().is_some_and(|k| !k.is_empty())
                     }

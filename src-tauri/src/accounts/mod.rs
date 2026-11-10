@@ -1,5 +1,6 @@
 mod background;
 mod direct;
+mod gateway;
 mod local;
 mod metadata;
 mod network;
@@ -31,7 +32,7 @@ struct Attempt {
     cancelled: AtomicBool,
     stop: Notify,
 }
-struct Accounts {
+pub(crate) struct Accounts {
     store: Store,
     background: Arc<background::Controller>,
     network: network::Network,
@@ -40,7 +41,7 @@ struct Accounts {
     login_gate: tokio::sync::Mutex<()>,
 }
 impl AccountsState {
-    fn get(&self, app: &tauri::AppHandle) -> Result<Arc<Accounts>, String> {
+    pub(crate) fn get(&self, app: &tauri::AppHandle) -> Result<Arc<Accounts>, String> {
         let mut guard = self.0.lock().map_err(|_| "账号管理状态锁异常。")?;
         if let Some(value) = &*guard {
             return Ok(value.clone());

@@ -1,4 +1,4 @@
-export type ProfileKind = 'chatgpt' | 'apiKey'
+export type ProfileKind = 'chatgpt' | 'codex' | 'apiKey'
 export interface GatewayModel {
   id: string
   name: string

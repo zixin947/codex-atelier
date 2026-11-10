@@ -1,0 +1,67 @@
+/* Atelier skin only. Upstream layout, dimensions and interaction rules stay intact. */
+:root,
+:root[data-theme] {
+  --bg: #eeefe7;
+  --card: #fffef8;
+  --card-2: #f5f5ec;
+  --pill: #e8eadf;
+  --pill-hover: #dfe3d5;
+  --line: #cbd0c1;
+  --line-2: #dde0d5;
+  --fg: #232820;
+  --fg-2: #4c5549;
+  --muted: #697263;
+  --faint: #9ca491;
+  --ctl-fg: #535e4b;
+  --accent: #59651f;
+  --accent-soft: #f0f1c8;
+  --accent-fg: #fffef8;
+  --sel: #eceeae;
+  --green: #377354;
+  --green-soft: #e4e9d9;
+  --red: #9d5147;
+  --red-soft: #faece5;
+  --amber: #8a6b31;
+  --amber-soft: #f3ecd5;
+  --seg-track: #e0e3d8;
+  --seg-thumb: #fffef8;
+  --shadow: 0 12px 30px #26352b24;
+  --font: 'PingFang SC', 'Microsoft YaHei', -apple-system, system-ui, sans-serif;
+  --ui-font: var(--font);
+  color-scheme: light;
+}
+button,
+input,
+select,
+textarea {
+  border-color: var(--line);
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline-color: #69742b;
+}
+#nav button.on,
+#nav button.active,
+#nav button[aria-current='page'] {
+  background-color: #20251e;
+  color: #faff00;
+}
+.pop,
+.sheet,
+.menu {
+  box-shadow: var(--shadow);
+}
+code,
+kbd,
+.version {
+  font-family: 'SFMono-Regular', Consolas, monospace;
+}
+body.side-nav #side #nav .nav-top-hl {
+  background-color: #20251e;
+  box-shadow: inset 3px 0 #faff00;
+}
+body.side-nav #side #nav button.on {
+  color: #faff00;
+}

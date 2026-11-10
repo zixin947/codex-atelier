@@ -11,3 +11,6 @@ src-tauri/crates/cockpit-session-compat/target/
 # Local verification output and agent working notes
 artifacts/
 .zcode/
+
+# Built from the vendored routing core
+src-tauri/binaries/atelier-router

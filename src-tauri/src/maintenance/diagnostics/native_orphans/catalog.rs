@@ -83,7 +83,7 @@ impl StdioRpc {
         };
         rpc.request(
             "initialize",
-            json!({"clientInfo":{"name":"aimami"},"capabilities":{"experimentalApi":true}}),
+            json!({"clientInfo":{"name":"codex_atelier_maintenance","version":"0.1.0"},"capabilities":{"experimentalApi":true}}),
             Duration::from_secs(10),
         )?;
         serde_json::to_writer(&mut rpc.input, &json!({"method":"initialized"})).map_err(err)?;
@@ -113,7 +113,10 @@ impl Rpc for StdioRpc {
                 continue;
             }
             if v.get("error").is_some() {
-                return Err("app-server returned an RPC error; no orphan repair performed".into());
+                let code = v["error"]["code"].as_i64().unwrap_or(0);
+                return Err(format!(
+                    "Codex RPC {method} 被拒绝（{code}），尚未执行孤儿线程修复。"
+                ));
             }
             return v
                 .get("result")
@@ -149,6 +152,31 @@ fn validate_source(config: &Value, native: Option<&RelayStateDocument>) -> Resul
                     s.trim_end_matches('/') == "https://chatgpt.com/backend-api/codex"
                 })
         }) {
+            return Ok(());
+        }
+    } else if provider != "aimai1" {
+        // A named alias of the built-in official connection is still official.
+        let p = &config["model_providers"][provider];
+        let base = &p["base_url"];
+        let plain = [
+            "env_key",
+            "experimental_bearer_token",
+            "auth",
+            "gateway_oauth",
+            "model_catalog_url",
+        ]
+        .iter()
+        .all(|key| p[*key].is_null())
+            && ["http_headers", "env_http_headers", "query_params"]
+                .iter()
+                .all(|key| p[*key].is_null() || p[*key].as_object().is_some_and(|v| v.is_empty()));
+        if p["requires_openai_auth"] == true
+            && plain
+            && (base.is_null()
+                || base.as_str().is_some_and(|s| {
+                    s.trim_end_matches('/') == "https://chatgpt.com/backend-api/codex"
+                }))
+        {
             return Ok(());
         }
     } else if provider == "aimai1" {
@@ -303,4 +331,24 @@ pub(super) fn prepare(ctx: &Context) -> Result<OfficialCatalog> {
         }
     }
     prepare_with(ctx, &mut StdioRpc::connect(ctx)?)
+}
+
+#[cfg(test)]
+mod source_tests {
+    use super::*;
+    #[test]
+    fn accepts_official_provider_alias_but_rejects_redirected_or_custom_auth() {
+        let official = json!({"model_provider":"openai_https","model_providers":{"openai_https":{"requires_openai_auth":true,"base_url":null}}});
+        assert!(validate_source(&official, None).is_ok());
+        for (key, value) in [
+            ("base_url", json!("https://example.invalid/v1")),
+            ("env_key", json!("THIRD_PARTY_KEY")),
+            ("http_headers", json!({"Authorization":"fixture"})),
+            ("model_catalog_url", json!("https://example.invalid/models")),
+        ] {
+            let mut config = official.clone();
+            config["model_providers"]["openai_https"][key] = value;
+            assert!(validate_source(&config, None).is_err());
+        }
+    }
 }

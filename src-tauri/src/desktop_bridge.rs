@@ -349,6 +349,54 @@ mod native {
             let _ = fs::remove_file(&self.socket);
         }
     }
+    fn gateway_overrides(
+        config: &toml::Value,
+        base: &str,
+        model: &str,
+    ) -> Result<Vec<String>, String> {
+        let provider = config
+            .get("profile")
+            .and_then(toml::Value::as_str)
+            .and_then(|name| config.get("profiles")?.get(name)?.get("model_provider"))
+            .or_else(|| config.get("model_provider"));
+        let provider = provider
+            .map(|p| p.as_str().ok_or("model_provider 必须是字符串。"))
+            .transpose()?
+            .unwrap_or("openai");
+        if provider.is_empty()
+            || !provider
+                .bytes()
+                .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'_' | b'-'))
+        {
+            return Err(
+                "当前提供商 ID 不支持命令行覆盖，请使用字母、数字、下划线或连字符。".into(),
+            );
+        }
+        let key = format!("model_providers.{provider}");
+        Ok(vec![
+            format!(
+                "model_provider={}",
+                serde_json::to_string(provider).unwrap()
+            ),
+            format!("model={}", serde_json::to_string(model).unwrap()),
+            format!("{key}.name=\"Codex Atelier\""),
+            format!("{key}.base_url={}", serde_json::to_string(base).unwrap()),
+            format!("{key}.env_key=\"ATELIER_GATEWAY_TOKEN\""),
+            format!("{key}.wire_api=\"responses\""),
+            format!("{key}.requires_openai_auth=false"),
+            format!("{key}.supports_websockets=false"),
+        ])
+    }
+    pub(super) fn bypass_loopback(command: &mut Command) {
+        for key in ["NO_PROXY", "no_proxy"] {
+            let mut value = std::env::var(key).unwrap_or_default();
+            if !value.is_empty() {
+                value.push(',');
+            }
+            value.push_str("localhost,127.0.0.1,::1");
+            command.env(key, value);
+        }
+    }
     fn relay(binary: &Path, args: &[std::ffi::OsString]) -> Result<i32, String> {
         let root = directory();
         private_dir(&root)?;
@@ -375,25 +423,31 @@ mod native {
             {
                 return Err("网关访问密钥缺失。".into());
             }
-            let overrides = [
-                "model_provider=\"atelier_gateway\"".to_string(),
-                format!("model={}", serde_json::to_string(&model).unwrap()),
-                "model_providers.atelier_gateway.name=\"Codex Atelier\"".to_string(),
-                format!(
-                    "model_providers.atelier_gateway.base_url={}",
-                    serde_json::to_string(&base).unwrap()
-                ),
-                "model_providers.atelier_gateway.env_key=\"ATELIER_GATEWAY_TOKEN\"".to_string(),
-                "model_providers.atelier_gateway.wire_api=\"responses\"".to_string(),
-                "model_providers.atelier_gateway.requires_openai_auth=false".to_string(),
-                "model_providers.atelier_gateway.supports_websockets=false".to_string(),
-            ];
+            let home = std::env::var_os("CODEX_HOME")
+                .map(PathBuf::from)
+                .unwrap_or_else(|| {
+                    PathBuf::from(std::env::var_os("HOME").unwrap_or_default()).join(".codex")
+                });
+            let config = match fs::read_to_string(home.join("config.toml")) {
+                Ok(text) => {
+                    toml::from_str::<toml::Value>(&text).map_err(|_| "Codex 配置无法解析。")?
+                }
+                Err(e) if e.kind() == io::ErrorKind::NotFound => {
+                    toml::Value::Table(Default::default())
+                }
+                Err(_) => return Err("Codex 配置不可读。".into()),
+            };
+            let overrides = gateway_overrides(&config, &base, &model)?;
             for value in overrides {
                 launch_args.push("-c".into());
                 launch_args.push(value.into());
             }
         }
-        let child = Command::new(binary)
+        let mut command = Command::new(binary);
+        if std::env::var_os("ATELIER_GATEWAY_URL").is_some() {
+            bypass_loopback(&mut command);
+        }
+        let child = command
             .args(&launch_args)
             .arg("--listen")
             .arg(format!("unix://{}", socket.display()))
@@ -561,6 +615,44 @@ mod native {
     mod tests {
         use super::*;
         #[test]
+        fn gateway_preserves_provider_identity_and_bypasses_only_loopback() {
+            for text in [
+                "model_provider='openai_https'",
+                "profile='work'\n[profiles.work]\nmodel_provider='work_provider'",
+            ] {
+                let config: toml::Value = toml::from_str(text).unwrap();
+                let values =
+                    gateway_overrides(&config, "http://127.0.0.1:18910/v1", "fixture-model")
+                        .unwrap();
+                let expected = if text.contains("work") {
+                    "work_provider"
+                } else {
+                    "openai_https"
+                };
+                assert_eq!(values[0], format!("model_provider=\"{expected}\""));
+                for value in &values {
+                    toml::from_str::<toml::Value>(value).unwrap();
+                }
+                assert!(values.iter().any(
+                    |v| v == &format!("model_providers.{expected}.requires_openai_auth=false")
+                ));
+            }
+            let mut command = Command::new("fixture");
+            bypass_loopback(&mut command);
+            for key in ["NO_PROXY", "no_proxy"] {
+                let value = command
+                    .get_envs()
+                    .find(|(k, _)| *k == key)
+                    .unwrap()
+                    .1
+                    .unwrap()
+                    .to_str()
+                    .unwrap();
+                assert!(value.ends_with("localhost,127.0.0.1,::1"));
+                assert!(!value.split(',').any(|v| v == "*"));
+            }
+        }
+        #[test]
         fn rejects_symlinks_and_world_accessible_records() {
             let root = std::env::temp_dir()
                 .join(format!("atelier-bridge-security-{}", std::process::id()));
@@ -649,6 +741,7 @@ fn launch_desktop(gateway: Option<(&str, &str, &str)>) -> Result<String, String>
             .env("ATELIER_DESKTOP_BRIDGE", "1")
             .env("ATELIER_REAL_CODEX", real);
         if let Some((base, token, model)) = gateway {
+            native::bypass_loopback(&mut command);
             command
                 .env("ATELIER_GATEWAY_URL", base)
                 .env("ATELIER_GATEWAY_TOKEN", token)
