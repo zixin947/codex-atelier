@@ -64,6 +64,10 @@
 
 ![macOS 原生行为插件页：Ponytail 的三个 Hook 已信任，STS 停用且未枚举](docs/screenshots/behavior-plugins-trust-native.png)
 
+### 桌宠 · GPT小龙娘
+
+新增独立「桌宠」栏目，管理 GPT小龙娘 v0.3.0 的安装、独立浮窗、跟随和停止。订阅额度复用 Atelier 当前账号识别及官方查询，桌宠只接收脱敏窗口数据；安装进度、数据边界、上游来源与回退方式见[桌宠管理](docs/desktop-pets.md)。当前接入仅支持 macOS，安装需要 Node.js 24+、npm 和 Xcode Command Line Tools，会注册上游 LaunchAgent，并与旧小鲸鱼共用数据目录。
+
 ### 终末地 · 野外终端
 
 新增纸灰、墨黑与信号黄的工业风皮肤，直接移植原版动态等高线背景、鼠标扰动与 ENDFIELD 背景字标，保留原有页面和账号卡片排版。右上角 **皮肤** 按钮可直接切换“终末地 / 千禧机壳”；未保存偏好时默认野外终端。
