@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/Yang-huai406/GPT-Dragon-Girl",
+  "revision": "da646916d2754fa321c1cde1b4ccf0bb182d6716",
+  "version": "0.3.0",
+  "license": "MIT",
+  "changes": "macOS 安装器增加阶段标记；桌面依赖安装增加超时，macOS Electron 下载使用 curl、npm 镜像源及上游 SHA-256 校验，使用系统 ditto 解压。其余运行时代码未改动。 订阅识别改为核对官方 API origin 和 ChatGPT 登录，不再限制 provider 名称。 Atelier 接入模式改用 Accounts 发布的脱敏当前账号额度文件；持久化路径由安装环境传入，额度更新与身份校验复用 Atelier。 清理四个上游文件的尾空白以通过 git diff --check，不改变行为。"
+}
