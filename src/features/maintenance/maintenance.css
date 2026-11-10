@@ -289,19 +289,117 @@
 }
 
 .mnt-clear {
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 16px 0;
-  color: var(--positive, #1f8a4c);
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--positive) 28%, var(--hairline));
+  border-left: 3px solid var(--positive);
+  border-radius: var(--radius-panel);
+  background: color-mix(in srgb, var(--positive-wash) 55%, var(--surface));
+  color: var(--positive);
+  animation: mnt-clear-enter var(--nav-select-duration) var(--ease) both;
+}
+
+.mnt-clear::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 25%;
+  z-index: -1;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--positive) 12%, transparent),
+    transparent
+  );
+  animation: mnt-clear-sweep var(--nav-select-duration) var(--ease) both;
+  pointer-events: none;
+}
+
+.mnt-clear-copy {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.mnt-clear-check {
+  display: grid;
+  place-items: center;
+  flex: 0 0 30px;
+  height: 30px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  background: var(--surface);
 }
 
 .mnt-clear p {
   margin: 0;
-  font-size: 13px;
+  font-size: var(--text-md);
+  font-weight: 600;
   line-height: 1.6;
   color: var(--ink);
+}
+
+.mnt-clear-meme {
+  display: block;
+  flex: 0 0 auto;
+  width: 128px;
+  height: 96px;
+  object-fit: contain;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-control);
+  transform: rotate(2deg);
+  transition: transform var(--motion) var(--ease);
+}
+
+@keyframes mnt-clear-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mnt-clear-sweep {
+  from {
+    opacity: 1;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(400%);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .mnt-clear:hover .mnt-clear-meme {
+    transform: translateY(-2px) rotate(-2deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mnt-clear,
+  .mnt-clear::before {
+    animation: none;
+  }
+  .mnt-clear::before {
+    display: none;
+  }
+  .mnt-clear-meme {
+    transition: none;
+    transform: none;
+  }
+  .mnt-clear:hover .mnt-clear-meme {
+    transform: none;
+  }
 }
 
 .mnt-groups {

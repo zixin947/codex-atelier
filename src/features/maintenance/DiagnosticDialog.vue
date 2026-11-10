@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import Modal from '../../shared/components/Modal.vue'
 import Icon from '../../shared/components/Icon.vue'
+import diagnosticMeme from '../../assets/maintenance/diagnostic-ciallo.png'
 import { maintenanceService } from '../../services/maintenance'
 import type {
   DiagnosticFixResult,
@@ -19,6 +20,7 @@ const emit = defineEmits<{ close: []; completed: [report: DiagnosticReport] }>()
 const report = ref<DiagnosticReport | null>(null)
 const log = ref<string[]>([])
 const error = ref('')
+const indexChangedDuringScan = ref(false)
 const busy = ref<'scan' | 'fix' | 'all' | null>(null)
 const fixingId = ref<string | null>(null)
 const expanded = ref(new Set<string>())
@@ -55,6 +57,16 @@ const fixableCount = computed(() => {
   return value.items.filter((i) => i.fixable && i.status !== 'ok').length
 })
 
+const allClear = computed(
+  () =>
+    !busy.value &&
+    (indexChangedDuringScan.value ||
+      (report.value &&
+        fixableCount.value === 0 &&
+        !report.value.transitionInFlight &&
+        !error.value)),
+)
+
 function isFixable(item: DiagnosticItem) {
   return item.fixable && item.status !== 'ok' && !report.value?.transitionInFlight
 }
@@ -69,6 +81,7 @@ async function scan() {
   if (busy.value) return
   const token = ++generation
   busy.value = 'scan'
+  indexChangedDuringScan.value = false
   error.value = ''
   log.value = []
   try {
@@ -82,7 +95,10 @@ async function scan() {
       content.value?.querySelector<HTMLElement>('.mnt-groups')?.scrollTo({ top: 0 })
     }
   } catch (e) {
-    if (alive && token === generation) error.value = message(e)
+    if (alive && token === generation) {
+      error.value = message(e)
+      indexChangedDuringScan.value = error.value === '会话索引在本轮观察期间变化；请重新检测'
+    }
   } finally {
     if (alive && token === generation) busy.value = null
   }
@@ -166,24 +182,33 @@ onBeforeUnmount(() => {
     @close="close"
   >
     <div ref="content" class="mnt-dialog" :aria-busy="!!busy">
-      <p class="mnt-dialog-desc">
+      <p v-if="!allClear" class="mnt-dialog-desc">
         全面检测 Codex
         运行环境：配置文件、认证状态、进程健康、线程数据、磁盘权限和密钥完整性，发现异常可一键修复。
       </p>
 
-      <p v-if="error" class="mnt-error" role="alert">{{ error }}</p>
+      <p v-if="error && !allClear" class="mnt-error" role="alert">{{ error }}</p>
 
-      <div v-if="busy === 'scan' && !report" class="mnt-loading" role="status">
+      <div v-if="busy === 'scan'" class="mnt-loading" role="status">
         <Icon name="refresh" :size="18" class="mnt-spin" /><span>正在检测…</span>
       </div>
 
-      <template v-else-if="report">
-        <div v-if="!report.hasIssues" class="mnt-clear">
-          <Icon name="check" :size="18" />
-          <p>恭喜您，目前诊断一切正常。</p>
+      <div v-else-if="allClear" class="mnt-clear" role="status">
+        <div class="mnt-clear-copy">
+          <span class="mnt-clear-check"><Icon name="check" :size="18" /></span>
+          <p>当前诊断一切正常</p>
         </div>
+        <img
+          class="mnt-clear-meme"
+          :src="diagnosticMeme"
+          alt="Ciallo，开心比耶的表情包"
+          width="128"
+          height="96"
+        />
+      </div>
 
-        <div v-else class="mnt-groups">
+      <template v-else-if="report">
+        <div class="mnt-groups">
           <section v-for="group in groups" :key="group.id" class="mnt-group">
             <template v-if="itemsOf(group.id).length">
               <p class="mnt-group-label">{{ group.name }}</p>
@@ -240,40 +265,35 @@ onBeforeUnmount(() => {
           </section>
         </div>
 
-        <div v-if="log.length" class="mnt-log" aria-live="polite">
+        <div v-if="log.length && !allClear" class="mnt-log" aria-live="polite">
           <p class="mnt-log-title">修复结果</p>
           <p v-for="(line, index) in log" :key="index" class="mnt-log-line">{{ line }}</p>
         </div>
-
-        <div class="mnt-dialog-footer">
-          <button
-            type="button"
-            class="mnt-text-button"
-            :disabled="!!busy"
-            :aria-busy="busy === 'scan'"
-            @click="scan"
-          >
-            <Icon v-if="busy === 'scan'" name="refresh" :size="12" class="mnt-spin" />{{
-              busy === 'scan' ? '正在检测…' : '重新检测'
-            }}
-          </button>
-          <button
-            v-if="fixableCount"
-            type="button"
-            class="mnt-primary-button"
-            :disabled="!!busy"
-            :aria-busy="busy === 'all'"
-            @click="fixAll"
-          >
-            <Icon v-if="busy === 'all'" name="refresh" :size="12" class="mnt-spin" />{{
-              busy === 'all' ? '修复中…' : `全部修复（${fixableCount} 项）`
-            }}
-          </button>
-        </div>
       </template>
-
-      <div v-else class="mnt-dialog-footer">
-        <button type="button" class="mnt-text-button" @click="scan">重新检测</button>
+      <div class="mnt-dialog-footer">
+        <button
+          type="button"
+          class="mnt-text-button"
+          :disabled="!!busy"
+          :aria-busy="busy === 'scan'"
+          @click="scan"
+        >
+          <Icon v-if="busy === 'scan'" name="refresh" :size="12" class="mnt-spin" />{{
+            busy === 'scan' ? '正在检测…' : '重新检测'
+          }}
+        </button>
+        <button
+          v-if="fixableCount && !allClear"
+          type="button"
+          class="mnt-primary-button"
+          :disabled="!!busy"
+          :aria-busy="busy === 'all'"
+          @click="fixAll"
+        >
+          <Icon v-if="busy === 'all'" name="refresh" :size="12" class="mnt-spin" />{{
+            busy === 'all' ? '修复中…' : `全部修复（${fixableCount} 项）`
+          }}
+        </button>
       </div>
     </div>
   </Modal>
