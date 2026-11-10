@@ -1,4 +1,5 @@
 mod background;
+mod companion;
 mod direct;
 mod gateway;
 mod local;
@@ -66,6 +67,29 @@ impl AccountsState {
         Ok(value)
     }
 }
+
+/// Reuse Accounts detection and quota refresh, exporting only the current file account.
+pub async fn companion_quota(
+    app: &tauri::AppHandle,
+    refresh: bool,
+) -> Result<std::path::PathBuf, String> {
+    let a = app.state::<AccountsState>().get(app)?;
+    if refresh {
+        local::detect(&a.store)?;
+        let snapshot = a.snapshot()?;
+        let id = snapshot
+            .current_account
+            .account_id
+            .ok_or("Atelier 未识别到当前账号。")?;
+        let result = a.refresh(&id, false, false).await;
+        a.snapshot()?;
+        result?;
+    } else {
+        a.snapshot()?;
+    }
+    Ok(companion::path(&a.store.root))
+}
+
 pub fn start_background(app: &tauri::AppHandle) -> Result<(), String> {
     let accounts = app.state::<AccountsState>().get(app)?;
     if accounts.background.started.swap(true, Ordering::SeqCst) {
@@ -133,6 +157,9 @@ impl Accounts {
                 }
             }
         }
+        if let Err(error) = self.snapshot() {
+            result.error = Some(error);
+        }
         result.finished_at = now_ms();
         result
     }
@@ -150,6 +177,7 @@ impl Accounts {
             }
         }
         let current_account = local::current_view(&c);
+        companion::publish(&self.store.root, &c, &current_account)?;
         Ok(Snapshot {
             available: true,
             reason: None,

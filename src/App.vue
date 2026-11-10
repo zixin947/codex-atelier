@@ -20,9 +20,15 @@ const route = useRoute()
 const realPlugins = computed(() => route.path === '/plugins')
 const realManagement = computed(
   () =>
-    ['/plugins', '/connections', '/providers', '/routing', '/routing-groups', '/gateway'].includes(
-      route.path,
-    ) ||
+    [
+      '/plugins',
+      '/connections',
+      '/providers',
+      '/routing',
+      '/routing-groups',
+      '/gateway',
+      '/desktop-pets',
+    ].includes(route.path) ||
     (['/threads', '/maintenance'].includes(route.path) && isTauri()) ||
     route.path.startsWith('/accounts'),
 )
@@ -47,6 +53,7 @@ const nav = [
   { path: '/extensions', label: '扩展管理', icon: 'box' },
   { path: '/plugins', label: '行为插件', icon: 'shield' },
   { path: '/threads', label: '线程管理', icon: 'history' },
+  { path: '/desktop-pets', label: '桌宠', icon: 'heart' },
   { path: '/planned/companions', label: '人设与陪伴', icon: 'heart' },
   { path: '/diagnostics', label: '诊断与回滚', icon: 'pulse' },
   { path: '/maintenance', label: '维护工具', icon: 'settings' },
@@ -97,13 +104,15 @@ async function previewStartup() {
         {{
           realPlugins
             ? 'CODEX / USER PLUGINS'
-            : route.path === '/threads'
-              ? 'ATELIER / THREAD ARCHIVE'
-              : route.path === '/maintenance'
-                ? 'ATELIER / MAINTENANCE'
-                : route.path === '/routing'
-                  ? 'ATELIER / LIVE ROUTING'
-                  : 'ATELIER / LOCAL GATEWAY'
+            : route.path === '/desktop-pets'
+              ? 'ATELIER / DESKTOP PETS'
+              : route.path === '/threads'
+                ? 'ATELIER / THREAD ARCHIVE'
+                : route.path === '/maintenance'
+                  ? 'ATELIER / MAINTENANCE'
+                  : route.path === '/routing'
+                    ? 'ATELIER / LIVE ROUTING'
+                    : 'ATELIER / LOCAL GATEWAY'
         }}
       </div>
       <div class="top-actions">
@@ -112,13 +121,15 @@ async function previewStartup() {
             realManagement
               ? realPlugins
                 ? '本机插件管理'
-                : route.path === '/threads'
-                  ? '本机线程管理'
-                  : route.path === '/maintenance'
-                    ? '维护工具'
-                    : route.path === '/routing'
-                      ? '本机路由观测'
-                      : '本地账号与网关'
+                : route.path === '/desktop-pets'
+                  ? '本机桌宠管理'
+                  : route.path === '/threads'
+                    ? '本机线程管理'
+                    : route.path === '/maintenance'
+                      ? '维护工具'
+                      : route.path === '/routing'
+                        ? '本机路由观测'
+                        : '本地账号与网关'
               : '演示数据'
           }}</span
         >
@@ -162,6 +173,9 @@ async function previewStartup() {
           <div class="sandbox-stamp">
             <Icon name="shield" /><b>{{ realManagement ? '受限本机管理' : '安全沙盒' }}</b>
             <p v-if="realPlugins">仅管理两个指定插件<br />账号与代理不受影响</p>
+            <p v-else-if="route.path === '/desktop-pets'">
+              独立浮窗 · 手动管理<br />设置与账本由桌宠保存
+            </p>
             <p v-else-if="realManagement && route.path === '/threads'">
               按需读取 · 预览确认<br />索引修改保留备份
             </p>
@@ -191,7 +205,13 @@ async function previewStartup() {
           realManagement ? '本地管理 · 运行状态见当前页面' : '本地演示 · 未连接 Codex'
         }}</b></span
       ><span
-        >{{ accountRefresh.status?.intervalMs ? '额度后台刷新已启用' : '无独立后台服务' }}
+        >{{
+          route.path === '/desktop-pets'
+            ? '桌宠服务状态见当前页面'
+            : accountRefresh.status?.intervalMs
+              ? '额度后台刷新已启用'
+              : '无独立后台服务'
+        }}
         <span>/</span> 无遥测 <span>/</span> v0.1.0</span
       >
     </footer>

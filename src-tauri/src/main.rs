@@ -2,6 +2,7 @@
 mod accounts;
 mod desktop_attach;
 mod desktop_bridge;
+mod desktop_pets;
 mod desktop_runtime;
 mod gateway;
 mod maintenance;
@@ -30,6 +31,7 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            desktop_pets::desktop_pet_action,
             maintenance::maintenance_snapshot,
             maintenance::maintenance_diagnose,
             maintenance::maintenance_preview,

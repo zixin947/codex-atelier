@@ -31,7 +31,8 @@
     "resources": {
       "binaries/atelier-router": "atelier-router",
       "../vendor/magpie/LICENSE": "licenses/magpie/LICENSE",
-      "../vendor/magpie/THIRD_PARTY_NOTICES": "licenses/magpie/THIRD_PARTY_NOTICES"
+      "../vendor/magpie/THIRD_PARTY_NOTICES": "licenses/magpie/THIRD_PARTY_NOTICES",
+      "../vendor/gpt-dragon-girl/": "gpt-dragon-girl/"
     }
   }
 }
