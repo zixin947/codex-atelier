@@ -1,4 +1,8 @@
+mod engine;
 pub(crate) mod oauth;
+pub(crate) mod original_ui;
+mod plan_bridge;
+mod routing;
 mod server;
 pub(crate) mod storage;
 pub mod types;
@@ -19,7 +23,7 @@ pub struct GatewayState(Mutex<Option<Arc<Gateway>>>);
 pub(crate) fn diagnostic_runtime(app: &tauri::AppHandle) -> Option<RuntimeView> {
     let state = app.try_state::<GatewayState>()?;
     let guard = state.0.lock().ok()?;
-    guard.as_ref().map(|gateway| gateway.server.view())
+    guard.as_ref().map(|gateway| gateway.engine.view())
 }
 /// Observes an initialized runtime; never creates a store or starts a listener.
 pub(crate) fn diagnostic_proxy_handle(
@@ -27,7 +31,7 @@ pub(crate) fn diagnostic_proxy_handle(
 ) -> Option<atelier_maintenance_core::router_verification::ProxyHandle> {
     let state = app.try_state::<GatewayState>()?;
     let guard = state.0.lock().ok()?;
-    guard.as_ref()?.server.maintenance_proxy_handle()
+    guard.as_ref()?.engine.proxy_handle()
 }
 pub(crate) fn diagnostic_official_catalog(
     app: &tauri::AppHandle,
@@ -38,14 +42,19 @@ pub(crate) fn diagnostic_official_catalog(
 }
 struct Gateway {
     store: Arc<Store>,
+    accounts: Arc<crate::accounts::Accounts>,
     auth: Arc<AuthManager>,
     server: Arc<GatewayServer>,
+    engine: engine::Engine,
+    plan_bridge: tokio::sync::Mutex<Option<plan_bridge::PlanBridge>>,
     client: reqwest::Client,
+    ui_client: reqwest::Client,
 }
 impl GatewayState {
     fn get(&self, app: &tauri::AppHandle) -> Result<Arc<Gateway>, String> {
         let mut guard = self.0.lock().map_err(|_| "网关初始化锁异常。")?;
         if let Some(g) = &*guard {
+            g.synchronize_accounts()?;
             return Ok(g.clone());
         }
         let root = app
@@ -54,6 +63,7 @@ impl GatewayState {
             .map_err(|_| "无法定位 Atelier 数据目录。")?
             .join("gateway");
         let image_config = crate::maintenance::utilities::native_image_config_path()?;
+        let engine_root = root.join("routing-core");
         let store = Arc::new(Store::new_with_config(root, image_config)?);
         let client = reqwest::Client::builder()
             .redirect(reqwest::redirect::Policy::none())
@@ -68,17 +78,38 @@ impl GatewayState {
             auth.clone(),
             client.clone(),
         ));
+        let binary = if cfg!(debug_assertions) {
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("binaries/atelier-router")
+        } else {
+            app.path()
+                .resource_dir()
+                .map_err(|_| "无法定位内置路由引擎。")?
+                .join("atelier-router")
+        };
         let gateway = Arc::new(Gateway {
+            ui_client: reqwest::Client::builder()
+                .no_proxy()
+                .redirect(reqwest::redirect::Policy::none())
+                .build()
+                .map_err(|_| "本机管理连接初始化失败。")?,
+            engine: engine::Engine::new(binary, engine_root),
+            plan_bridge: tokio::sync::Mutex::new(None),
+            accounts: app.state::<crate::accounts::AccountsState>().get(app)?,
             store,
             auth,
             server,
             client,
         });
+        gateway.synchronize_accounts()?;
         *guard = Some(gateway.clone());
         Ok(gateway)
     }
 }
 impl Gateway {
+    fn synchronize_accounts(&self) -> Result<(), String> {
+        self.store
+            .synchronize_accounts(self.accounts.gateway_profiles()?)
+    }
     fn snapshot(&self) -> Result<Snapshot, String> {
         let mut c = self.store.read()?;
         let _ = self.server.synchronize_official_catalog();
@@ -89,13 +120,13 @@ impl Gateway {
             revision: c.revision,
             profiles: c.profiles,
             settings: c.settings,
-            runtime: self.server.view(),
-            events: self.server.events(),
+            runtime: self.engine.view(),
+            events: self.engine.events(),
         })
     }
     fn idle(&self) -> Result<(), String> {
-        if self.server.view().state != "stopped" && self.server.view().state != "error"
-            || self.server.active_requests() > 0
+        if self.engine.view().state != "stopped" && self.engine.view().state != "error"
+            || self.engine.view().active_requests > 0
         {
             return Err("请先停止网关并等待在途请求完成。".into());
         }
@@ -152,6 +183,13 @@ fn self_route(base: &str, port: u16) -> bool {
             && u.host_str()
                 .is_some_and(|h| matches!(h, "localhost" | "127.0.0.1" | "[::1]"))
     })
+}
+#[tauri::command]
+pub fn gateway_routing_snapshot(
+    app: tauri::AppHandle,
+    state: State<'_, GatewayState>,
+) -> Result<routing::Snapshot, String> {
+    Ok(state.get(&app)?.engine.snapshot())
 }
 #[tauri::command]
 pub fn gateway_snapshot(app: tauri::AppHandle, state: State<'_, GatewayState>) -> Snapshot {
@@ -251,6 +289,7 @@ pub async fn gateway_profile_update(
     if input.priority > 1000 {
         return Err("优先级需为 0–1000。".into());
     }
+    g.idle()?;
     g.store.update(Some(&expected_revision), |c| {
         let p = c
             .profiles
@@ -294,6 +333,7 @@ pub async fn gateway_settings_save(
     {
         return Err("端口需为 1024–65535，尝试上限需为 1–5，模型 ID 不能含空白。".into());
     }
+    g.idle()?;
     let before = g.store.read()?;
     if before.settings.port != settings.port {
         g.idle()?;
@@ -325,6 +365,7 @@ pub async fn gateway_profile_select(
     expected_revision: String,
 ) -> Result<Snapshot, String> {
     let g = state.get(&app)?;
+    g.idle()?;
     g.store.update(Some(&expected_revision), |c| {
         let p = c
             .profiles
@@ -346,9 +387,108 @@ pub async fn gateway_profile_select(
 pub async fn gateway_start(
     app: tauri::AppHandle,
     state: State<'_, GatewayState>,
+    original_ui: Option<bool>,
 ) -> Result<Snapshot, String> {
     let g = state.get(&app)?;
-    g.server.start().await?;
+    g.idle()?;
+    let mut bridge = g.plan_bridge.lock().await;
+    let c = g.store.read()?;
+    if original_ui.unwrap_or(false) {
+        g.engine.start(serde_json::json!({"originalUI":true,"port":c.settings.port,"providers":[],"groups":[],"settings":{},"discoverAccounts":true}))?;
+        return g.snapshot();
+    }
+    let mut extra = g.engine.configuration()?["configuration"].clone();
+    if original_ui.unwrap_or(false) {
+        extra["discoverAccounts"] = serde_json::json!(true);
+    }
+    let plan = plan_bridge::start(
+        g.auth.clone(),
+        g.store.clone(),
+        g.client.clone(),
+        Some(g.accounts.clone()),
+    )
+    .await?;
+    let preferred = c
+        .profiles
+        .iter()
+        .find(|p| Some(&p.id) == c.settings.preferred_profile_id.as_ref());
+    if preferred.is_none()
+        && extra["providers"].as_array().is_none_or(|p| p.is_empty())
+        && extra["discoverAccounts"] != true
+    {
+        return Err("请先选择当前账号，或在原生配置中添加供应商。".into());
+    }
+    let mut profiles = if preferred.is_some() {
+        c.profiles.clone()
+    } else {
+        Vec::new()
+    };
+    profiles.sort_by_key(|p| {
+        (
+            Some(&p.id) != c.settings.preferred_profile_id.as_ref(),
+            p.priority,
+        )
+    });
+    let mut providers = Vec::new();
+    for p in profiles {
+        let (base, key) = if p.kind == ProfileKind::Chatgpt {
+            (format!("{}/{}", plan.address, p.id), plan.key.clone())
+        } else if p.kind == ProfileKind::Codex {
+            (p.base_url.clone(), plan.key.clone())
+        } else {
+            (
+                p.base_url.clone(),
+                g.store.credential(&p.id)?.api_key.unwrap_or_default(),
+            )
+        };
+        let mut native = serde_json::json!({"id":p.id,"name":p.name,"key":key,"keyName":p.name,"responses":base,"models":p.models.iter().map(|m|m.id.clone()).collect::<Vec<_>>(),"off":!p.enabled});
+        if p.kind == ProfileKind::Codex {
+            native["preset"] = serde_json::json!("atelier-managed-codex");
+            native["key"] = serde_json::json!(plan.key);
+            native["headers"] = serde_json::json!({"X-Atelier-Account-Bridge":format!("{}/codex/{}/credentials", plan.address, p.id)});
+        }
+        if let Some(options) = extra["providerOptions"][&p.id].as_object() {
+            for (k, v) in options {
+                native[k] = v.clone();
+            }
+        }
+        providers.push(native);
+    }
+    if let Some(additional) = extra["providers"].as_array() {
+        providers.extend(additional.iter().cloned())
+    }
+    let mut groups = extra["groups"].as_array().cloned().unwrap_or_default();
+    let default_provider = preferred.map(|p| p.id.clone()).unwrap_or_default();
+    let default_route = if let Some(preferred) = preferred {
+        if c.settings.model.starts_with("group/") {
+            c.settings.model.clone()
+        } else if c.settings.auto_switch {
+            let mut pool = c
+                .profiles
+                .iter()
+                .filter(|p| {
+                    p.kind == preferred.kind
+                        && p.enabled
+                        && p.models.iter().any(|m| m.id == c.settings.model)
+                })
+                .collect::<Vec<_>>();
+            pool.sort_by_key(|p| (p.id != preferred.id, p.priority));
+            let members = pool
+                .into_iter()
+                .take(usize::from(c.settings.max_attempts))
+                .map(|p| format!("{}/{}", p.id, c.settings.model))
+                .collect::<Vec<_>>();
+            groups.push(serde_json::json!({"id":"atelier-default","name":"Atelier 当前路由","members":members,"routing":"order","patience":-1}));
+            "group/atelier-default".to_owned()
+        } else {
+            format!("{}/{}", preferred.id, c.settings.model)
+        }
+    } else {
+        String::new()
+    };
+    let config = serde_json::json!({"port":c.settings.port,"providers":providers,"groups":groups,"defaultProvider":default_provider,"defaultModel":c.settings.model,"defaultRoute":default_route,"prepareURL":format!("{}/prepare",plan.address),"prepareKey":plan.key,"settings":extra["settings"].as_object().cloned().unwrap_or_default(),"discoverAccounts":extra["discoverAccounts"].as_bool().unwrap_or(false)});
+    g.engine.start(config)?;
+    *bridge = Some(plan);
     g.snapshot()
 }
 #[tauri::command]
@@ -357,7 +497,7 @@ pub async fn gateway_stop(
     state: State<'_, GatewayState>,
 ) -> Result<Snapshot, String> {
     let g = state.get(&app)?;
-    g.server.stop().await?;
+    g.engine.stop()?;
     g.snapshot()
 }
 #[tauri::command]
@@ -365,7 +505,7 @@ pub async fn gateway_local_key(
     app: tauri::AppHandle,
     state: State<'_, GatewayState>,
 ) -> Result<String, String> {
-    state.get(&app)?.server.local_key()
+    state.get(&app)?.engine.key()
 }
 #[tauri::command]
 pub async fn gateway_models_refresh(
@@ -381,6 +521,18 @@ pub async fn gateway_models_refresh(
         .find(|p| p.id == id)
         .cloned()
         .ok_or("账号不存在。")?;
+    if p.kind == ProfileKind::Codex {
+        let list = g.accounts.gateway_models(&id).await?;
+        g.store.update(Some(&c.revision), |c| {
+            c.profiles
+                .iter_mut()
+                .find(|p| p.id == id)
+                .ok_or("账号已移除。")?
+                .models = list;
+            Ok(())
+        })?;
+        return g.snapshot();
+    }
     let token = g.auth.access_token(&id).await?;
     let r = g
         .client
@@ -481,7 +633,7 @@ pub async fn gateway_config_preview(
     let g = state.get(&app)?;
     let c = g.store.read()?;
     let address = g
-        .server
+        .engine
         .view()
         .address
         .unwrap_or_else(|| format!("http://127.0.0.1:{}/v1", c.settings.port));
@@ -493,7 +645,7 @@ pub async fn gateway_launch_desktop(
     state: State<'_, GatewayState>,
 ) -> Result<String, String> {
     let g = state.get(&app)?;
-    let v = g.server.view();
+    let v = g.engine.view();
     if v.state != "running" {
         return Err("请先启动网关。".into());
     }
@@ -503,7 +655,7 @@ pub async fn gateway_launch_desktop(
     }
     crate::desktop_bridge::launch_with_gateway(
         v.address.as_deref().ok_or("网关地址不可用。")?,
-        &g.server.local_key()?,
+        &g.engine.key()?,
         &c.settings.model,
     )
 }
@@ -537,4 +689,33 @@ pub async fn gateway_open_login(
         let _ = url;
         Err("请复制授权链接到系统浏览器完成登录。".into())
     }
+}
+
+#[tauri::command]
+pub fn gateway_engine_configuration(
+    app: tauri::AppHandle,
+    state: State<'_, GatewayState>,
+) -> Result<serde_json::Value, String> {
+    state.get(&app)?.engine.configuration()
+}
+#[tauri::command]
+pub fn gateway_engine_configuration_save(
+    app: tauri::AppHandle,
+    state: State<'_, GatewayState>,
+    configuration: serde_json::Value,
+    expected_revision: String,
+) -> Result<serde_json::Value, String> {
+    let g = state.get(&app)?;
+    g.idle()?;
+    g.engine
+        .save_configuration(configuration, &expected_revision)
+}
+
+#[tauri::command]
+pub fn gateway_original_ui(
+    app: tauri::AppHandle,
+    state: State<'_, GatewayState>,
+) -> Result<String, String> {
+    state.get(&app)?.engine.management_url()?;
+    Ok("magpie://localhost/?view=agents".into())
 }

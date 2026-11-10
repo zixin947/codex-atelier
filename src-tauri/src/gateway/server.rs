@@ -1,3 +1,4 @@
+use super::routing;
 use super::{oauth::AuthManager, storage::Store, types::*};
 use crate::maintenance::diagnostics::official_catalog::{self, OfficialCatalogRuntime, Scope};
 use axum::{
@@ -25,6 +26,10 @@ use uuid::Uuid;
 #[path = "official_catalog_integration_tests.rs"]
 mod official_catalog_integration_tests;
 
+#[cfg(test)]
+#[path = "routing_tests.rs"]
+mod routing_tests;
+
 #[derive(Default)]
 struct Stats {
     requests: u64,
@@ -41,6 +46,8 @@ struct Live {
     stats: HashMap<String, Stats>,
     responses: HashMap<String, String>,
     sessions: HashMap<String, String>,
+    routes: VecDeque<routing::Route>,
+    rerouted_requests: u64,
 }
 pub struct GatewayServer {
     store: Arc<Store>,
@@ -121,6 +128,14 @@ impl GatewayServer {
             port,
             alive: live.alive.as_ref()?.clone(),
         })
+    }
+    pub fn routing_snapshot(&self) -> routing::Snapshot {
+        let live = self.live.lock().unwrap_or_else(|e| e.into_inner());
+        routing::Snapshot {
+            runtime: live.view.clone(),
+            rerouted_requests: live.rerouted_requests,
+            routes: live.routes.iter().rev().cloned().collect(),
+        }
     }
     pub fn overlay_profiles(&self, p: &mut [Profile]) {
         let live = self.live.lock().unwrap_or_else(|e| e.into_inner());
@@ -410,9 +425,16 @@ async fn observed_official_models(
         Ok(permit) => permit,
         Err(_) => return failure(503, "gateway_stopping", "网关正在停止。"),
     };
-    let mut guard = RequestGuard::new(server.clone(), permit);
-    guard.profile = Some(profile.id.clone());
-    guard.attempts = 1;
+    let mut guard = RequestGuard::new(server.clone(), permit, "models");
+    guard.trace(|r| {
+        r.candidates.push(routing::Candidate {
+            profile_id: profile.id.clone(),
+            name: profile.name.clone(),
+            eligible: true,
+            reason: "官方模型目录指定账号".into(),
+        })
+    });
+    guard.attempt(&profile);
     let token = server.auth.access_token(&profile.id).await.ok();
     let mut identity = incoming.clone();
     // The local gateway key and a different Desktop account must not become the
@@ -515,23 +537,55 @@ struct RequestGuard {
     profile: Option<String>,
     attempts: usize,
     finished: bool,
+    route_id: String,
     _permit: OwnedSemaphorePermit,
 }
 impl RequestGuard {
-    fn new(server: Arc<GatewayServer>, permit: OwnedSemaphorePermit) -> Self {
-        server
-            .live
-            .lock()
-            .unwrap_or_else(|e| e.into_inner())
-            .view
-            .active_requests += 1;
+    fn new(server: Arc<GatewayServer>, permit: OwnedSemaphorePermit, endpoint: &str) -> Self {
+        let route = routing::Route::new(endpoint);
+        let route_id = route.id.clone();
+        {
+            let mut live = server.live.lock().unwrap_or_else(|e| e.into_inner());
+            live.view.active_requests += 1;
+            live.routes.push_back(route);
+        }
         Self {
             server,
             profile: None,
             attempts: 0,
             finished: false,
+            route_id,
             _permit: permit,
         }
+    }
+    fn trace(&self, f: impl FnOnce(&mut routing::Route)) {
+        let mut live = self.server.live.lock().unwrap_or_else(|e| e.into_inner());
+        f(live
+            .routes
+            .iter_mut()
+            .find(|r| r.id == self.route_id)
+            .unwrap());
+    }
+    fn attempt(&mut self, profile: &Profile) {
+        self.profile = Some(profile.id.clone());
+        self.attempts += 1;
+        if self.attempts == 2 {
+            self.server
+                .live
+                .lock()
+                .unwrap_or_else(|e| e.into_inner())
+                .rerouted_requests += 1;
+        }
+        self.trace(|r| {
+            r.status = "forwarding".into();
+            r.attempts.push(routing::Attempt {
+                profile_id: profile.id.clone(),
+                started_at: now_ms(),
+                duration_ms: None,
+                http_status: None,
+                code: String::new(),
+            });
+        });
     }
     fn finish(&mut self, success: bool, code: &str, usage: Option<&Value>) {
         if self.finished {
@@ -539,6 +593,21 @@ impl RequestGuard {
         }
         self.finished = true;
         let mut l = self.server.live.lock().unwrap_or_else(|e| e.into_inner());
+        let index = l.routes.iter().position(|r| r.id == self.route_id).unwrap();
+        let mut route = l.routes.remove(index).unwrap();
+        route.finish_attempt(code);
+        route.status = if success { "completed" } else { "failed" }.into();
+        route.code = code.into();
+        route.duration_ms = Some(now_ms().saturating_sub(route.at));
+        l.routes.push_back(route);
+        while l.routes.iter().filter(|r| r.duration_ms.is_some()).count() > 100 {
+            let index = l
+                .routes
+                .iter()
+                .position(|r| r.duration_ms.is_some())
+                .unwrap();
+            l.routes.remove(index);
+        }
         if success {
             l.view.completed_requests += 1;
         } else {
@@ -586,7 +655,15 @@ async fn forward(
         Ok(v) => v,
         Err(_) => return failure(503, "gateway_busy", "网关并发已满，请稍后重试。"),
     };
-    let mut guard = RequestGuard::new(server.clone(), permit);
+    let mut guard = RequestGuard::new(
+        server.clone(),
+        permit,
+        if is_compact {
+            "responses/compact"
+        } else {
+            "responses"
+        },
+    );
     let mut body: Value = match serde_json::from_slice::<Value>(&bytes) {
         Ok(v) if v.is_object() => v,
         _ => {
@@ -629,6 +706,7 @@ async fn forward(
         .unwrap_or(&c.settings.model)
         .to_owned();
     body["model"] = Value::String(model.clone());
+    guard.trace(|r| r.model = model.chars().take(200).collect());
     let session = headers
         .get("session_id")
         .or_else(|| headers.get("x-atelier-session-id"))
@@ -666,18 +744,19 @@ async fn forward(
             );
         }
     }
-    let mut candidates: Vec<_> = c
-        .profiles
+    let plan = routing::plan(&c, preferred, &model, pinned.as_deref());
+    let candidates: Vec<_> = plan
         .iter()
-        .filter(|p| {
-            p.kind == preferred.kind
-                && eligible(p, &model)
-                && pinned.as_ref().is_none_or(|id| id == &p.id)
-                && (c.settings.auto_switch || p.id == preferred.id)
+        .filter(|p| p.eligible)
+        .map(|p| {
+            c.profiles
+                .iter()
+                .find(|x| x.id == p.profile_id)
+                .unwrap()
+                .clone()
         })
-        .cloned()
         .collect();
-    candidates.sort_by_key(|p| (p.id != preferred.id, p.priority));
+    guard.trace(|r| r.candidates = plan);
     if candidates.is_empty() {
         guard.finish(false, "no_eligible_account", None);
         return failure(
@@ -692,8 +771,7 @@ async fn forward(
         usize::from(c.settings.max_attempts)
     };
     for profile in candidates.into_iter().take(max) {
-        guard.profile = Some(profile.id.clone());
-        guard.attempts += 1;
+        guard.attempt(&profile);
         if profile.kind == ProfileKind::Chatgpt {
             if is_compact {
                 guard.finish(false, "unsupported_plan_capability", None);
@@ -744,6 +822,9 @@ async fn forward(
                 );
             }
         };
+        guard.trace(|r| {
+            r.attempts.last_mut().unwrap().http_status = Some(upstream.status().as_u16())
+        });
         if !upstream.status().is_success() {
             let status = upstream.status().as_u16();
             let retry = upstream
@@ -755,6 +836,7 @@ async fn forward(
                 .await
                 .unwrap_or(Value::Null);
             let code = error_code(&err);
+            guard.trace(|r| r.finish_attempt(&code));
             server.mark(&profile.id, status, &code, retry.as_deref());
             if c.settings.auto_switch
                 && pinned.is_none()
@@ -918,7 +1000,7 @@ fn has_opaque(v: &Value) -> bool {
         _ => false,
     }
 }
-fn validate_plan(v: &mut Value) -> Result<(), &'static str> {
+pub(super) fn validate_plan(v: &mut Value) -> Result<(), &'static str> {
     if v.get("previous_response_id").is_some_and(|v| !v.is_null()) {
         return Err("订阅 HTTP 通道要求完整 input，不支持 previous_response_id。");
     }

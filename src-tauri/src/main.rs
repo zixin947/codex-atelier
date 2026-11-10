@@ -15,6 +15,9 @@ fn main() {
         std::process::exit(desktop_bridge::cli());
     }
     tauri::Builder::default()
+        .register_asynchronous_uri_scheme_protocol("magpie", |context, request, responder| {
+            gateway::original_ui::protocol(context.app_handle().clone(), request, responder);
+        })
         .plugin(tauri_plugin_dialog::init())
         .manage(gateway::GatewayState::default())
         .manage(accounts::AccountsState::default())
@@ -87,6 +90,10 @@ fn main() {
             accounts::accounts_switch_preview,
             accounts::accounts_switch_apply,
             gateway::gateway_snapshot,
+            gateway::gateway_original_ui,
+            gateway::gateway_engine_configuration,
+            gateway::gateway_engine_configuration_save,
+            gateway::gateway_routing_snapshot,
             gateway::gateway_provider_save,
             gateway::gateway_profile_update,
             gateway::gateway_profile_remove,

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub enum ProfileKind {
     Chatgpt,
+    Codex,
     ApiKey,
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]

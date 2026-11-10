@@ -1,0 +1,22 @@
+{
+  "repository": "https://github.com/yetone/magpie",
+  "commit": "e6f151507f3c70f483d4bd476fa69faef155fe8c",
+  "archiveSha256": "14eedf306c87d9a3fa4c89a92c4649ad56b364acefcea5db3dd312e035630e20",
+  "sourcePackages": 92,
+  "unmodifiedFiles": 7879,
+  "changedOriginalFiles": [],
+  "hostAdditions": [
+    "cmd/atelier-router/main.go",
+    "cmd/atelier-router/main_test.go",
+    "internal/gateway/atelier_host.go",
+    "internal/gui/atelier_host.go"
+  ],
+  "scope": "protocol and routing core plus complete upstream Agent GUI/API and its internal dependencies",
+  "deliveryStatus": "integrated and installed; local host and application acceptance passed; real providers and Desktop unverified",
+  "localChanges": "Owned host entrypoints provide lifecycle and native rendering transport. Original GUI, provider, account and routing files are unmodified; native UI startup preserves upstream storage and does not translate Atelier providers or requests.",
+  "originalGUI": {
+    "files": 2324,
+    "changedFiles": [],
+    "entryAdapter": "internal/gui/atelier_host.go"
+  }
+}

@@ -1,0 +1,2 @@
+# Preserve upstream source and platform fixtures byte for byte.
+vendor/magpie/** -text -whitespace linguist-vendored

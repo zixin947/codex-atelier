@@ -1,0 +1,77 @@
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import { invoke, isTauri } from '@tauri-apps/api/core'
+import { theme } from '../../app/theme'
+const emit = defineEmits<{ changed: [] }>()
+const busy = ref(false)
+async function open() {
+  busy.value = true
+  error.value = ''
+  try {
+    await invoke('gateway_start', { originalUi: true })
+    emit('changed')
+  } catch (e) {
+    error.value = String(e)
+  } finally {
+    busy.value = false
+  }
+}
+const props = withDefaults(defineProps<{ running: boolean; view?: string; title?: string }>(), {
+  view: 'agents',
+  title: 'Agent 接入与模型选择',
+})
+const url = ref(''),
+  error = ref('')
+watch(
+  () => [props.running, props.view] as const,
+  async ([running]) => {
+    url.value = ''
+    error.value = ''
+    if (!running || !isTauri()) return
+    try {
+      const address = new URL(await invoke<string>('gateway_original_ui'))
+      address.searchParams.set('view', props.view)
+      if (['providers', 'routing', 'groups', 'gateway'].includes(props.view))
+        address.searchParams.set('atelierContent', '1')
+      if (theme.value === 'endfield') address.searchParams.set('atelierStyle', 'endfield')
+      url.value = address.toString()
+    } catch (e) {
+      error.value = String(e)
+    }
+  },
+  { immediate: true },
+)
+</script>
+
+<template>
+  <section class="original-agents">
+    <h2>{{ title }}</h2>
+    <p v-if="!running">打开页面时启动本机网关，并读取本机已登录的供应商账号。</p>
+    <button v-if="!running" class="button" :disabled="busy || !isTauri()" @click="open">
+      {{ busy ? '正在打开…' : `打开${title}` }}
+    </button>
+    <p v-if="error" role="alert">{{ error }}</p>
+    <iframe v-if="url" :src="url" :title="title" referrerpolicy="no-referrer" />
+  </section>
+</template>
+
+<style scoped>
+.original-agents {
+  margin-bottom: 24px;
+}
+.original-agents h2 {
+  font-size: 20px;
+  margin-bottom: 12px;
+}
+.original-agents p {
+  padding: 18px;
+  border: 1px solid var(--border);
+}
+.original-agents iframe {
+  width: 100%;
+  height: 900px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: white;
+}
+</style>

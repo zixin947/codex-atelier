@@ -20,7 +20,15 @@ const route = useRoute()
 const realPlugins = computed(() => route.path === '/plugins')
 const realManagement = computed(
   () =>
-    ['/plugins', '/connections', '/desktop-pets'].includes(route.path) ||
+    [
+      '/plugins',
+      '/connections',
+      '/providers',
+      '/routing',
+      '/routing-groups',
+      '/gateway',
+      '/desktop-pets',
+    ].includes(route.path) ||
     (['/threads', '/maintenance'].includes(route.path) && isTauri()) ||
     route.path.startsWith('/accounts'),
 )
@@ -38,6 +46,10 @@ const nav = [
   { path: '/', label: '主工作台', icon: 'grid' },
   { path: '/accounts', label: '账号与额度', icon: 'user' },
   { path: '/connections', label: '模型与连接', icon: 'chip' },
+  { path: '/providers', label: '供应商', icon: 'plug' },
+  { path: '/routing', label: '路由', icon: 'arrow' },
+  { path: '/routing-groups', label: '路由组', icon: 'grid' },
+  { path: '/gateway', label: '网关', icon: 'terminal' },
   { path: '/extensions', label: '扩展管理', icon: 'box' },
   { path: '/plugins', label: '行为插件', icon: 'shield' },
   { path: '/threads', label: '线程管理', icon: 'history' },
@@ -98,7 +110,9 @@ async function previewStartup() {
                 ? 'ATELIER / THREAD ARCHIVE'
                 : route.path === '/maintenance'
                   ? 'ATELIER / MAINTENANCE'
-                  : 'ATELIER / LOCAL GATEWAY'
+                  : route.path === '/routing'
+                    ? 'ATELIER / LIVE ROUTING'
+                    : 'ATELIER / LOCAL GATEWAY'
         }}
       </div>
       <div class="top-actions">
@@ -113,7 +127,9 @@ async function previewStartup() {
                     ? '本机线程管理'
                     : route.path === '/maintenance'
                       ? '维护工具'
-                      : '本地账号与网关'
+                      : route.path === '/routing'
+                        ? '本机路由观测'
+                        : '本地账号与网关'
               : '演示数据'
           }}</span
         >
@@ -165,6 +181,9 @@ async function previewStartup() {
             </p>
             <p v-else-if="realManagement && route.path === '/maintenance'">
               诊断只读 · 操作先预览<br />维护 Atelier 独立档案
+            </p>
+            <p v-else-if="route.path === '/routing'">
+              真实请求 · 实时观测<br />路由由 Atelier 管理
             </p>
             <p v-else-if="realManagement">独立账号 · 手动连接<br />网关默认关闭</p>
             <p v-else>所有操作仅作用于演示数据<br />未连接本机 Codex</p>

@@ -229,7 +229,7 @@ pub fn normalize(raw: &Value) -> Result<Value, String> {
     }
     Ok(auth)
 }
-fn decode_hint(token: &str) -> Value {
+pub(super) fn decode_hint(token: &str) -> Value {
     token
         .split('.')
         .nth(1)

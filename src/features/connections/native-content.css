@@ -1,0 +1,9 @@
+/* These four views use Atelier navigation; the upstream content layout stays intact. */
+#side,
+#nav,
+#sideToggle {
+  display: none !important;
+}
+body.side-nav {
+  padding-left: 0 !important;
+}

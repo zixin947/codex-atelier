@@ -9,7 +9,7 @@ import Planned from '../features/Planned.vue'
 import BehaviorPlugins from '../features/plugins/BehaviorPlugins.vue'
 import Accounts from '../features/accounts/Accounts.vue'
 import OfficialAccounts from '../features/accounts/OfficialAccounts.vue'
-import Connections from '../features/connections/Connections.vue'
+import NativeModels from '../features/connections/NativeModels.vue'
 export const router = createRouter({
   history: createWebHashHistory(),
   routes: [
@@ -21,7 +21,19 @@ export const router = createRouter({
     { path: '/plugins', component: BehaviorPlugins },
     { path: '/accounts', component: Accounts },
     { path: '/accounts/official', component: OfficialAccounts },
-    { path: '/connections', component: Connections },
+    {
+      path: '/connections',
+      component: NativeModels,
+      props: { view: 'agents', title: '模型与连接' },
+    },
+    { path: '/providers', component: NativeModels, props: { view: 'providers', title: '供应商' } },
+    { path: '/routing', component: NativeModels, props: { view: 'routing', title: '路由' } },
+    {
+      path: '/routing-groups',
+      component: NativeModels,
+      props: { view: 'groups', title: '路由组' },
+    },
+    { path: '/gateway', component: NativeModels, props: { view: 'gateway', title: '网关' } },
     { path: '/planned/accounts', redirect: '/accounts' },
     { path: '/planned/models', redirect: '/connections' },
     { path: '/maintenance', component: Maintenance },
