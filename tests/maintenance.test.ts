@@ -321,20 +321,59 @@ describe('system diagnostic dialog', () => {
       items: report().items.map((i) => ({ ...i, status: 'ok' as const, fixable: false })),
     }))
     await openDialog()
-    expect(wrapper!.text()).toContain('恭喜您，目前诊断一切正常。')
+    expect(wrapper!.get('.mnt-clear').text()).toBe('当前诊断一切正常')
+    expect(wrapper!.get('.mnt-clear-meme').attributes('alt')).toContain('Ciallo')
+    expect(wrapper!.find('.mnt-dialog-desc').exists()).toBe(false)
+    expect(wrapper!.find('.mnt-log').exists()).toBe(false)
     expect(wrapper!.findAll('.mnt-item')).toHaveLength(0)
     expect(wrapper!.findAll('button').some((b) => b.text().includes('全部修复'))).toBe(false)
   })
 
+  it.each(['warning', 'error'] as const)(
+    'shows the normal panel when %s items have no available repair',
+    async (status) => {
+      api.runDiagnostics.mockResolvedValueOnce({
+        ...report(),
+        items: report().items.map((i) => ({ ...i, status, fixable: false })),
+      })
+      await openDialog()
+      expect(wrapper!.get('.mnt-clear').text()).toBe('当前诊断一切正常')
+      expect(wrapper!.get('.mnt-clear-meme').attributes('alt')).toContain('Ciallo')
+      expect(wrapper!.find('.mnt-groups').exists()).toBe(false)
+      expect(wrapper!.text()).not.toContain('全部修复')
+      expect(api.previewRepair).not.toHaveBeenCalled()
+      expect(api.applyRepair).not.toHaveBeenCalled()
+    },
+  )
+
   it('wraps labels during a route transition and blocks fixing', async () => {
     api.runDiagnostics.mockImplementation(async () => ({
       ...report(),
+      hasIssues: false,
       transitionInFlight: true,
     }))
     await openDialog()
     expect(wrapper!.text()).toContain('原始检测：')
     expect(wrapper!.findAll('.mnt-fix')).toHaveLength(0)
     expect(wrapper!.findAll('button').some((b) => b.text().includes('全部修复'))).toBe(false)
+  })
+
+  it('shows the normal line for an index change during scanning', async () => {
+    api.runDiagnostics.mockRejectedValueOnce(Error('会话索引在本轮观察期间变化；请重新检测'))
+    await openDialog()
+    expect(wrapper!.get('.mnt-clear').text()).toBe('当前诊断一切正常')
+    expect(wrapper!.get('.mnt-clear-meme').attributes('alt')).toContain('Ciallo')
+    expect(wrapper!.find('.mnt-error').exists()).toBe(false)
+    expect(wrapper!.find('.mnt-groups').exists()).toBe(false)
+    expect(wrapper!.text()).not.toContain('全部修复')
+    expect(api.previewRepair).not.toHaveBeenCalled()
+  })
+
+  it('continues showing other scan errors', async () => {
+    api.runDiagnostics.mockRejectedValueOnce(Error('数据库无法读取'))
+    await openDialog()
+    expect(wrapper!.get('.mnt-error').text()).toBe('数据库无法读取')
+    expect(wrapper!.find('.mnt-clear').exists()).toBe(false)
   })
 
   it('keeps the stale report visible when a recheck fails', async () => {
