@@ -1,0 +1,84 @@
+{
+  "sha256": "b2a4b1b2b4babd2518e02c0f0d6203ad19e779909a47b3b643844ef403fe95de",
+  "fixAllVA": "0x1003a69d8",
+  "tableVA": "0x10181b9d0",
+  "ordinary": [
+    {
+      "index": 0,
+      "entryVA": "0x10181b9d0",
+      "stringVA": "0x10130e045",
+      "length": 23,
+      "id": "thread_missing_rollouts"
+    },
+    {
+      "index": 1,
+      "entryVA": "0x10181b9e0",
+      "stringVA": "0x10130e05c",
+      "length": 27,
+      "id": "thread_provider_consistency"
+    },
+    {
+      "index": 2,
+      "entryVA": "0x10181b9f0",
+      "stringVA": "0x10130e077",
+      "length": 32,
+      "id": "thread_model_catalog_consistency"
+    },
+    {
+      "index": 3,
+      "entryVA": "0x10181ba00",
+      "stringVA": "0x10130e097",
+      "length": 28,
+      "id": "thread_poisoned_instructions"
+    },
+    {
+      "index": 4,
+      "entryVA": "0x10181ba10",
+      "stringVA": "0x10130e0b3",
+      "length": 24,
+      "id": "thread_response_item_ids"
+    },
+    {
+      "index": 5,
+      "entryVA": "0x10181ba20",
+      "stringVA": "0x10130e0cb",
+      "length": 23,
+      "id": "legacy_migrated_threads"
+    },
+    {
+      "index": 6,
+      "entryVA": "0x10181ba30",
+      "stringVA": "0x10130d300",
+      "length": 17,
+      "id": "residual_manifest"
+    },
+    {
+      "index": 7,
+      "entryVA": "0x10181ba40",
+      "stringVA": "0x10130cd83",
+      "length": 14,
+      "id": "residual_cache"
+    },
+    {
+      "index": 8,
+      "entryVA": "0x10181ba50",
+      "stringVA": "0x10130e0e2",
+      "length": 22,
+      "id": "config_global_validity"
+    },
+    {
+      "index": 9,
+      "entryVA": "0x10181ba60",
+      "stringVA": "0x10130e0f8",
+      "length": 23,
+      "id": "project_state_integrity"
+    },
+    {
+      "index": 10,
+      "entryVA": "0x10181ba70",
+      "stringVA": "0x10130d9c7",
+      "length": 19,
+      "id": "state_db_relocation"
+    }
+  ]
+}

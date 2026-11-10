@@ -1,0 +1,352 @@
+[
+  {
+    "address": "0x1013082d4",
+    "byteLength": 4,
+    "text": "auth"
+  },
+  {
+    "address": "0x1013a9d07",
+    "byteLength": 7,
+    "text": "unknown"
+  },
+  {
+    "address": "0x1013a9e97",
+    "byteLength": 6,
+    "text": "source"
+  },
+  {
+    "address": "0x1013a9f2f",
+    "byteLength": 6,
+    "text": "thread"
+  },
+  {
+    "address": "0x1013aaed7",
+    "byteLength": 6,
+    "text": "target"
+  },
+  {
+    "address": "0x1013aaedd",
+    "byteLength": 5,
+    "text": "phase"
+  },
+  {
+    "address": "0x1013aaee2",
+    "byteLength": 12,
+    "text": "occurredAtMs"
+  },
+  {
+    "address": "0x1013aaeee",
+    "byteLength": 6,
+    "text": "reason"
+  },
+  {
+    "address": "0x1013ab093",
+    "byteLength": 15,
+    "text": "数据库占用"
+  },
+  {
+    "address": "0x1013ab0a2",
+    "byteLength": 11,
+    "text": "force close"
+  },
+  {
+    "address": "0x1013ab0ad",
+    "byteLength": 11,
+    "text": "force-close"
+  },
+  {
+    "address": "0x1013ab0b8",
+    "byteLength": 12,
+    "text": "quiet window"
+  },
+  {
+    "address": "0x1013ab0c4",
+    "byteLength": 7,
+    "text": "reentry"
+  },
+  {
+    "address": "0x1013ab0cb",
+    "byteLength": 14,
+    "text": "failed to stop"
+  },
+  {
+    "address": "0x1013ab0d9",
+    "byteLength": 13,
+    "text": "still running"
+  },
+  {
+    "address": "0x1013ab0e6",
+    "byteLength": 18,
+    "text": "无法关闭进程"
+  },
+  {
+    "address": "0x1013ab0f8",
+    "byteLength": 18,
+    "text": "进程仍在运行"
+  },
+  {
+    "address": "0x1013ab10a",
+    "byteLength": 12,
+    "text": "反复启动"
+  },
+  {
+    "address": "0x1013ab116",
+    "byteLength": 7,
+    "text": "rollout"
+  },
+  {
+    "address": "0x1013ab11d",
+    "byteLength": 6,
+    "text": "线程"
+  },
+  {
+    "address": "0x1013ab123",
+    "byteLength": 6,
+    "text": "backup"
+  },
+  {
+    "address": "0x1013ab129",
+    "byteLength": 6,
+    "text": "接管"
+  },
+  {
+    "address": "0x1013ab12f",
+    "byteLength": 6,
+    "text": "备份"
+  },
+  {
+    "address": "0x1013ab135",
+    "byteLength": 13,
+    "text": "model catalog"
+  },
+  {
+    "address": "0x1013ab142",
+    "byteLength": 7,
+    "text": "catalog"
+  },
+  {
+    "address": "0x1013ab149",
+    "byteLength": 12,
+    "text": "模型目录"
+  },
+  {
+    "address": "0x1013ab155",
+    "byteLength": 12,
+    "text": "模型列表"
+  },
+  {
+    "address": "0x1013ab161",
+    "byteLength": 7,
+    "text": "project"
+  },
+  {
+    "address": "0x1013ab168",
+    "byteLength": 14,
+    "text": "workspace root"
+  },
+  {
+    "address": "0x1013ab176",
+    "byteLength": 6,
+    "text": "项目"
+  },
+  {
+    "address": "0x1013ab17c",
+    "byteLength": 9,
+    "text": "工作区"
+  },
+  {
+    "address": "0x1013ab185",
+    "byteLength": 6,
+    "text": "config"
+  },
+  {
+    "address": "0x1013ab18b",
+    "byteLength": 13,
+    "text": "managed block"
+  },
+  {
+    "address": "0x1013ab198",
+    "byteLength": 6,
+    "text": "配置"
+  },
+  {
+    "address": "0x1013ab19e",
+    "byteLength": 5,
+    "text": "login"
+  },
+  {
+    "address": "0x1013ab1a3",
+    "byteLength": 5,
+    "text": "token"
+  },
+  {
+    "address": "0x1013ab1a8",
+    "byteLength": 6,
+    "text": "认证"
+  },
+  {
+    "address": "0x1013ab1ae",
+    "byteLength": 6,
+    "text": "登录"
+  },
+  {
+    "address": "0x1013ab1b4",
+    "byteLength": 6,
+    "text": "令牌"
+  },
+  {
+    "address": "0x1013ab1ba",
+    "byteLength": 7,
+    "text": "persist"
+  },
+  {
+    "address": "0x1013ab1c1",
+    "byteLength": 11,
+    "text": "relay state"
+  },
+  {
+    "address": "0x1013ab1cc",
+    "byteLength": 9,
+    "text": "持久化"
+  },
+  {
+    "address": "0x1013ab1d5",
+    "byteLength": 12,
+    "text": "路由状态"
+  },
+  {
+    "address": "0x1013ab1e1",
+    "byteLength": 5,
+    "text": "proxy"
+  },
+  {
+    "address": "0x1013ab1e6",
+    "byteLength": 4,
+    "text": "port"
+  },
+  {
+    "address": "0x1013ab1ea",
+    "byteLength": 6,
+    "text": "代理"
+  },
+  {
+    "address": "0x1013ab1f0",
+    "byteLength": 6,
+    "text": "端口"
+  },
+  {
+    "address": "0x1013ab1f6",
+    "byteLength": 9,
+    "text": "completed"
+  },
+  {
+    "address": "0x1013ab1ff",
+    "byteLength": 14,
+    "text": "already stable"
+  },
+  {
+    "address": "0x1013ab20d",
+    "byteLength": 13,
+    "text": "state_persist"
+  },
+  {
+    "address": "0x1013ab21a",
+    "byteLength": 11,
+    "text": "config_sync"
+  },
+  {
+    "address": "0x1013ab225",
+    "byteLength": 13,
+    "text": "project_state"
+  },
+  {
+    "address": "0x1013ab232",
+    "byteLength": 15,
+    "text": "config_takeover"
+  },
+  {
+    "address": "0x1013ab241",
+    "byteLength": 15,
+    "text": "process_control"
+  },
+  {
+    "address": "0x1013ab250",
+    "byteLength": 7,
+    "text": "db_lock"
+  },
+  {
+    "address": "0x1013ab257",
+    "byteLength": 10,
+    "text": "diagnostic"
+  },
+  {
+    "address": "0x1013ab261",
+    "byteLength": 9,
+    "text": "bootstrap"
+  },
+  {
+    "address": "0x1013ab26a",
+    "byteLength": 9,
+    "text": "auth-mode"
+  },
+  {
+    "address": "0x1013ab273",
+    "byteLength": 11,
+    "text": "model slots"
+  },
+  {
+    "address": "0x1013ab27e",
+    "byteLength": 13,
+    "text": "router toggle"
+  },
+  {
+    "address": "0x1013ab28b",
+    "byteLength": 6,
+    "text": "repair"
+  },
+  {
+    "address": "0x1013ab291",
+    "byteLength": 9,
+    "text": "reconcile"
+  },
+  {
+    "address": "0x1013ab29a",
+    "byteLength": 5,
+    "text": "other"
+  },
+  {
+    "address": "0x1013ab29f",
+    "byteLength": 6,
+    "text": "toggle"
+  },
+  {
+    "address": "0x1013ab2a5",
+    "byteLength": 11,
+    "text": "model_slots"
+  },
+  {
+    "address": "0x1013ab2b0",
+    "byteLength": 9,
+    "text": "auth_mode"
+  },
+  {
+    "address": "0x1013af120",
+    "byteLength": 16,
+    "text": "storage capacity"
+  },
+  {
+    "address": "0x1013af130",
+    "byteLength": 16,
+    "text": "transition fence"
+  },
+  {
+    "address": "0x1013af314",
+    "byteLength": 4,
+    "text": "busy"
+  },
+  {
+    "address": "0x1013af318",
+    "byteLength": 4,
+    "text": "toml"
+  }
+]

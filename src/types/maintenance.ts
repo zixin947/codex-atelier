@@ -39,6 +39,8 @@ export interface MaintenanceService {
   runDiagnostics(): Promise<DiagnosticReport>
   previewRepair(itemId: string): Promise<DiagnosticRepairPlan>
   applyRepair(ticket: string): Promise<DiagnosticFixResult>
+  previewDirectoryProbe(): Promise<DiagnosticRepairPlan>
+  applyDirectoryProbe(ticket: string): Promise<DiagnosticFixResult>
   utilitySettings(): Promise<MaintenanceUtilitySettings>
   previewImageCompat(enabled: boolean): Promise<ImageCompatPlan>
   applyImageCompat(ticket: string): Promise<MaintenanceUtilitySettings>
@@ -47,7 +49,8 @@ export interface MaintenanceService {
   sendBundle(endpoint: string, userNote: string): Promise<DiagnosticSendResult>
 }
 
-export type DiagnosticStatus = 'ok' | 'warning' | 'error' | 'unknown' | 'skipped'
+// 原版只有三种状态：跳过检测与未确认都归 ok/warning，不存在独立状态值。
+export type DiagnosticStatus = 'ok' | 'warning' | 'error'
 export type DiagnosticGroup = 'config' | 'auth' | 'runtime' | 'env'
 export interface DiagnosticItem {
   id: string

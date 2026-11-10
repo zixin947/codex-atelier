@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="zh-CN" data-ef-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>终末地风格原创控件示例 · 演示数据</title>
+    <link rel="stylesheet" href="endfield-tokens.css" />
+    <link rel="stylesheet" href="endfield-components.css" />
+    <style>
+      body {
+        margin: 0;
+      }
+      [hidden] {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="ef-shell">
+      <header class="ef-header">
+        <div>
+          <p class="ef-eyebrow">FIELD INTERFACE / COMPONENT STUDY</p>
+          <h1>界面实验室</h1>
+          <p class="ef-muted">原创组件示例 · 演示数据 · 不连接任何服务</p>
+        </div>
+        <button id="theme" class="ef-button" type="button" aria-pressed="false">切换深色</button>
+      </header>
+      <div class="ef-layout">
+        <nav class="ef-nav" aria-label="示例章节">
+          <a href="#overview" aria-current="page">组件总览 <small>01</small></a>
+          <a href="#states">数据状态 <small>02</small></a>
+          <a href="#controls">操作控件 <small>03</small></a>
+        </nav>
+        <main class="ef-main" id="overview">
+          <section class="ef-grid" aria-label="账号与状态示例">
+            <article class="ef-card">
+              <div class="ef-card__head">
+                <p class="ef-eyebrow">ACCOUNT / DEMONSTRATION</p>
+                <h2 class="ef-card__name">operator@example.invalid</h2>
+                <div class="ef-toolbar">
+                  <span class="ef-badge">示例套餐</span
+                  ><span class="ef-badge ef-badge--current">当前示例</span>
+                </div>
+              </div>
+              <dl class="ef-card__details">
+                <div>
+                  <dt>认证模式</dt>
+                  <dd>离线演示</dd>
+                </div>
+                <div>
+                  <dt>资料来源</dt>
+                  <dd>内存示例</dd>
+                </div>
+                <div>
+                  <dt>订阅状态</dt>
+                  <dd>未接入服务</dd>
+                </div>
+                <div>
+                  <dt>数据说明</dt>
+                  <dd>非真实账号</dd>
+                </div>
+              </dl>
+              <div class="ef-instrument">
+                <figure class="ef-meter">
+                  <svg
+                    viewBox="0 0 100 100"
+                    role="img"
+                    aria-label="5 小时示例额度，剩余 72%"
+                    id="meter-image"
+                  >
+                    <circle class="ef-meter__track" cx="50" cy="50" r="42" />
+                    <circle
+                      id="meter"
+                      class="ef-meter__value"
+                      cx="50"
+                      cy="50"
+                      r="42"
+                      pathLength="100"
+                      stroke-dasharray="100"
+                      stroke-dashoffset="28"
+                    />
+                    <text id="reading" x="50" y="57">72%</text>
+                  </svg>
+                  <figcaption>5 小时 · 剩余</figcaption>
+                </figure>
+                <figure class="ef-meter">
+                  <svg viewBox="0 0 100 100" role="img" aria-label="1 周示例额度，未取得">
+                    <circle class="ef-meter__track" cx="50" cy="50" r="42" stroke-dasharray="3 4" />
+                    <text x="50" y="57">—</text>
+                  </svg>
+                  <figcaption>1 周 · 未取得</figcaption>
+                </figure>
+              </div>
+              <p class="ef-reading-note" id="reading-note">演示快照 · 未执行网络刷新</p>
+              <div class="ef-card__footer">
+                <span class="ef-state ef-state--positive">示例已选择</span
+                ><button id="refresh" class="ef-button" type="button">
+                  <span id="spinner" class="ef-spinner" aria-hidden="true" hidden></span
+                  ><span id="refresh-label">模拟刷新</span>
+                </button>
+              </div>
+            </article>
+            <section class="ef-panel" id="states" aria-labelledby="states-heading">
+              <div class="ef-section-head">
+                <h2 id="states-heading">读数状态</h2>
+                <span class="ef-eyebrow">02 / STATES</span>
+              </div>
+              <p class="ef-muted">切换示例以检查零值、未知、旧快照和失败。数值均为预设演示。</p>
+              <label class="ef-field" style="margin: 18px 0"
+                >示例状态<select id="state">
+                  <option value="ready">充足 · 72%</option>
+                  <option value="low">偏低 · 12%</option>
+                  <option value="empty">已用尽 · 0%</option>
+                  <option value="unknown">未知 · 未取得</option>
+                  <option value="stale">旧快照 · 72%</option>
+                  <option value="error">失败 · 保留旧快照</option>
+                </select></label
+              >
+              <div class="ef-result" id="result" role="status" aria-live="polite">
+                <strong id="result-title">演示数据已就绪</strong>
+                <p id="result-body">当前数值是离线示例。</p>
+              </div>
+              <p class="ef-preview-note">
+                可在系统中开启“减少动态效果”查看静态反馈。页面仅操作自身 DOM。
+              </p>
+            </section>
+          </section>
+          <section class="ef-panel" id="controls" aria-labelledby="controls-heading">
+            <div class="ef-section-head">
+              <h2 id="controls-heading">操作控件</h2>
+              <span class="ef-eyebrow">03 / CONTROLS</span>
+            </div>
+            <div class="ef-toolbar">
+              <button
+                class="ef-button ef-button--primary ef-button--cut"
+                id="primary"
+                type="button"
+              >
+                <span class="ef-button__plate" aria-hidden="true"></span
+                ><span class="ef-button__label">执行示例</span></button
+              ><button class="ef-button" id="secondary" type="button">普通操作</button
+              ><button class="ef-button ef-button--danger" id="danger" type="button">
+                查看失败示例</button
+              ><button class="ef-button" disabled type="button">未接入服务</button>
+            </div>
+            <label class="ef-field" style="margin-top: 18px; max-width: 360px"
+              >示例名称<input id="name" value="工作配置 Alpha" maxlength="60"
+            /></label>
+          </section>
+          <p class="ef-preview-note">
+            这不是游戏官方界面，也不是 Codex Atelier 的运行截图。CSS
+            和示例独立编写，不含官方图像、字体或音效。
+          </p>
+        </main>
+      </div>
+    </div>
+    <script>
+      const el = (id) => document.getElementById(id)
+      const states = {
+        ready: [72, '演示数据已就绪', '当前数值是离线示例。', '演示快照 · 未执行网络刷新'],
+        low: [12, '示例额度偏低', '以文字与量值同时提示，不仅改变颜色。', '离线示例 · 剩余 12%'],
+        empty: [0, '示例额度已用尽', '0% 是明确零值，不能显示成未知。', '离线示例 · 剩余 0%'],
+        unknown: [null, '尚未取得示例读数', '未取得不代表零额度。', '未取得 · 没有可用快照'],
+        stale: [72, '这是旧快照', '历史值不代表当前可用额度。', '旧快照 · 仅供参考'],
+        error: [
+          72,
+          '演示刷新失败',
+          '保留上次示例快照；没有调用真实服务。',
+          '读取失败 · 保留上次快照',
+        ],
+      }
+      function render() {
+        const state = el('state').value
+        const [value, title, body, note] = states[state]
+        el('reading').textContent = value === null ? '—' : value + '%'
+        el('meter').style.strokeDashoffset = value === null ? '100' : String(100 - value)
+        el('meter').style.stroke =
+          state === 'low'
+            ? 'var(--ef-screen-caution)'
+            : ['stale', 'error', 'unknown'].includes(state)
+              ? 'var(--ef-track)'
+              : 'var(--ef-signal)'
+        el('meter-image').setAttribute(
+          'aria-label',
+          '5 小时演示状态：' + title + (value === null ? '' : '，快照剩余 ' + value + '%'),
+        )
+        el('result-title').textContent = title
+        el('result-body').textContent = body
+        el('result').dataset.kind = state
+        el('reading-note').textContent = note
+      }
+      el('theme').addEventListener('click', () => {
+        const dark = document.documentElement.dataset.efTheme !== 'dark'
+        document.documentElement.dataset.efTheme = dark ? 'dark' : 'light'
+        el('theme').setAttribute('aria-pressed', String(dark))
+        el('theme').textContent = dark ? '切换浅色' : '切换深色'
+      })
+      el('state').addEventListener('change', render)
+      el('refresh').addEventListener('click', async () => {
+        el('refresh').disabled = true
+        el('refresh').setAttribute('aria-busy', 'true')
+        el('spinner').hidden = false
+        el('refresh-label').textContent = '模拟处理中'
+        el('reading-note').textContent = '模拟计时中 · 不代表网络请求'
+        await new Promise((resolve) => setTimeout(resolve, 900))
+        render()
+        el('refresh').disabled = false
+        el('refresh').removeAttribute('aria-busy')
+        el('spinner').hidden = true
+        el('refresh-label').textContent = '模拟刷新'
+      })
+      for (const [id, state] of [
+        ['primary', 'ready'],
+        ['secondary', 'unknown'],
+        ['danger', 'error'],
+      ]) {
+        el(id).addEventListener('click', () => {
+          el('state').value = state
+          render()
+        })
+      }
+      document.querySelectorAll('.ef-nav a').forEach((a) =>
+        a.addEventListener('click', () => {
+          document
+            .querySelectorAll('.ef-nav a')
+            .forEach((item) => item.removeAttribute('aria-current'))
+          a.setAttribute('aria-current', 'page')
+        }),
+      )
+    </script>
+  </body>
+</html>

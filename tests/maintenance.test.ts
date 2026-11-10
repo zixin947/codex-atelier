@@ -18,6 +18,8 @@ const api = vi.hoisted(() => ({
   runDiagnostics: vi.fn(),
   previewRepair: vi.fn(),
   applyRepair: vi.fn(),
+  previewDirectoryProbe: vi.fn(),
+  applyDirectoryProbe: vi.fn(),
   utilitySettings: vi.fn(),
   previewImageCompat: vi.fn(),
   applyImageCompat: vi.fn(),
@@ -72,6 +74,11 @@ async function open() {
   await flushPromises()
   return wrapper
 }
+async function openDialog() {
+  await open()
+  await button('运行诊断').trigger('click')
+  await flushPromises()
+}
 beforeEach(() => {
   vi.clearAllMocks()
   api.saveBundle = undefined
@@ -98,6 +105,21 @@ beforeEach(() => {
       items: report().items.map((i) => (i.fixable ? { ...i, status: 'ok', fixable: false } : i)),
     },
   }))
+  api.previewDirectoryProbe.mockResolvedValue({
+    ticket: 'probe-ticket',
+    itemIds: ['codex_home_writable'],
+    title: '目录写入检查预览',
+    changes: ['仅在 /demo/.codex 独占创建临时文件，写入并删除'],
+    warnings: ['不修改配置、凭据或数据库'],
+    requiresDesktopClosed: false,
+  })
+  api.applyDirectoryProbe.mockResolvedValue({
+    fixedIds: [],
+    failedIds: [],
+    details: ['临时文件写入与清理完成'],
+    backupPath: null,
+    report: report(),
+  })
   api.previewImageCompat.mockResolvedValue({
     ticket: 'image-ticket',
     enabled: true,
@@ -126,218 +148,216 @@ afterEach(() => {
   wrapper = undefined
 })
 
-describe('maintenance menu and confirmation', () => {
-  it('loads overview without executing diagnostics or maintenance', async () => {
+describe('maintenance page', () => {
+  it('loads the nine original rows without executing anything', async () => {
     await open()
     expect(api.snapshot).toHaveBeenCalledOnce()
     expect(api.preview).not.toHaveBeenCalled()
     expect(api.apply).not.toHaveBeenCalled()
     expect(api.runDiagnostics).not.toHaveBeenCalled()
-    expect(wrapper!.findAll('.maintenance-action')).toHaveLength(8)
+    expect(wrapper!.findAll('.mnt-row')).toHaveLength(9)
     for (const t of [
-      '开始诊断',
-      '生成诊断包',
-      '填写并发送',
-      '预览清理',
-      '预览重建',
-      '预览结束',
-      '预览重启',
+      '运行诊断',
+      '导出日志',
+      '发送诊断',
+      '开始清理',
+      '开始重建',
+      '强制关闭',
+      '重启',
     ])
       expect(button(t).exists()).toBe(true)
-    expect(wrapper!.get('[aria-label="Claude 联网兼容"]').attributes('disabled')).toBeDefined()
+    expect(wrapper!.get('[aria-label="Claude 联网搜索"]').attributes('disabled')).toBeDefined()
   })
-  it('cancelled preview never executes', async () => {
+
+  it('runs clean as a single click, using the preview ticket internally', async () => {
     await open()
-    await button('预览清理').trigger('click')
+    await button('开始清理').trigger('click')
     await flushPromises()
     expect(api.preview).toHaveBeenCalledWith('clean')
-    expect(wrapper!.text()).toContain('移除 1 条孤立账号记录')
-    await button('取消').trigger('click')
-    expect(api.apply).not.toHaveBeenCalled()
-  })
-  it('executes only the reviewed ticket after explicit confirmation', async () => {
-    await open()
-    await button('预览清理').trigger('click')
-    await flushPromises()
-    expect(button('确认并执行').attributes('disabled')).toBeDefined()
-    await wrapper!.get('dialog input[type="checkbox"]').setValue(true)
-    await button('确认并执行').trigger('click')
-    await flushPromises()
     expect(api.apply).toHaveBeenCalledWith('review-ticket')
     expect(wrapper!.text()).toContain('清理完成')
   })
-  it('failed preview displays cause and never executes', async () => {
+
+  it('never executes when the preview fails and shows the cause', async () => {
     api.preview.mockRejectedValueOnce(Error('目录已变化，请重新预览'))
     await open()
-    await button('预览重建').trigger('click')
+    await button('开始重建').trigger('click')
     await flushPromises()
     expect(api.apply).not.toHaveBeenCalled()
     expect(wrapper!.text()).toContain('目录已变化')
   })
-  it('force kill uses its own preview and cancellation is harmless', async () => {
+
+  it('force kill runs in one click like the original', async () => {
     api.preview.mockResolvedValueOnce({ ...plan, action: 'forceKill', title: '结束预览' })
     await open()
-    await button('预览结束').trigger('click')
+    await button('强制关闭').trigger('click')
     await flushPromises()
     expect(api.preview).toHaveBeenCalledWith('forceKill')
-    expect(wrapper!.text()).toContain('强制结束上述 Desktop 进程')
+    expect(api.apply).toHaveBeenCalledWith('review-ticket')
+  })
+
+  it('restart asks for confirmation before touching the client', async () => {
+    await open()
+    await button('重启').trigger('click')
+    await flushPromises()
+    expect(api.preview).not.toHaveBeenCalled()
     await button('取消').trigger('click')
     expect(api.apply).not.toHaveBeenCalled()
+    await button('重启').trigger('click')
+    await flushPromises()
+    await wrapper!.get('.mnt-confirm .mnt-primary-button').trigger('click')
+    await flushPromises()
+    expect(api.preview).toHaveBeenCalledWith('restart')
+    expect(api.apply).toHaveBeenCalledWith('review-ticket')
   })
-  it('image switch remains unchanged until reviewed apply succeeds', async () => {
+
+  it('swap the image switch in one step and keep the old state on failure', async () => {
     await open()
     const control = wrapper!.get('[aria-label="Image 声明过滤"]')
+    expect(control.attributes('aria-checked')).toBe('false')
     await control.trigger('click')
     await flushPromises()
     expect(api.previewImageCompat).toHaveBeenCalledWith(true)
-    expect(control.attributes('aria-checked')).toBe('false')
-    await wrapper!.get('dialog input[type="checkbox"]').setValue(true)
-    await button('确认并执行').trigger('click')
-    await flushPromises()
     expect(api.applyImageCompat).toHaveBeenCalledWith('image-ticket')
     expect(control.attributes('aria-checked')).toBe('true')
   })
-  it('image apply failure preserves old switch and blocks ticket reuse', async () => {
+
+  it('keeps the image switch off when apply fails', async () => {
     api.applyImageCompat.mockRejectedValueOnce(Error('配置已变化'))
     await open()
     await wrapper!.get('[aria-label="Image 声明过滤"]').trigger('click')
     await flushPromises()
-    await wrapper!.get('dialog input[type="checkbox"]').setValue(true)
-    await button('确认并执行').trigger('click')
-    await flushPromises()
     expect(wrapper!.get('[aria-label="Image 声明过滤"]').attributes('aria-checked')).toBe('false')
     expect(wrapper!.text()).toContain('配置已变化')
-    expect(button('确认并执行').attributes('disabled')).toBeDefined()
   })
-  it('export shows actual included/excluded contents before download', async () => {
-    await open()
-    await button('生成诊断包').trigger('click')
-    await flushPromises()
-    expect(api.exportBundle).toHaveBeenCalledOnce()
-    expect(wrapper!.text()).toContain('demo.zip')
-    expect(wrapper!.text()).toContain('会话正文')
-    expect(button('保存诊断包').exists()).toBe(true)
-  })
-  it('native export reports success only after a saved file is returned', async () => {
+
+  it('exports through the native save dialog and reports the real path', async () => {
     api.saveBundle = vi
       .fn()
       .mockResolvedValueOnce({ saved: false, path: null, summary: '已取消' })
       .mockResolvedValueOnce({ saved: true, path: '/demo/report.zip', summary: '已保存诊断包' })
     await open()
-    await button('生成诊断包').trigger('click')
+    await button('导出日志').trigger('click')
     await flushPromises()
     expect(api.exportBundle).not.toHaveBeenCalled()
     expect(wrapper!.text()).not.toContain('已保存诊断包')
-    await button('生成诊断包').trigger('click')
+    await button('导出日志').trigger('click')
     await flushPromises()
-    expect(wrapper!.text()).toContain('已保存诊断包')
     expect(wrapper!.text()).toContain('/demo/report.zip')
   })
+
   it('sending requires an explicit destination and confirmation', async () => {
     await open()
-    await button('填写并发送').trigger('click')
+    await button('发送诊断').trigger('click')
     await flushPromises()
-    expect(button('演示发送').attributes('disabled')).toBeDefined()
-    await wrapper!
-      .get('#diagnostic-endpoint')
-      .setValue('https://support.example/diagnostics?token=secret')
-    await wrapper!.get('dialog input[type="checkbox"]').setValue(true)
-    expect(button('演示发送').attributes('disabled')).toBeDefined()
-    await wrapper!.get('#diagnostic-endpoint').setValue('https://support.example/diagnostics')
-    await wrapper!.get('#diagnostic-note').setValue('测试说明')
-    await wrapper!.get('form').trigger('submit')
+    expect(button('确认发送').attributes('disabled')).toBeDefined()
+    await wrapper!.get('input[type="url"]').setValue('https://support.example/diagnostics')
+    await wrapper!.get('.mnt-check input').setValue(true)
+    await button('确认发送').trigger('click')
     await flushPromises()
-    expect(api.sendBundle).toHaveBeenCalledWith('https://support.example/diagnostics', '测试说明')
+    expect(api.sendBundle).toHaveBeenCalledWith('https://support.example/diagnostics', '')
     expect(wrapper!.text()).toContain('demo-report')
   })
 })
 
 describe('system diagnostic dialog', () => {
   it('opens and automatically checks all 35 items in four groups', async () => {
-    await open()
-    await button('开始诊断').trigger('click')
-    await flushPromises()
+    await openDialog()
     expect(api.runDiagnostics).toHaveBeenCalledOnce()
-    expect(wrapper!.findAll('.diagnostic-item')).toHaveLength(35)
-    expect(wrapper!.findAll('.diagnostic-group')).toHaveLength(4)
-    expect(button('全部修复（2 项）').exists()).toBe(true)
-    expect(wrapper!.text()).toContain('未确认')
-    await wrapper!.get('.diagnostic-item-label').trigger('click')
-    expect(wrapper!.find('.diagnostic-detail').exists()).toBe(true)
+    expect(wrapper!.findAll('.mnt-item')).toHaveLength(35)
+    expect(wrapper!.findAll('.mnt-group')).toHaveLength(4)
+    expect(wrapper!.text()).toContain('全部修复（2 项）')
+    expect(wrapper!.text()).toContain('配置')
+    expect(wrapper!.text()).toContain('运行时与线程')
+    expect(wrapper!.text()).toContain('环境与磁盘')
   })
-  it('serializes actions during detection and supports closing the loading dialog', async () => {
-    let resolve: (r: DiagnosticReport) => void = () => {}
-    api.runDiagnostics.mockReturnValueOnce(new Promise<DiagnosticReport>((r) => (resolve = r)))
-    await open()
-    await button('开始诊断').trigger('click')
-    await flushPromises()
-    expect(button('预览清理').attributes('disabled')).toBeDefined()
-    await wrapper!.get('dialog [aria-label="关闭弹窗"]').trigger('click')
-    await flushPromises()
-    resolve(report())
-    await flushPromises()
-    expect(wrapper!.find('dialog').exists()).toBe(false)
-    expect(wrapper!.find('.maintenance-latest-scan').exists()).toBe(false)
+
+  it('expands a row to show its detail', async () => {
+    await openDialog()
+    await wrapper!.get('.mnt-item-label').trigger('click')
+    expect(wrapper!.find('.mnt-item-detail').exists()).toBe(true)
   })
-  it('requests the selected issue ID instead of all', async () => {
-    await open()
-    await button('开始诊断').trigger('click')
+
+  it('fixes a single item in one click', async () => {
+    await openDialog()
+    await wrapper!.get('.mnt-fix').trigger('click')
     await flushPromises()
-    await wrapper!.get('[aria-label="修复 顶层 profile 冲突"]').trigger('click')
+    expect(api.previewRepair).toHaveBeenCalled()
+    expect(api.applyRepair).toHaveBeenCalledWith('repair-ticket')
+    expect(wrapper!.text()).toContain('已备份并修复 2 项')
+  })
+
+  it('routes the writable-directory item through the probe ticket', async () => {
+    api.runDiagnostics.mockImplementation(async () => ({
+      ...report(),
+      items: report().items.map((i) =>
+        i.id === 'codex_home_writable'
+          ? { ...i, status: 'error' as const, fixable: true }
+          : { ...i, fixable: false },
+      ),
+    }))
+    await openDialog()
+    await wrapper!.get('.mnt-fix').trigger('click')
     await flushPromises()
-    expect(api.previewRepair).toHaveBeenCalledWith('config_profile_conflict')
+    expect(api.previewDirectoryProbe).toHaveBeenCalledOnce()
+    expect(api.applyDirectoryProbe).toHaveBeenCalledWith('probe-ticket')
     expect(api.applyRepair).not.toHaveBeenCalled()
   })
-  it('moves keyboard focus into preview, back to its source, then to the repair result', async () => {
-    await open()
-    await button('开始诊断').trigger('click')
-    await flushPromises()
-    const sourceSelector = '[data-repair-id="config_profile_conflict"]'
-    const source = wrapper!.get(sourceSelector)
-    ;(source.element as HTMLButtonElement).focus()
-    expect(document.activeElement).toBe(source.element)
-    await source.trigger('click')
-    await flushPromises()
-    expect(document.activeElement).toBe(wrapper!.get('.diagnostic-intro h2').element)
-    await button('返回检查结果').trigger('click')
-    await flushPromises()
-    expect(document.activeElement).toBe(wrapper!.get(sourceSelector).element)
-    await wrapper!.get(sourceSelector).trigger('click')
-    await flushPromises()
-    await wrapper!.get('dialog input[type="checkbox"]').setValue(true)
-    ;(button('确认修复').element as HTMLButtonElement).focus()
-    await button('确认修复').trigger('click')
-    await flushPromises()
-    expect(document.activeElement).toBe(wrapper!.get('.diagnostic-fix-log h3').element)
-    expect(wrapper!.get('.diagnostic-fix-log').text()).toContain('已备份并修复 2 项')
-  })
-  it('bulk repair previews first, then uses returned fresh report and logs', async () => {
-    await open()
-    await button('开始诊断').trigger('click')
-    await flushPromises()
+
+  it('fixes everything with one click and refreshes the rows', async () => {
+    await openDialog()
     await button('全部修复').trigger('click')
     await flushPromises()
     expect(api.previewRepair).toHaveBeenCalledWith('all')
-    expect(wrapper!.text()).toContain('需要 Desktop 已退出')
-    await wrapper!.get('dialog input[type="checkbox"]').setValue(true)
-    await button('确认修复').trigger('click')
-    await flushPromises()
     expect(api.applyRepair).toHaveBeenCalledWith('repair-ticket')
     expect(wrapper!.text()).toContain('已备份并修复 2 项')
-    expect(wrapper!.findAll('.diagnostic-fix-one')).toHaveLength(0)
-    expect(wrapper!.text()).toContain('/demo/repair-backup')
+    expect(wrapper!.findAll('.mnt-item')).toHaveLength(35)
   })
-  it('keeps stale report visible with error after recheck failure', async () => {
-    await open()
-    await button('开始诊断').trigger('click')
-    await flushPromises()
+
+  it('shows the all-clear line instead of the list when nothing is wrong', async () => {
+    api.runDiagnostics.mockImplementation(async () => ({
+      ...report(),
+      hasIssues: false,
+      items: report().items.map((i) => ({ ...i, status: 'ok' as const, fixable: false })),
+    }))
+    await openDialog()
+    expect(wrapper!.text()).toContain('恭喜您，目前诊断一切正常。')
+    expect(wrapper!.findAll('.mnt-item')).toHaveLength(0)
+    expect(wrapper!.findAll('button').some((b) => b.text().includes('全部修复'))).toBe(false)
+  })
+
+  it('wraps labels during a route transition and blocks fixing', async () => {
+    api.runDiagnostics.mockImplementation(async () => ({
+      ...report(),
+      transitionInFlight: true,
+    }))
+    await openDialog()
+    expect(wrapper!.text()).toContain('原始检测：')
+    expect(wrapper!.findAll('.mnt-fix')).toHaveLength(0)
+    expect(wrapper!.findAll('button').some((b) => b.text().includes('全部修复'))).toBe(false)
+  })
+
+  it('keeps the stale report visible when a recheck fails', async () => {
+    await openDialog()
     api.runDiagnostics.mockRejectedValueOnce(Error('线程库正忙，请重试'))
     await button('重新检测').trigger('click')
     await flushPromises()
     expect(wrapper!.text()).toContain('线程库正忙')
-    expect(wrapper!.findAll('.diagnostic-item')).toHaveLength(35)
+    expect(wrapper!.findAll('.mnt-item')).toHaveLength(35)
   })
-  it('does not let old loading result overwrite a reopened dialog', async () => {
+
+  it('shows the loading state until the first scan resolves', async () => {
+    let resolve: (r: DiagnosticReport) => void = () => {}
+    api.runDiagnostics.mockReturnValueOnce(new Promise<DiagnosticReport>((r) => (resolve = r)))
+    await openDialog()
+    expect(wrapper!.text()).toContain('正在检测…')
+    expect(wrapper!.findAll('.mnt-item')).toHaveLength(0)
+    resolve(report())
+    await flushPromises()
+    expect(wrapper!.findAll('.mnt-item')).toHaveLength(35)
+  })
+
+  it('does not let a stale scan overwrite a reopened dialog', async () => {
     let resolve: (r: DiagnosticReport) => void = () => {}
     api.runDiagnostics.mockReturnValueOnce(new Promise<DiagnosticReport>((r) => (resolve = r)))
     wrapper = mount(DiagnosticDialog, { attachTo: document.body })
@@ -347,7 +367,7 @@ describe('system diagnostic dialog', () => {
     await flushPromises()
     resolve({ ...report(), items: [] })
     await flushPromises()
-    expect(wrapper.findAll('.diagnostic-item')).toHaveLength(35)
+    expect(wrapper.findAll('.mnt-item')).toHaveLength(35)
   })
 })
 

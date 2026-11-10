@@ -1,0 +1,1061 @@
+006a2c3f	RJz嗡Z@
+006a377f	Rzw嗡:@
+006a3793	Ruw嗡F@
+006a37a7	Rpw嗡~A
+006a37c7	Rhw嗡R@
+006a37db	Rcw嗡^@
+006a37ef	R^w嗡j@
+006a3803	RYw嗡v@
+006a3b7f	Rzv嗡:@
+006a3b93	Ruv嗡F@
+006a3ba7	Rpv嗡~A
+006a3bbf	Rjv嗡R@
+006a3bd3	Rev嗡^@
+006a3be7	R`v嗡j@
+006a3bfb	R[v嗡v@
+006a4f7b	R{q嗡*B
+006a4f8f	Rvq嗡6B
+006a4fa3	Rqq嗡BB
+006a4fd7	Rdq嗡^@
+006a4feb	R_q嗡R@
+006a68d3	R%k嗡v@
+006abf83	RyU嗡2A
+006b00df	R"E嗁^@
+00b2d5af	N焰N愦N&
+00b33e43	R鴦rH?@
+00f0a786	@9裐Rh=
+010477cb	Rg羗s2@
+010478a3	R1羗`2@
+01302ac6	codexmate_lib::core::relay::proxy_serverxiaomi-mimoXiaomi MiMo 官方暂未提供可用 API Key 直查额度接口unsupported额度查询额外 Headers 无效未保存 API KeynewapiNewAPI Token Usagesub2apiSub2API /v1/usage
+01302bc2	total_grantedNewAPI token usage missing total_availablehttps://api.novita.ai/openapi/v1/billing/balance/detailUSDnovita-officialNovita AI 官方余额Novita balance response missing availableBalancehttps://api.stepfun.com/v1/accountsbalanceCNYStepFun 官方余额StepFun account response missing balance/v1/usageremainingquotausageSub2API usage missing remaining/user/balancebalance_infostotal_balancedeepseek-officialDeepSeek 官方余额DeepSeek balance response missing total_balanceDeepSeek balance response is emptyDeepSeek balance response missing balance_infoshttps://openrouter.ai/api/v1/creditstotal_creditstotal_usageopenrouter-officialOpenRouter 官方 CreditsOpenRouter credits response missing total_creditsapi.siliconflow.comapi.siliconflow.cntotalBalancesiliconflow-officialSiliconFlow 官方余额SiliconFlow user info response missing dataSiliconFlow user info response missing balancehttps://api.moonshot.ai/v1/users/me/balancehttps://api.moonshot.cn/v1/users/me/balanceavailable_balancekimi-officialKimi 官方余额Kimi balance response missing dataKimi balance response missing available_balancehttps://api.kimi.com/coding/v1/usageslimitsdetaillimit / Kimi Coding Plan 用量Kimi coding usage response missing quota tiersapi.minimax.iobase_respstatus_codestatus_msgUnknown errormodel_remainscurrent_interval_remaining_percent
+01303152	minimax-coding-planMiniMax Token Plan 用量MiniMax coding plan response missing remaining percentMiniMax coding plan response missing general quotamodel_name
+013031f7	relay state poisonedCodex router transition lock is poisoned__draft__RUNTIME_REFRESH_FAILED_AFTER_IMPORTAccounts were importedimportdebug_bundleexport_startedtarget=selectedexport_faileddebug_reportupload_startedupload_failedaccount-aliasOAUTH_CANCELLED: 用户已取消授权
+0130330e	OpenAI 未完成授权
+01303339	授权回调无效
+01303360	addedupdatedalreadyActiveRUNTIME_REFRESH_FAILED_AFTER_OAUTH_IMPORTOAuth account import committedOAUTH_CANCELLED: 已取消授权登录
+013033e9	等待浏览器完成授权超时
+01303419	已有一个授权登录正在进行
+01303440	请先完成或取消后再试
+01303461	Reset card detail task failedReset card history task failed智能路由正在切换
+013034b7	请等待完成后再退出router closed via exit dialog; quittingexit_guardcodexmate_lib::commands::skillsRUNTIME_REFRESH_FAILED_AFTER_AUTO_SWITCH_UPDATEAuto-switch configuration committedRUNTIME_REFRESH_FAILED_AFTER_REMOVEAccounts were removedaccountRUNTIME_REFRESH_FAILED_AFTER_LOGOUTcleaning orphan rolloutscleaning missing-rollout rowscleaning catalog ghost threadscleaning stale global-state tmp files
+01304f75	<body><div class="card"><div class="t">授权未完成</div>
+01304fb2	<div class="s">请返回 AiMaMi 查看结果并重新尝试
+013051f2	<body><div class="card"><div class="t">登录已完成</div>
+0130522f	<div class="s">可以关闭此页面
+01305256	返回 AiMaMi 继续操作
+01306417	xiaomimimo.comlongcat.chatminimax.iominimaxi.cominputtool_choicerelay state path has no parent directory[AiMaMi] saved relay key is missingcodexmate_lib::core::relay::storagerelay credential reference conflicts with state schema or presence flagrouterCommitIdcodexRouterEnabledcodexRouterNoAccountModeROUTER_COMMIT_STATE_CONFLICT: 无法核对磁盘路由回执与当前模式
+01306592	已停止继续写入
+013065aa	请检查状态文件并重启 AiMaMirelay state schema cannot represent this router commit receipt旧 Provider ID 已安全迁移
+0130662f	原 API Key 无法自动定位
+01306790	RELAY_KEY_MIGRATION_REQUIRED: 旧版密钥未能安全迁出
+013067cf	原 state.json 已保留
+013067ea	中转写入已停止
+01306802	请检查密钥存储后重启
+013096e5	Unsupported Chat message content shaperemoval requires a parent directoryfile identity changed or is not a single regular fileno free port available for relay proxy/:ide/v1/chat/completions/:ide/v1/responses/:ide/v1/messages/:ide/v1/models/codex/router/v1/models/codex/v1/responses/compact/codex/router/v1/responses/codex/router/v1/responses/compact/codex/router/v1/images/generations/codex/router/v1/images/edits/codex/router/v1/healthrouter_transitioncodexmate_lib::core::relay::router_transitioncommit_sync_unconfirmedstable | commit_failedstartfailedCODEX_TRANSITION_REENTRY_TIMEOUT: Codex 在路由切换期间反复启动
+0130995b	请完全退出 ChatGPT 后重试retry_exhaustedstopping_codexstop_completereconcilingpostcondition_failedsettle_failedreconcile_retrystop_failedreconciling_threadstogglecodex-reentryreconcile
+0130b520	/account/plan/id$recursiveAnchordependentSchemasunevaluatedItemssupported_in_apiavailability_nuxinput_modalitiesauth.json 为空API 密钥完整state-db-backupscc-switch 指纹/codex/router/v1thread_reconcilerestoring_configtakeover_restorerestore-rollbackBackup corruptedUntitled Sessioncodex-session.md
+0130c0c9	CODEX_ENGINE_NOT_FOUNDChatGPT 内嵌引擎或其依赖不存在
+0130c10b	请等待更新完成并启动一次 ChatGPT 后重试CODEX_ENGINE_ACCESS_DENIED系统拒绝访问 ChatGPT 内嵌引擎
+0130c185	这不代表版本过旧
+0130c1a0	请检查安全软件或安装权限
+0130c1c7	启动一次 ChatGPT 后重试CODEX_ENGINE_PROBE_FAILED无法执行 ChatGPT 内嵌引擎的版本检查
+0130c231	这不代表版本过旧
+0130c655	Maximum reasoning depth for the hardest problems--versionCODEX_ENGINE_VERSION_UNKNOWN: 无法识别 ChatGPT 内嵌引擎版本
+0130c6d6	暂不允许开启智能路由
+0130c6f7	请确认 ChatGPT 安装完整后重试
+0130c721	未判定为旧版
+0130c736	不会使用独立 CLI 或旧模型表代替
+0130c871	0.144.0旧版无账号模型映射无效
+0130c89c	已保留原记录
+0130c8b1	未重新分配模型
+0130c8c9	0.155.0-alpha.9.2valid minimum versionCODEX_ENGINE_VERSION_UNSUPPORTED: 已确认 ChatGPT 内嵌引擎版本过旧
+0130c93e	智能路由需要 0.155.0-alpha.9.2 或更新版本
+0130c975	请更新 ChatGPT 后重试
+0130c993	不会退回旧官方模型表或占位 Key 认证
+0130c9fc	include_skills_usage_instructionsconfig_stale已清理残留注入并重写配置
+0130cba1	Codex 配置一致性正常warningerror路由已关闭但 config.toml 仍有生效的 AiMaMi 路由配置路由已启用但 config.toml 不符合 RouterOn 契约Codex 配置一致性
+0130cc9c	auth_integrity无可用备份
+0130ccbc	请在 AiMaMi 账号管理中重新登录 ChatGPT 以恢复 auth.json路由模式不恢复或覆盖 OpenAI 认证
+0130cd30	请在 ChatGPT 中管理登录
+0130cd51	jsonthread-router-migrationsrelay-state-cache.jsonresidual_cache已删除 relay-state-cacheFollow the user's instructions carefully. Respond helpfully and use tools when appropriate.proxy_running本地代理
+0130ce23	智能路由未启用
+0130ce4a	本地代理未运行请重启 AiMaMi 让代理自动拉起
+0130ce89	fixedIdsfailedIdsdetailsDiagnosticItemstatuslabelfixableDiagnosticReporthasIssuestransitionInFlightauth.json 不存在未发现文件型认证
+0130cf1a	ChatGPT 可能使用系统凭证存储
+0130cf43	请在原生客户端确认登录状态
+0130cf6d	文件内容被清空
+0130cf85	Codex 无法正常鉴权auth_modeaimami_router_unlock_authlast_refreshauth.json access_token 为空OAuth 凭证缺失
+0130cffd	智能路由透传官方模型将返回 401
+0130d02b	可能被第三方工具清空auth.json 正常
+0130d05c	API Key 模式
+0130d06d	auth.json access_token 格式异常token 不像是有效的 JWT
+0130d0af	可能已损坏或被篡改auth.json 凭证正常auth.json access_token 为占位符auth.json 为 AiMaMi 虚拟账号
+0130d139	auth.json JSON 格式损坏auth.json 无法读取无残留 relay-state-cacherelay-state-cache 正常relay-state-cache 引用了已删除的 provider清理后下次路由开关会重新缓存relay-state-cache 文件无法读取entries[AiMaMi][preflight] fixing config.toml syntax before takeovercodexmate_lib::core::relay::codex_diagnosticconfig.toml..bakcatalog_integrity已重新生成 Catalog已清理残留 router / 旧版中转注入 blockcurrent.jsonresidual_manifestmanifest 不存在
+0130d326	无需清理history已将残留 manifest 归档到 historyconfig_third_party已清理第三方注入并重写配置config_toml_syntax.fix-db-orphan.# Rebuilt by AiMaMi diagnostics 
+0130d400	# 由 AiMaMi 系统诊断抢救重建 
+0130d428	 原 config.toml 存在无法解析的语法错误
+0130d45b	# 原文件已备份到 ~/.codex/codexmate/relay/config-backups/
+0130d4b2	auth_token_expiryToken 过期检测
+0130d4d8	无 auth.json
+0130d4f7	access_token 为空无法检测过期状态
+0130d525	需要重新登录/tokens/refresh_token无法解析 access_token 过期时间token 格式异常
+0130d587	无法提取 exp claim无 refresh_token
+0130d5b1	过期后需重新登录有 refresh_token
+0130d5dd	账号管理页刷新或切换账号即可自动续期access_token 已过期且无 refresh_token需要重新登录 ChatGPTaccess_token 已过期Token 过期检测
+0130d682	API Key 模式
+0130d69f	Token 过期检测
+0130d6b4	JSON 损坏
+0130d6cb	Token 过期检测
+0130d6f8	Catalog 完整性
+0130d727	Catalog 文件缺失路由已启用但 catalog 不存在
+0130d762	Codex 菜单无法显示中转模型Catalog 文件为空需要重新生成Catalog 完整
+0130d7bd	Catalog 与卡片模型及历史兼容映射不一致Catalog 缺少 models 数组Catalog 文件 JSON 格式损坏Catalog 文件无法读取sessionscodexmaterelay.aimami_probeprobe读写只读codex_home_writable文件系统正常
+0130d8a4	空间检测不可用
+0130d8bc	无残留迁移 manifest路由已关闭但迁移 manifest 未归档可能上次关闭中断
+0130d91a	清理后不影响功能迁移 manifest 存在
+0130d966	router_recovery_record路由恢复记录可正常读取路由恢复记录需要单独处理sqlitestate_db_relocation活库不在 sqlite/ 子目录
+0130d9fb	无需清理无旧库残留Codex 未明确配置 sqlite_home
+0130da3a	无法证明根目录数据库是孤儿库
+0130da67	已保留全部数据库
+0130da82	db_orphan_providersrollout_orphan_providersconfig-backups无第三方注入残留检测到第三方域名重定向残留检测到第三方工具残留配置无法读取 config.toml文件不存在或无读取权限TOML 语法正常
+0130db77	TOML 语法正常config.toml TOML 语法错误TOML 语法
+0130dbce	router_http_contract已重新写入 aimai1 HTTP-only 路由契约ps-ax-oetime=,comm=
+0130dc26	codex_process_stateCodex 未运行当前未检测到 Codex 进程
+0130dc6a	如需使用智能路由
+0130dc85	请先启动 Codex已运行超过 7 天
+0130dcaf	建议重启 Codex
+0130dcd3	数据库不存在
+0130dcf1	未发现失效的 AiMaMi 线程 provider仅核对 AiMaMi 管理的引用
+0130dd4c	企业或自定义 provider 保持原样
+0130dd77	不由本地定义缺失推断无效
+0130dd9e	无法完整读取线程数据库线程数据库位置正常E当前活库已确认在 sqlite/ 子目录
+0130de08	根目录残留旧库
+0130de36	残留旧库不会影响当前线程
+0130de5d	但排查时易被误读成过期数据
+0130de87	修复将停止 Codex
+0130de9f	备份后删除旧库
+0130deb7	备份在 relay/state-db-backups/
+0130dedf	检测到双布局线程数据库Codex 未通过 sqlite_home 明确当前数据库目录
+0130df3a	AiMaMi 将保留两处数据库
+0130df5c	避免在锁竞争或版本切换期间误删仍在使用的线程库
+0130dfa4	catalog_path_validity已重新同步 config.toml 中的 catalog 路径router_postconditionconfig_profile_conflicttakeover_backup_orphanrouter_unlock_auth_residuethread_missing_rolloutsthread_provider_consistencythread_model_catalog_consistencythread_poisoned_instructionsthread_response_item_idslegacy_migrated_threadsconfig_global_validityproject_state_integrity开启关闭native_off_invalid_openai_thread_models
+0130e143	智能路由正在
+0130e159	(线程收敛进行中,线程越多/磁盘越慢耗时越长)
+0130e199	该项是过渡态,收敛完成后会自动消失
+0130e1d0	请勿在切换过程中点击修复或反复开关
+0130e215	config_accessconfig.toml 可正常读取config.toml 尚不存在
+0130e261	config.toml 无法读取路由不探测或刷新 OpenAI Token
+0130e2a1	登录交给 ChatGPTRouter HTTP 契约
+0130e2ec	缺少 aimai1 HTTP-only provider路由已启用
+0130e31e	但 config.toml 中没有 [model_providers.aimai1]aimai1 HTTP-only 路由契约正常Router HTTP 契约
+0130e388	TOML 损坏
+0130e396	等待语法修复
+0130e3ab	Router HTTP 契约
+0130e3c0	config 不可读
+0130e3dc	路由提交仍待确认恢复标记已保留
+0130e40c	请重试当前路由开关或修复目标态
+0130e43c	重新验证并提交后才可自动启动 ChatGPT
+0130e471	RouterOn 目标态稳定NativeOff 目标态稳定目标态非配置维度稳定
+0130e4c3	配置偏差由 config_stale 报告
+0130e4e9	可用空间不足 1 GB
+0130e503	普通读写仍可能成功
+0130e521	但批量线程迁移会在写入前单独校验所需临时空间可用空间不足 100 MB
+0130e57f	请尽快清理磁盘可用空间不足 10 MB
+0130e5af	ChatGPT 和 AiMaMi 可能无法安全写入数据已还原 takeover 备份并删除残留备份文件路由启用中 takeover 备份属于正常接管态
+0130e678	///?Catalog 路径
+0130e6a8	真实账号仍被静态目录覆盖请通过正常路由重收敛迁移至原生目录
+0130e702	官方目录使用原生发现
+0130e723	无静态目录覆盖codex-switchmodel_catalog_json 指向非 AiMaMi 路径model_catalog_json 指向第三方工具残留路径model_catalog_json 指向的文件不存在Catalog 路径有效config.toml 缺少 model_catalog_json 引用路由已启用但配置中没有 catalog 路径
+0130e840	Codex 菜单无法显示中转模型Catalog 路径
+0130e875	config 不可读
+0130e891	已移除冲突的顶层 profile 并重写配置无第三方残留 + 顶层域名重定向清除 managed block 后 TOML 语法恢复正常已抢救重建 config.toml
+0130e939	保留可解析的 Codex 配置段
+0130e95e	丢弃损坏内容
+0130e973	原文件已备份
+0130e988	config.toml 损坏严重
+0130e9a3	已重建为干净底板
+0130e9be	原文件已备份
+0130e9d3	数据库不存在
+0130e9e8	无需修复路由开启中不会执行旧版线程归一化
+0130ea27	请先关闭路由
+0130ea3c	避免误改当前 aimai1 迁移线程
+0130ea65	Codex 项目索引正常
+0130ea80	无需修复线程 rollout 文件完整
+0130eaaa	无需修复此项仅检查可在本地确认的引用
+0130eaee	profile 及模型支持的推理档位由 ChatGPT 原生加载器判断
+0130eb38	不根据本地白名单删除
+0130eb59	本地配置引用检查通过全局配置
+0130eba1	无 takeover 备份残留路由已关闭但 takeover 备份仍存在第三方/用户路由配置仍处于 AiMaMi 隔离备份中
+0130ec24	应还原后删除备份文件
+0130ec45	takeover 备份存在
+0130ec78	没有需要修复的旧版调用项 IDresponse-item-id-history-repair-backupcodex_switch登录由 ChatGPT 原生管理
+0130ecf2	不以 auth.json 判断登录状态无账号模式不使用 OpenAI 认证无 legacy 顶层 profileCodex 0.134+ 已不再支持 config.toml 顶层 profile
+0130ed8e	智能路由应改用 model_provider + model_catalog_json 的桌面端路由契约
+0130ede3	顶层 profile 配置
+0130ee16	旧版线程迁移
+0130ee2b	数据库不存在
+0130ef27	无旧版线程迁移残留旧版 AiMaMi 或第三方工具将这些线程的 provider 改为了内部路由标识
+0130ef9c	导致线程在 Codex 中丢失或无法对话
+0130efcd	修复后将恢复为官方 provider
+0130eff4	路由开启中不会把 aimai1 视为残留
+0130f023	若仍检出旧 provider
+0130f03e	请先关闭路由再执行修复
+0130f062	Codex 项目索引正常Codex 项目索引异常项目索引需要修复Codex 项目索引无法体检线程库 | Codex 项目索引无法读取无示例线程 rollout 文件完整SELECT COUNT(*) FROM threads WHERE COALESCE(archived, 0) = 0
+0130f158	circuit_breakerprovider_routerfirstconfig_replace_readinessconfig.toml 为只读Windows 只读属性会导致路由开启/关闭写入 config.toml 时被拒绝访问
+0130f200	请先解除只读属性后重试
+0130f224	config.toml 权限未显示只读config.toml 不是普通文件无法检查 config.toml 可替换性thread_history_integrity线程历史结构存在异常线程历史结构自洽线程调用项 ID 健康
+0130f2f2	数据库不存在
+0130f310	无法完整检查线程调用项 ID已恢复或保留用户认证
+0130f355	并清理 AiMaMi 受管 auth/marker 残留RouterOn 无账号模式的受管认证只能通过完整目标态重收敛
+0130f3cd	未直接清理 auth.jsonno entry found for key
+0130f408	 的数据库与记录存在外部或未确认的 provider 归属
+0130f44c	未修改任何线程
+0130f464	请先在原生客户端确认该任务的配置来源
+0130f49b	尚未取得可验证的 ChatGPT 原生模型目录
+0130f4d1	未修改任何线程
+0130f4e9	请先关闭智能路由
+0130f504	确认原生模型列表可用后重新执行修复session_meta anchors are missingrollout has no database owner
+0130f59e	BEGIN DEFERREDBEGIN IMMEDIATEBEGIN EXCLUSIVEPRAGMA table_info(threads)无无效全局配置键需要清理config.toml 不存在
+0130f620	无需修复model_reasoning_effortmodel_reasoning_effort 不能为空model_catalog_json 指向不存在的外部路径UPDATE threads SET model_provider = ?1 WHERE id = ?2 AND COALESCE(archived, 0) = 0 AND model_provider IS ?3UPDATE threads SET model_provider = ?1, reasoning_effort = ?2 WHERE id = ?3 AND COALESCE(archived, 0) = 0 AND model_provider IS ?4 AND reasoning_effort IS ?5UPDATE threads SET model_provider = ?1, model = ?2 WHERE id = ?3 AND COALESCE(archived, 0) = 0 AND model_provider IS ?4 AND model IS ?5UPDATE threads SET model_provider = ?1, model = ?2, reasoning_effort = ?3 WHERE id = ?4 AND COALESCE(archived, 0) = 0 AND model_provider IS ?5 AND model IS ?6 AND reasoning_effort IS ?7state.sqlite尚未观测到目录请求
+0130f908	不能据此确认官方目录可用
+0130f92f	等待 ChatGPT 原生目录请求官方目录刷新失败
+0130f96b	未返回替代列表最近一次官方目录获取成功official_catalog_freshness官方目录
+0130f9cd	当前模式无需获取
+0130f9e8	无虚拟账号残留路由已关闭但虚拟账号恢复文件仍残留当前 auth.json 未被虚拟账号占用
+0130fa5c	但 marker/backup 未完成清理
+0130fa80	可安全执行修复以收敛 NativeOff 状态
+0130fab2	路由已关闭但虚拟账号 auth 仍残留Codex 可能误以为当前是可用账号
+0130fb0c	但官方模型透传会失败
+0130fb2d	应恢复真实 auth 或删除虚拟 auth
+0130fb59	真实账号模式无受管认证残留真实账号模式仍有 AiMaMi 受管认证残留真实账号模式应使用当前 ChatGPT OAuth 登录
+0130fbeb	可安全恢复或保留用户最新登录
+0130fc18	并清理 AiMaMi marker/backup
+0130fc39	原生无账号模式正常
+0130fc57	未接管用户认证无账号模式仍有旧版受管认证残留原生无账号模式不需要占位 Key
+0130fcc4	请执行路由目标态修复
+0130fce5	安全恢复旧认证
+0130fcfd	不能直接删除 auth.json
+0130fd1c	已备份配置并移除冲突的顶层 profile无冲突的顶层 profile 需要清理guardian-prompt-fix-backup未找到完整模板
+0130fda4	已写入最小安全提示
+0130fdd4	已从正常线程恢复完整系统提示线程系统提示健康
+0130fe19	数据库不存在
+0130fe3a	审批提示词污染会让线程只返回裁决 JSON
+0130fe72	系统提示缺失或为空会让官方续聊返回 Instructions are required
+0130fec2	修复会先备份
+0130fed7	再从正常线程恢复系统提示
+0130fefe	找不到完整模板时使用最小安全提示
+0130ff3d	无法完整读取线程索引UPDATE threads SET model_provider = ?1 WHERE id = ?2 AND COALESCE(archived, 0) = 0 AND model_provider = ?3UPDATE threads SET model_provider = ?1, reasoning_effort = ?2 WHERE id = ?3 AND COALESCE(archived, 0) = 0 AND model_provider = ?4 AND reasoning_effort IS ?5UPDATE threads SET model_provider = ?1, model = ?2 WHERE id = ?3 AND COALESCE(archived, 0) = 0 AND model_provider = ?4 AND model IS ?5UPDATE threads SET model_provider = ?1, model = ?2, reasoning_effort = ?3 WHERE id = ?4 AND COALESCE(archived, 0) = 0 AND model_provider = ?5 AND model IS ?6 AND reasoning_effort IS ?7路由未启用
+013101b1	无需修复线程 model-catalog 一致性线程 model 已全部在当前 Catalog 中
+01310209	无需修复completedAtMsfailurethread-provider-adoptions
+01310249	createdAtMspermanentAdoptionfallbackModeldatabaseBackupsthreads线程模型与 Catalog 一致性
+013102c7	线程模型与 Catalog 一致性检查失败线程模型均可由 Catalog 或官方直通识别payloadsession_meta payload not found没有需要接管的孤儿主线程rolled_backcompletedrelay_diagnostic_thread_adoption未使用Rollout 健康
+013103be	数据库不存在
+013103dc	此项只核对 AiMaMi 管理的 provider 引用
+0131040f	不代表所有文件内容或外部配置均有效
+01310448	这些主线程在 Codex 中打开时可能报错
+0131047c	修复会同步恢复 DB 与 Rollout 中的 AiMaMi 残留
+013104b8	混合外部归属时停止
+013104d6	未确认的第三方任务不接管
+01310508	无法完整读取 Rollout 索引线程 provider 已收敛
+01310545	仍有其它历史问题
+01310572	活跃主线程必须收敛到路由启用中
+013105a2	活跃主线程必须收敛到否则 Codex 会隐藏线程
+013105df	这些文件缺少可解析的 session_meta
+0131060d	AiMaMi 已保持原文件和数据库记录不变
+01310641	它们不会再阻塞其他线程或智能路由开关
+0131067a	仅可从可信备份恢复
+01310698	不能安全自动补造
+013106be	线程已收敛到官方 provider线程已收敛到路由 providerNativeOff 官方线程模型正常
+01310725	关闭路由只撤除中转注入
+01310749	不改过去的对话和模型设置
+01310770	需要继续这些对话时
+0131078e	请在 ChatGPT 中选择模型
+013107ba	无法完整读取 NativeOff 官方线程模型NativeOff 官方线程模型检查
+01310829	所有项目正常
+0131083e	无需修复diagnostic fix-all requires a verified ChatGPT quiet windowprepare_config将重新写入 aimai1 HTTP-only 路由契约将随 config 一起重新生成 Catalogallresync_config无法启用 Codex 智能路由
+0131092e	标签下添加并激活至少一个中转 Provider
+01310964	点击该 Provider 旁的
+01310995	无法启用 Codex 智能路由
+013109b7	请先在已启用的中转卡片中选择模型
+013109ea	prepare_before_stopcatalog_ready=truerelay proxy started without an available root URLrouter_transitionphase_timingcatalog_preflightstarting_proxyproxy_startedproxy_root_present=truepreparing_authauth_preflight已修复 config.toml 语法层问题config_takeoverwriting_configconfig_synctarget_applied=truemodel_restorethread_read_reuseauth_detached_verify已启用普通模式
+01310b66	登录与凭证刷新由 ChatGPT 原生管理已启用 Codex 原生免登录接入
+01310bbb	仅开放中转模型
+01310bd3	未接管用户认证model_catalog_reconcile
+01310c0a	 条线程的 Claude 私有 reasoning 未能清理
+01310c3f	路由核心状态已完成
+01310c5d	相关线程可在系统诊断中继续修复
+01310c8c	no-account catalog mode mismatchno-account provider refused: no-account catalog does not match the selected relay models and legacy aliases未获取到 ChatGPT 静默窗口
+01310d3b	保持原路由稳定态
+01310d56	未执行关闭写入ChatGPT 未进入已验证的静默状态
+01310d97	本次未改变路由
+01310db8	认证或接管状态NativeOff strict reconciliation requires a verified Codex quiet windowcodexmate_lib::core::relay::router_reconcilerconfig 同步失败后已降级清理 AiMaMi managed block已清理路由 config已清理路由 catalog路由 catalog 暂被其他进程占用
+01310ed1	配置已解除引用
+01310ee9	后续开启路由时会覆盖更新router_enabled=false已恢复原认证并清理旧版 AiMaMi 虚拟账号残留auth_cleanupno_account_model_restorereconciling_threadsCodex project index requires repair.codex-global-state.jsonglobal-state root is not an objectproject-state-backups%Y%m%d-%H%M%SProjectStateInspectionexistsparseOkparseErrorreadErrorrootCountprojectOrderCountactiveRootCountprojectlessThreadCounthintCountactiveDbPathactiveThreadCountdbProjectRootCountdbThreadHintCountdbCwdBackfillCandidatesdbReadErrorsneedsRepairrepairReason\\?\cwd.codex-global-state.json 无法解析Codex 项目入口为空
+01311151	但线程库存在项目 cwdCodex 线程到项目的映射为空线程库缺失项目 cwd
+013111ad	但 rollout 可回填真实项目路径rollout_pathCOALESCE(archived, 0) = 01 = 1sourceCOALESCE(source, '')''"subagent"updated_at_msCOALESCE(updated_at_ms, 0)updated_atCOALESCE(updated_at, 0)0codexmate_lib::core::relay::codex_project_stateprojectless-thread-idsPRAGMA wal_checkpoint(FULL);UPDATE threads SET cwd = ?1 WHERE id = ?2 AND COALESCE(cwd, '') = ''electron-saved-workspace-roots线程库中没有可用于重建项目入口的真实项目 cwd
+01311373	未写入 global-stateproject-orderactive-workspace-rootsthread-workspace-root-hintsreasoning_contentreasoningcontentsummaryreasoning_detailspartsskill-backupsreplaceInvalid skill after importInvalid skill sourceremoveExternal Skills are read-onlymetadata.jsonskillInvalid skill backup id
+01311632	skills_native_partial部分 ChatGPT Skills 来源未能读取
+01311672	当前列表可能不完整
+01311690	not_foundinvalid_dataread_failedskillsnative_inventory_unavailableskills_native_unavailableChatGPT 原生 Skills 列表暂不可用
+01311716	当前仅显示 AiMaMi 管理的技能
+01311758	codexmate_lib::core::sessions::detail该线程缺少 rollout 文件
+0131179e	无法查看内容未找到对应线程线程未记录 rollout 文件路径 /payload/history_base未选择要导出的线程不支持的导出格式
+01311835	仅 markdown / json
+0131184d	线程 ID 不能为空该线程缺少 rollout 文件
+01311884	无法导出 Markdown/payload/timestampmd
+013118dc	AssistantUserjsonl该线程缺少 rollout 文件
+0131190f	无法导出session_delete_catalog_sync_failedsession_delete_client_refresh对话数据已删除
+01311972	但检测到 ChatGPT 正在运行
+01311996	已跳过桌面目录同步
+013119b4	请完全退出 ChatGPT 后
+013119d2	在线程管理的索引健康检查中清理目录残留
+01311a0e	仅重启客户端不保证清除残留
+01316a7a	deny-checkdeny-downloaddeny-download-and-installdeny-installplugin:app|bundle_typehotspotplugin:app|identifierplugin:app|nameplugin:app|register_listenerplugin:app|remove_listenerplugin:app|tauri_versionplugin:app|versionplugin:deep-link|get_currentplugin:dialog|askplugin:dialog|confirmplugin:dialog|messageplugin:dialog|openplugin:dialog|saveplugin:event|emitplugin:event|emit_toplugin:event|listenplugin:event|unlistenplugin:image|from_bytesplugin:image|from_pathplugin:image|rgbaplugin:image|sizeplugin:menu|appendplugin:menu|create_defaultplugin:menu|getplugin:menu|insertplugin:menu|is_checkedplugin:menu|is_enabledplugin:menu|itemsplugin:menu|newplugin:menu|popupplugin:menu|prependplugin:menu|removeplugin:menu|remove_atplugin:menu|set_acceleratorplugin:menu|set_as_app_menuplugin:menu|set_as_help_menu_for_nsappplugin:menu|set_as_window_menuplugin:menu|set_as_windows_menu_for_nsappplugin:menu|set_checkedplugin:menu|set_enabledplugin:menu|set_iconplugin:menu|set_textplugin:path|basenameplugin:path|dirnameplugin:path|extnameplugin:path|is_absoluteplugin:path|normalizeplugin:path|resolveplugin:path|resolve_directoryplugin:process|exitplugin:process|restartplugin:resources|closeplugin:shell|openplugin:tray|get_by_idplugin:tray|newplugin:tray|remove_by_idplugin:tray|set_iconplugin:tray|set_icon_as_templateplugin:tray|set_menuplugin:tray|set_show_menu_on_left_clickplugin:tray|set_temp_dir_pathplugin:tray|set_titleplugin:tray|set_tooltipplugin:tray|set_visibleplugin:updater|checkplugin:updater|downloadplugin:updater|download_and_installplugin:updater|installplugin:webview|get_all_webviewsplugin:webview|internal_toggle_devtoolsplugin:webview|webview_positionplugin:webview|webview_sizeplugin:window|available_monitorsplugin:window|current_monitorplugin:window|cursor_positionplugin:window|get_all_windowsplugin:window|inner_positionplugin:window|inner_sizeplugin:window|internal_toggle_maximizeplugin:window|is_always_on_topplugin:window|is_closableplugin:window|is_decoratedplugin:window|is_enabledplugin:window|is_focusedplugin:window|is_fullscreenplugin:window|is_maximizableplugin:window|is_maximizedplugin:window|is_minimizableplugin:window|is_minimizedplugin:window|is_resizableplugin:window|is_visibleplugin:window|monitor_from_pointplugin:window|outer_positionplugin:window|outer_sizeplugin:window|primary_monitorplugin:window|scale_factorplugin:window|start_draggingplugin:window|themeplugin:window|titlerefreshed account snapshot has no API request contextall_usageactive_usage[AiMaMi][accounts] enrich worker panickedcodexmate_lib::core::repositoryfull_enrichschemaVersionBootstrapStatePayloadwrittenAtsnapshotProgressiveusageAnalyticsmcpServersinstalledSkillsChatGPT 原生模型读取超时
+0131751d	未修改任务AppServerModelmodelhiddenisDefaultdefaultReasoningEffortsupportedReasoningEffortsAppServerReasoningEffortreasoningEffortincludeLayersconfig/readconfigincludeHidden
+013175d2	model/listdatanextCursor读取原生模型期间配置发生变化
+01317623	未修改任务ChatGPT 原生模型列表分页不完整
+0131765e	未修改任务ChatGPT 原生模型列表存在无效或重复条目
+013176a5	未修改任务ChatGPT 原生模型列表格式异常
+013176dd	未修改任务ChatGPT Skills 读取超时project/listforceReloadskills/listChatGPT Skills 返回了不匹配的项目来源ChatGPT Skills 返回了无效路径RootpathEntrycwdskillserrorsProjectrootsChatGPT Skills 列表格式异常ChatGPT Skills 工作目录不可读取ChatGPT Skills 项目路径不可读取ChatGPT 项目列表格式异常AppServerSkilldescriptionscopeenabledpluginId[AiMaMi][sessions] worktree probe worker panickedcodexmate_lib::core::sessions::worktreesource_or_index_ioindex_decodeindex_statecodexmate_lib::core::analytics::indexindex_update_failed[AiMaMi][analytics] index worker panickedOAUTH_CANCELLED: 授权登录已取消
+0131796c	saving ChatGPT OAuth credentialsaccount_oauthdisk_committedOAUTH_CLIENT_UPDATE_DEFERREDOAUTH_COMMIT_NOT_STARTED: active account could not be saved | CLIENT_RESTART_DEFERRED: 客户端写入进程尚未稳定SWITCH_LIVE_VERIFY_FAILEDdisk_verifiedstatus=okwriter_reentrydisk_reconciledlaunch_startedstatus=pendinglaunch_failedstatus=failedCLIENT_RESTART_FAILEDcommitted_launch_failedlaunch_readylive_verify_failedcode=SWITCH_LIVE_VERIFY_FAILEDlive_verifiedsuccess客户端在校验期间反复重新启动CLIENT_RESTART_DEFERREDcommitted_restart_deferredremoving an MCP serverupdating an MCP serverchanging an MCP servercodexmate_lib::commands::system[AiMaMi][accounts] scheduled usage refresh panicked
+01317c2d	更新额度失败
+01317c42	刷新任务出现未捕获异常runtime-notifyauto-switch-pending未检测到活动账号智能路由
+01317cab	未启用智能路由
+01317ccf	 暂无中转模型智能路由
+01317cfd	 路由 1 个中转模型请先登录 CodexGo5x Pro20x ProEnterpriseEduUnknowntray_open_maintray_active_titletray_active_subtitletray_bootstrap_titletray_bootstrap_subtitletray_codex_router_statustray_quittray_account:切换账号
+01317de6	切换并重启 Codex
+01317e01	tray_bootstrap_header当前账号正在准备托盘菜单
+01317e3d	打开 AiMaMi退出tray_codex_router_headerCodextray_active_headertray_accounts_header切换账号 | 
+01317ea3	codexmate_lib::platform::processnon-string panic payload账号已经切换新凭据已保存OAUTH_LIVE_VERIFY_FAILED: 客户端启动后登录身份不一致OAUTH_ACTIVE_ACCOUNT_CHANGED: 当前登录身份在提交期间发生变化OAUTH_RECONCILE_NOT_STARTEDurl::form_urlencoded::Serializer double finishurl::form_urlencoded::Serializer finished
+01319172	levelsourcemessagestackwindowLabelhrefcodexmate_lib::commands::account_aliascodex-router-toggle-progressrestarting the ChatGPT desktop appPROGRESSIVE_STATE_SAVE_FAILEDaccount_refreshasync_mutation_refreshlogging out the active Codex accountdeleting Codex tasksSESSION_DELETE_REQUIRES_CODEX_EXIT: 请先完全退出 ChatGPT 后再删除线程forking a Codex worktree thread into its main repositoryWORKTREE_MIGRATION_REQUIRES_CODEX_EXIT: 请先完全退出 ChatGPT 后再创建主仓库副本SESSION_CLEAN_REQUIRES_CODEX_EXIT: 请先完全退出 ChatGPT 后再执行清理enableduserConfiguredcodexmate_lib::commands::autostart[AiMaMi][autostart] enabled by default on first router enabledev.aimami.desktopaimami-single-instance.lockAiMaMi is already runningResizeDirectionEastNorthNorthEastNorthWestSouthSouthEastSouthWestWestProgressBarStatusnonenormalindeterminatepausederrortypeinternally tagged enum UserAttentionTypeUserAttentionTypeCriticalInformationalrgbastatusidcheckedacceleratoritemsversionshortVersionauthorscopyrightlicensewebsitewebsiteLabelcreditstooltiptempDirPathiconAsTemplatemenuOnLeftClickshowMenuOnLeftClickredgreenbluealphavariant index 0 <= i < 5data did not match any variant of untagged enum ShellAllowedArgdata did not match any variant of untagged enum ShellAllowedArgsopen
+01321aac	魅k}UO>
+0132bc14	+;]J%捂
+01336e42	mOscg鳤
+0133d485	}鵔-28]`
+013499d5	^.-"兗<
+0134c8be	(WW枟mL
+01350287	铽a(Ntsw
+013532f8	}巯9g V
+013575bf	暔|O*wG
+01359390	庅(9<]S<~<
+0135bb5a	}*T曪`N
+01363d87	5v&霬qW
+01366704	萼:JuJQ%%
+01368c03	堽iMoSOm
+0137055d	1隘]5-]i
+0137df17	UE_R!悬QF
+0137fa8a	ke嗋l,5r
+013835d9	z0硜RLn
+0138398b	;'Nv顕eR[
+01383af2	_OtC畂#Zp
+0138422c	pP-v<9営
+0138457a	BFN.Y匪S
+0139db69	codexmate_lib::core::codex_configCODEX_CONFIG_REWRITE_INVALID: 候选配置不是有效 TOML
+0139dbc8	未写入候选配置或删除恢复备份manual
+013a2122	中转模型请使用 ChatGPT 原生上下文压缩
+013a2158	请更新 ChatGPT 并重新打开任务
+013a2182	AiMaMi 不再生成兼容性伪摘要
+013a2359	native compaction requiredno relay provider configured for codexall codex relay providers failed; please check provider config / networkopenaigpt-image-2OpenAI 官方anthropic-betax-aimami-routerelay-responses-nativecodex native responses stream failedbuild error passthrough body failed
+013a247b	responses_websockets=upstream_json_decode_failedstoreprevious_response_idx-openai-internal-codex-responses-liteCodex 智能路由已关闭
+013a2508	但收到了官方图片请求
+013a2529	请重启 Codex 桌面应用以加载原生配置
+013a255d	router.disabled当前使用无账号登录模式
+013a2590	无法使用需要真实 ChatGPT 登录凭证的官方图片生成或编辑功能
+013a25e4	passthrough.no_chatgpt_authrouter.state_poisonedhttps://chatgpt.com/backend-api/codex/responseshttps://chatgpt.com/backend-api/codex/responses/compactinline-tools-2026-09-15Invalid Anthropic beta headersysteminput_textrouter-compactacceptaccept-languagepragmauser-agentCodex 智能路由已关闭
+013a270f	但收到了路由请求
+013a272a	这通常意味着 Codex 仍在使用旧的配置文件
+013a2764	请重启 Codex 桌面应用
+013a2783	当前使用无账号登录模式
+013a27a7	无法调用需要真实 ChatGPT 登录凭证的官方模型
+013a27e6	请改用中转模型
+013a27fe	或关闭无账号登录模式并登录真实账号
+013a2834	relay model is inactive or unavailablerouter.relay_provider_removedrouter.legacy_model_unavailable此任务对应的中转卡片已停用
+013a28c0	移除或不再提供该模型
+013a28e1	请启用对应卡片
+013a28f9	或在 ChatGPT 中重新选择模型
+013a2da4	hex digest is a valid header valueCatalogFailuremissingAuthnetworkinvalidCatalogOfficialCatalogStatusavailablecheckedAtmodelCountdroppedEntriesfailurehttps://chatgpt.com/backend-api/codex/modelsJSON values serializecodexmate_lib::core::relay::proxy_passthroughopenai-passthroughhttps://chatgpt.com/backend-api/codex/images/generationshttps://chatgpt.com/backend-api/codex/images/editsrouter-images-generationsrouter-images-editsCodex 未提供有效的 ChatGPT 登录凭证
+013a2f80	无法使用官方图片生成或编辑功能
+013a2fb0	请关闭无账号登录模式并完成 ChatGPT 登录后重试
+013a2ff2	Codex 未提供有效的 ChatGPT 登录凭证
+013a3022	请在 Codex 桌面应用里完成 ChatGPT 登录后再选择官方模型对话
+013a3074	如果仅使用中转模型
+013a3092	可继续选择列表里带
+013a3437	; 已清除中转路由核心配置
+013a345d	但仍有待诊断恢复项
+013a347b	为避免在不完整状态下写入线程
+013a34a8	ChatGPT 未自动重新启动
+013a34ca	result=error stage=rollbackresult=ok stage=already_at_targetsame_target_reconcilesame-target router repairresult=error stage=preflightallrepairing Codex diagnosticsrouter_postconditiondiagnostic repair已自动重新打开 ChatGPT 使修复生效
+013a35d4	NativeOff compensationRouterOn rollback already verifiedRouterOn rollbackswitching router account moderouter auth-mode toggleRouterOn requires a live local proxy handleRouterOn cannot inspect the local proxy because its state lock is poisoned中转卡片清单与当前配置不一致
+013a36f3	需要重新收敛智能路由仍包含旧版受管认证残留缺失智能路由状态为开启
+013a3756	但本地代理未运行原生目录的卡片版本与当前配置不一致model_providersaimai1http_headers
+013a37c5	中转状态文件无法安全读取
+013a37ec	原文件已保留且所有中转写入已停止
+013a381f	请修复 state.json 后重启 AiMaMi
+013a3849	aimami-relay-rtrelay tokio runtime init failed; proxy disabledrunning router bootstrap recoverybootstrap self-healdeleting a relay providerupserting a relay providerreordering relay providersactivating a relay provider[AiMaMi][router-bootstrap] commit confirmation deferred while ChatGPT is running[AiMaMi][router-bootstrap] skipped: Codex router transition lock is poisonedrouter_togglesteplabelcurrenttotalItems当前 Codex 智能路由已开启
+013a3a0b	禁止操作中转模型
+013a3a26	如需操作请关闭 Codex 智能路由
+013a8560	no entry found for keyMCP 编辑会改变路由受管块标记
+013a85a1	未修改配置change MCP server statetransport
+013a9b44	ChatGPT app-server 标准输入已关闭app-server--stdioCODEX_HOMEfailed to spawn threadclientInfonameaimami
+013a9bb5	capabilitiesexperimentalApiinitializeuserAgentinitializedChatGPT app-server 未提供标准输出ChatGPT app-server 未提供标准输入/线程 ID 不能为空ChatGPT app-server 线程分页超过安全上限
+013a9c88	recency_atsortDirectionuseStateDbOnlysourceKindsclivscodeappServersubAgentReviewsubAgentCompactsubAgentThreadSpawnsubAgentOtherunknownparentThreadIdChatGPT app-server 返回了重复的线程分页游标ChatGPT app-server 返回了空线程 IDChatGPT app-server 返回的子线程归属与请求不一致ChatGPT app-server 线程列表读取超过 30 秒安全上限
+013a9df8	目标工作目录不能为空cwdexcludeTurnsthread/forkChatGPT app-server 未返回有效的新线程 IDThreadListPagedatanextCursorAppServerThreadpathpreviewsourceagentNicknameagentRoleprojectIdhistoryModegitInfoupdatedAtrecencyAtturnsThreadItemEntryitemThreadItemsPageAppServerGitInfobranchThreadReadResponsethreadthread/listthread/items/listChatGPT app-server 返回了重复的线程内容分页游标ChatGPT app-server 线程内容分页超过安全上限ChatGPT app-server 线程内容读取超过 30 秒安全上限includeTurnsthread/read
+013aa021	assistantcontentuserstartedAtitemsthread/deletethread/deletedSESSION_DELETE_IN_USE: 该线程或其子任务仍被 ChatGPT / Codex 占用
+013aa0ad	请在客户端使用原生删除
+013aa0d1	或等待任务停止且客户端释放该线程后重试
+013aa10d	AiMaMi 不会强制终止任务或退出客户端
+013aa141	SESSION_DELETE_REFERENCED: 其他线程仍引用这段历史
+013aa180	官方接口已阻止删除
+013aa19e	请先处理引用它的派生线程
+013aa1c5	再重新确认删除
+013aa1dd	SESSION_DELETE_NOT_FOUND: 官方存储中已找不到该线程
+013aa242	使用索引健康检查
+013aa25d	SESSION_DELETE_NOT_PERSISTED: 这是尚未持久化的临时线程
+013aa2a2	请在 ChatGPT 中处理
+013aa2bd	SESSION_DELETE_INVALID_ID: 线程 ID 无效
+013aa2fd	请刷新列表后重新选择
+013aa31e	SESSION_DELETE_UNSUPPORTED: 当前 ChatGPT 内置服务版本尚未通过删除兼容校验
+013aa37c	请更新 ChatGPT
+013aa390	或使用客户端原生删除
+013aa3b1	SESSION_DELETE_UNCERTAIN: 未能确认完整删除结果
+013aa3ec	部分数据可能已经删除
+013aa40d	已停止后续请求
+013aa425	且不会自动重试
+013aa43d	请先刷新并核对线程和索引健康状态
+013aa470	SESSION_DELETE_INCOMPLETE: 官方已返回删除成功
+013aa4a9	但未收到完整的级联删除通知
+013aa4d3	已确认的删除仍然有效
+013aa4f4	后续请求已停止
+013aa51e	不要直接重复删除
+013aa539	SESSION_DELETE_NOT_ATTEMPTED: 前一项结果需要核对
+013aa575	本项尚未发送删除请求
+013aa596	请刷新后重新选择
+013aa785	 中转模型功能
+013aa799	# 修改请通过 AiMaMi 应用页面
+013aa7c1	不要手动编辑
+013aa7d4	x-aimami-catalog-revision# Codex 桌面 GUI 智能路由已启用
+013aa818	菜单可同时选择官方 + 中转模型
+013aa843	# Codex 桌面 GUI 智能路由已启用
+013aa86e	无账号模式仅显示中转模型
+013aa893	# <<< aimami-relay managed endaimai1profile# >>> aimami-relay codex-router top start (DO NOT EDIT MANUALLY)# Codex 智能路由
+013aa915	使用 HTTP-only 自定义 provider
+013aa93b	避开内建 openai WebSocket 路径
+013aa960	# 官方模型由 ChatGPT 原生发现和刷新
+013aa992	本地 /models 追加启用的中转卡片
+013aa9bd	# 无账号模式
+013aa9d1	使用原生免登录 provider
+013aa9f2	不修改用户认证
+013aaa0a	菜单只包含中转模型
+013aaa26	# 在 AiMaMi 里关闭智能路由开关后
+013aaa54	本段会被自动移除
+013aaa7f	模型请求继续走智能路由
+013aaaa3	Realtime 连接直达官方服务
+013aabbe	wire_api 必须为 responsesrequires_openai_authrequires_openai_auth 必须为布尔值supports_websocketssupports_websockets 必须为 false缺少 [model_providers.aimai1]name = "AiMaMi 智能路由"
+013aaed7	targetphaseoccurredAtMsreasonTransitionTargetrouterOnnativeOffTransitionJournalstartedAtMsupdatedAtMsRecentTransitionFailurecompensationFailedROUTER_COMMIT_RECOVERY_REQUIRED: 路由提交尚未确认
+013aafa1	恢复记录已保留
+013aafb9	ChatGPT 不会自动启动
+013aafd6	请重试当前路由开关或执行路由目标态修复disk fullenospcinsufficient spacewrite capacity空间不足磁盘已满database is lockeddb holderheld by数据库被锁数据库锁数据库占用force closeforce-closequiet windowreentryfailed to stopstill running无法关闭进程进程仍在运行反复启动rollout线程backup接管备份model catalogcatalog模型目录模型列表projectworkspace root项目工作区configmanaged block配置logintoken认证登录令牌persistrelay state持久化路由状态proxyport代理端口completedalready stablestate_persistconfig_syncproject_stateconfig_takeoverprocess_controldb_lockdiagnosticbootstrapauth-modemodel slotsrouter togglerepairreconcileothertogglemodel_slotsauth_moderelay state sync unconfirmedcodexmate_lib::core::relay::transition_journal无法核对模型修复的配置/认证上下文
+013ab337	未修改任务openaihttp_headers当前模型来源不是可验证的原生目录
+013ab39d	请先关闭智能路由及其他自定义模型目录
+013ab3d6	确认 ChatGPT 原生模型列表可用后再修复ChatGPT 暂无可用原生模型目录
+013ab444	请先关闭智能路由
+013ab45f	确认原生模型列表可用后再修复原生目录准备后配置或登录发生变化
+013ab4bc	请重新执行修复
+013ab4d4	未修改任务无账号模式只有中转卡片目录
+013ab51f	请先关闭智能路由
+013ab53a	确认 ChatGPT 原生模型列表可用后再修复AiMaMi 1.2.7已保存的中转密钥缺失
+013ab59a	未写入导出文件
+013ab5b6	exportedAtexportedByincludeApiKeysprovidersfilePathproviderCountimportedCountskippedRelayExportProvideridebaseUrlapiKeywireApibrandmodelsextraHeadersnetworkcodexmate_lib::core::relay::ioKEYCHAIN_WRITEINVALID_FIELDDUPLICATE_IDaimami-relay.aimami-relay.json.json.aimami-relayunsupported未检测到 NewAPI / Sub2API / 官方余额接口
+013ab74b	minimax-coding-planMiniMax Token Plan 用量kimi-coding-planKimi Coding Plan 用量kimi-officialKimi 官方余额novita-officialNovita AI 官方余额openrouter-officialOpenRouter 官方 Creditssiliconflow-officialSiliconFlow 官方余额stepfun-officialStepFun 官方余额deepseek-officialDeepSeek 官方余额
+013ab884	error sending requestno access to modeldoes not have accessinvalid_api_keyinvalid api keyincorrect api keymodel_not_foundmodel not founddoes not existinsufficient_quotabillingbalancequotacontext_lengthtoo many tokensmaximum contextconnection refuseddnsresolvetimeoutcertificatetlssslimage_urlstreamdisconnectclosed403401404429rate_limitrate limit500502503unreachable网络不可达
+013aba04	可能是本机网络异常或需要配置代理才能访问上游可能是上游服务过载/维护中
+013aba6e	也可能是本地网络无法到达上游
+013aba9b	建议检查网络后重试上游网关异常
+013abacb	可能是服务暂时不可用或正在重启上游服务器内部错误
+013abb16	通常不是本地配置问题
+013abb37	建议稍后重试触发了上游速率限制
+013abb67	通常会自动恢复
+013abb7f	无需操作接口地址可能不存在
+013abba9	建议检查 Base URL 是否正确
+013abbce	通常以 /v1 结尾
+013abbe5	大概率是 API Key 无效或已过期
+013abc0f	建议检查密钥是否正确填写permissionnot allowedipregioncountry访问被上游拒绝
+013abc81	IP 限制或接口未开放
+013abc9f	建议核实上游文档可能是 IP 地区受限
+013abcd3	部分上游对访问来源有地域限制可能是 API Key 权限不足
+013abd1e	部分接口未对当前 Key 开放流式传输中断
+013abd56	可能是网络波动导致
+013abd74	通常下次请求会自动恢复当前模型不支持图片输入
+013abdb9	已自动降级为纯文本模式连接被中途重置
+013abdf2	可能是网络波动或被中间防火墙/代理中断证书验证失败
+013abe3e	可能是 Base URL 的协议
+013abe76	或上游证书已过期请求超时
+013abe9d	可能是网络不稳定或上游响应过慢
+013abecd	建议检查网络状况域名解析失败
+013abefa	可能是 Base URL 拼写有误
+013abf1c	也可能是本地 DNS 或网络异常连接被拒绝
+013abf54	可能是 Base URL 的域名或端口填写有误
+013abf88	也可能是上游服务未启动输入内容可能超过模型上下文长度限制
+013abfdf	建议缩短对话或清理历史上游账户余额可能不足
+013ac021	建议到上游平台确认充值状态模型可能不存在或名称有误
+013ac06f	建议检查上游支持的模型列表API Key 格式可能不正确
+013ac0b6	建议确认密钥是否完整粘贴
+013ac0dd	无多余空格大概率是中转上游不支持图片生成工具调用
+013ac128	请到维护工具关闭图片工具声明大概率是模型 ID 配置有误
+013ac177	上游不支持该模型名称
+013ac198	请检查中转的模型配置网络请求发送失败
+013ac1d1	大概率是 API 端点
+013ac205	请检查地址拼写deepseekkimiminimax
+013ad226	user chose to quit while keeping router enabledexit_guardkeep_router_exit智能路由正在切换
+013ad28a	请等待完成后再退出officialCatalogrouter_enabledproxy_runningproxy_portactiveCodexProviderscodex_provider_countcatalog_pathcatalog_existsconfig_toml_has_routerconfig_toml_has_cataloguser_top_level_profileconfig_stale_reasonstatecodexLaunchErrorusedNoAccountMode未启用智能路由
+013ad3af	Codex 桌面应用走原生官方通道
+013ad3d9	已启用但本地代理未运行
+013ad3fd	请重启 AiMaMi 让代理拉起
+013ad420	已启用但 catalog 缺失
+013ad43e	可能写入失败
+013ad453	请检查 ~/.codex/codexmate/relay 目录权限
+013ad485	已启用但 ~/.codex/config.toml 未写入 model_catalog_json
+013ad4c6	Codex GUI 无法读取中转模型完整能力
+013ad4f7	请关闭后重新启用智能路由
+013ad51e	已启用但 ~/.codex/config.toml 未写入 model_provider router
+013ad562	Codex 新版不会进入 AiMaMi router
+013ad58b	请关闭后重新启用智能路由
+013ad5b2	已启用但当前没有任何已启用的中转 Provider
+013ad5ee	Codex 菜单只会看到官方模型
+013ad615	请在 AiMaMi 中启用至少一个中转
+013adae3	/.local/bin//.nvm//.local/share/pnpm/-axpid=,command=/visual studio code.app//cursor.app//windsurf.app//Cursor.app//.codex/computer-use//Codex Computer Use.app//AiMaMi.app/CODEX_ENGINE_NOT_FOUND: 未找到当前 ChatGPT 桌面端的内嵌 Codex 引擎
+013adbe1	请先启动一次 ChatGPT 后重试
+013adc08	不会使用独立 CLI 或 IDE 插件代替
+013adc39	CODEX_EXTERNAL_WRITER_RUNNING: 检测到不属于 ChatGPT 桌面端的 Codex 写入进程
+013adc95	为避免与路由迁移并发写入
+013adcbc	请先手动退出后重试
+013adcdf	CODEX_DB_HELD_BY_PROTECTED_PROCESS: Codex 线程数据库仍被受保护进程占用
+013add36	请先关闭相关 IDE/Codex 窗口后重试
+013add6a	CODEX_QUIT_BLOCKED: ChatGPT 未释放 Codex 写入进程
+013adda5	可能存在进行中的任务或未处理的退出确认
+013adde1	请先完成任务并在 ChatGPT 中确认退出后重试
+013af550	REGISTRY_MISSINGauth_sync_failedc_agent_nicknamecommondir 为空rollback_startedmutation_refreshstruct ApiConfigCompressionErrorvalue is missing
+013afa4f	SWITCH_AUTH_VERIFY_FAILED: auth.json identity does not match the requested accountSWITCH_REGISTRY_VERIFY_FAILED: active account does not match the requested account[AiMaMi][accounts] repairing non-switchable active snapshot during registry recovery[AiMaMi][accounts] resolved duplicate account snapshots using credential generation and registry continuityAUTO_SWITCH_DAEMON_REPAIR_FAILEDACCOUNT_REMOVAL_RECOVERY_DEFERREDCURRENT_AUTH_SYNC_FAILEDLEGACY_QUOTA_MIGRATION_FAILED1mNo AiMaMi registry exists yetAccount snapshot identity does not match its registry entry当前智能路由处于无账号模式
+013afcac	请先关闭无账号模式或关闭智能路由
+013afcdf	再切换真实账号
+013affcc	Live account changed while synchronizing credentialsaccount-removal-quarantinePrivate account cleanup is incomplete and will retry later.[AiMaMi][accounts] account removal recovery found an ambiguous snapshot file name[AiMaMi][accounts] account removal recovery target is not a regular file[AiMaMi][accounts] account removal recovery found conflicting snapshot bytes[AiMaMi][accounts] account removal recovery skipped a non-file entryPrivate account cleanup could not be checked and will retry later.Live account changed while handing off credentialsdev.aimami.auto-switchQUOTA_CACHE_CLEANUP_INCOMPLETEAUTH_BACKUP_CLEANUP_INCOMPLETEauthenticationREGISTRY_BACKUP_CLEANUP_INCOMPLETE当前智能路由处于无账号模式
+013b029e	请先关闭无账号模式或关闭智能路由
+013b02d1	再退出真实账号
+013b0c1f	supported_in_apiprioritylatest-codex-runtime.jsonCODEX_LATEST_DESKTOP_REQUIRED: 当前版本 AiMaMi 仅支持最新版 ChatGPT 桌面端
+013b0caa	请先更新并至少启动一次 ChatGPTCODEX_RUNTIME_DB_NOT_INITIALIZED: 未找到最新版 ChatGPT 状态库
+013b0d1c	请先启动一次 ChatGPT
+013b0d39	CODEX_RUNTIME_DB_AMBIGUOUS: 未发现与当前 AiMaMi 兼容的 ChatGPT 线程数据库
+013b0d93	通常是 ChatGPT 桌面端版本过旧
+013b0dbd	请更新到最新版并启动一次完成迁移
+013b0e00	CODEX_RUNTIME_DB_AMBIGUOUS: 检测到多个有效状态库
+013b0e3d	无法确定当前活跃的那个
+013b0e61	请启动 ChatGPT 后重试
+013b0ff7	threadsthreads 表缺少 id 列threads 行解析失败threads 查询执行失败threads 查询失败threads 表读取失败数据库打开失败c_titlec_updated_atc_cwdc_rollout_pathc_archivedc_agent_rolec_namec_previewc_tokens_usedc_modelc_reasoning_effortc_memory_modec_history_modec_project_idc_git_branch
+013b135c	CAST(COALESCE(created_at_ms, 0) AS REAL) / 1000.0CAST(COALESCE(updated_at, 0) AS REAL)CAST(COALESCE(updated_at_ms, 0) AS REAL) / 1000.0CAST(COALESCE(recency_at_ms, 0) AS REAL) / 1000.0CAST(COALESCE(recency_at_ms, updated_at_ms, 0) AS REAL) / 1000.0Codex/subAgent/thread_spawn/depth/subAgent/thread_spawn/parent_thread_idhistory always has a roothistory_baseordinal历史记录序号非递增
+013b14e6	无法确认完整历史历史字节边界与序号边界不一致被引用记录缺少序号
+013b1546	无法验证历史边界历史字节边界未落在完整记录末尾历史记录未达到引用边界
+013b15af	未完成导出记录含不完整或损坏的 JSON
+013b15e4	未完成导出/payload/id/payload/history_base当前记录起点与历史引用边界不一致记录缺少 session_meta
+013b165f	无法确认完整历史记录头缺失或损坏
+013b1692	无法确认完整历史thread_idend_ordinal_exclusiveend_byte_offset历史引用的字节边界无效历史引用缺少有效的序号边界同一 rollout 标识对应多个文件
+013b1749	拒绝选择不确定的历史rollout 文件名无有效标识
+013b178a	拒绝推断历史关系线程记录目录无效
+013b17bc	记录所属线程与所选线程不一致
+013b17fb	被引用历史文件不完整
+013b181c	字节边界超出文件历史引用早于记录起点
+013b1855	边界不一致被引用的历史文件缺失
+013b1885	无法完整导出历史引用存在循环或超过安全层数
+013b18c7	无法完整导出记录的线程标识无效
+013b18f7	无法确认完整历史导出期间记录发生变化
+013b1930	请在对话暂停后重试记录行超过安全读取上限
+013b196f	未完成导出-Cstatus--porcelaingit statusgit status 返回失败主仓库目录不存在
+013b19cd	不能创建线程副本临时 worktree 有未保存改动
+013b1a0a	请先处理或备份后再创建副本gitcommondir..git 指针文件缺少 gitdir
+013b1a63	stdoutstderrworktrees.git 不是 worktree 指针文件无法从 common git dir 推导主仓库目录线程 ID 不能为空未找到对应线程该线程不是 Codex 临时 worktree 线程
+013b1b21	无需创建主仓库副本该线程当前不能安全创建主仓库副本external_auth_syncedAccount repository lock is poisonedinvalid_jsoninvalid_authsync_failedcodexmate_lib::commands::account_observeraimami-account-observerACCOUNT_SWITCH_FAILEDstartedaccount_switch
+013b1c34	RUNTIME_REFRESH_FAILED_AFTER_SWITCHAccount switch committedcompletedauth.json still exists after rollbackRegistry active account does not match the rollback targetRestored auth.json does not match the selected credential generationruntime_refresh_warningruntime_refresh_failedPROGRESSIVE_STATE_SAVE_FAILEDusage_refreshreason=transaction_failurerollback_completedstatus=verifiedrollback_failedrollback_restart_deferredreason=writer_reentry_or_uncertainSWITCH_ROLLBACK_RESTART_DEFERRED: 回滚校验后检测到客户端写入进程重入或状态不确定
+013b1e61	未自动启动 ChatGPT
+013b1e7b	请重新确认当前账号后再打开客户端failedusagecodexmate_lib::commands::accountsfull_refresh
+013b3712	hasOpenAiApiKeyisRouterUnlockAuthrouterUnlockActiverouterUnlockMarkerExiststokenshasIdTokenhasAccessTokenhasRefreshTokenhasAccountIderrornativeNoAccountModerouterUsesOpenAiAuthbackupExistsforeignTopLevelKeysforeignSectionsreadErrortopLevelModelProvidermodel_providertopLevelModelmodelhasModelCatalogJsonmodel_catalog_jsonrouterEntryproviderSectionprofileSectionpaththread provider convergence scanaimai1openairouterTargetnativeTargetcodex_router_catalog.jsonmodels_cache.jsonpathExistsbytesrouterCatalogmodelsCacheofficialCatalogcatalogModestatic-relay-onlyfieldComparisoncodexRunningdbHolderstimeouttimed outnetworkdnsconnectsending request401403unauthorized404429quota500502503unknownrate_limit路由开启态官方原生态无未完成 transition未检测到 state_*.sqlite 占用进程 | 
+013b3a30	%# AiMaMi 调试诊断包
+013b3a59	- 不变量异常
+013b3a70	- 系统诊断异常项
+013b3a8d	- transition 阶段
+013b3aa6	- transition 原因
+013b3abf	- 最近 24 小时切换失败
+013b3ae3	- 进程占用
+013b3af8	## 首要线索
+013b3b0f	## 如何使用
+013b3b20	这份包只包含脱敏后的结构化诊断信息
+013b3b56	不包含 token
+013b3b72	完整对话内容或完整 auth/config/rollout 文件
+013b3baf	未发现系统诊断异常codex/config-shape.jsoncodex/auth-shape.jsoncodex/catalog-shape.jsoncodex/thread-shape.jsoncodex/thread-catalog-health.jsoncodex/global-state-shape.jsoncodex/processes.jsoncodex/schema-shape.jsontargetProvider
+013b4722	model_terminalendcodexmate_lib::core::relay::atomic_writeATOMIC_WRITE_PUBLISHED_SYNC_UNCONFIRMED: replacement exists; retain recovery recordaimamistaging must be a distinct siblingsync target missing parentsync target changedatomic replace: missing parentatomic write: missing parent/reasoning/effortUnsupported Anthropic reasoning effortinput此会话包含旧版 AiMaMi Claude 推理记录
+013b48ac	当前版本无法安全续接
+013b48df	原记录不会被修改
+013b48fa	encrypted_content此会话包含 Claude 接口无法安全接续的压缩上下文或压缩请求
+013b495e	请使用原模型续聊
+013b4979	原记录未被修改
+013b4cf5	虚拟账号认证残留无法安全清理
+013b4d22	已保留 auth.json 与备份
+013b4d42	请在系统诊断中修复后重试
+013b4d87	仍有旧版 AiMaMi 受管认证残留
+013b4db0	未提交路由状态
+013b4eee	versionentriesSELECT COALESCE(model, ''), model_provider, COALESCE(rollout_path, ''), COALESCE(source, '') FROM threads WHERE id = ?1 AND COALESCE(archived, 0) = 0UPDATE threads SET model = ?2 WHERE id = ?1codexmate_lib::core::relay::codex_thread_visibility::model_fallbackmodel restore内容异常或版本不兼容超过读取上限路径类型异常不可读取读取失败格式异常或版本不兼容router_model_restore.json超过写入上限编码失败已保存但同步未确认保存失败清理失败relay_model_restore/payload/modelhistory model changed after fallbackinvalid model restore metadata/payload/model_provider/payload/model_reasoning_effortmedium
+013b54e7	'ROUTER_HISTORY_REPAIR_REQUIRED: 任务 
+013b5513	 的历史记录缺失
+013b552c	请在路由诊断中执行缺失历史维修后重试
+013b5565	普通开关不会自动恢复或归档任务
+013b6701	formatproviderIdrevisionunrecognized relay credential files retainedrelay state changed during credential cleanuprelay credential directory changedrelay credential cleanup budget exceeded; remaining files retainedrelay state changed before credential cleanupcannot inspect relay credential directorycannot verify state before credential cleanupunreferenced relay credential cleanup failedcannot enumerate relay credential revisionsinvalid relay credential directorycannot verify state during credential cleanupcannot inspect relay credential revisioninvalid state before credential cleanuprelay credential revision ownership mismatchcannot sync relay storage directorycannot sync relay credential directorycannot persist relay credential revisioncannot encode relay credential revisioncannot create relay credential revisioncannot protect relay credential directorycannot create relay credential directoryrelay key is empty or exceeds the storage limitkey-revisions未找到可导出的用户或助手消息source_or_index_ioindex_decodeindex_stateSELECT value FROM meta WHERE key='generation'DELETE FROM files WHERE path=?1INSERT INTO files(path,fingerprint,state,offset,ordinal,complete,thread_id,subagent,incomplete,rollout_id)
+013b73d6	         PRAGMA user_version=3;unsupported analytics cache versionanalytics-v3.lockINSERT INTO meta(key,value) VALUES('scan_complete',0) ON CONFLICT(key) DO UPDATE SET value=0UPDATE files SET failed=1 WHERE path=?1codexmate_lib::core::analytics::indexSELECT path FROM filesINSERT INTO meta(key,value) VALUES('scan_complete',1) ON CONFLICT(key) DO UPDATE SET value=1analytics sources incompleteSELECT value FROM meta WHERE key='scan_complete'SELECT EXISTS(SELECT 1 FROM files WHERE incomplete=1 OR failed=1 OR complete=0)SELECT value FROM meta WHERE key='updated_at'analytics source changed before commitanalytics source changed while readingUPDATE files SET failed=0 WHERE path=?1Account state is busycodex-dev.db文件不可读取存在多个目录库
+013b76c9	无法确认归属客户端同时持有多个目录库路径不可解析SELECT EXISTS(SELECT 1 FROM sqlite_master WHERE type='table' AND name='local_thread_catalog')缺少 local_thread_catalog 表SELECT host_id, thread_id, missing_candidate FROM local_thread_catalog LIMIT 0结构不可读取不可打开读取超时设置失败缺少必要字段codexmate_lib::platform::pathssqlitestate_.sqliteSELECT COALESCE(MAX(updated_at), 0) FROM threadsSELECT COALESCE(MAX(updated_at_ms), 0) FROM threadsSELECT COUNT(*) FROM threadsSELECT COUNT(*) FROM threads WHERE COALESCE(archived, 0) = 0
+013d0039	bYr;u偽
+013e47bc	无可用 Provider所有供应商已熔断
+013e47e9	无可用渠道未配置供应商所有 Provider 都失败
+013e4826	重试耗尽function_call
+013e48a4	Errorattempt to join into collection with len > usize::MAX服务器已在运行服务器未运行停止超时无可用的Provider超过最大重试次数
+013ec518	中文简体繁體信息中国我们一个公司管理论坛可以服务时间个人产品自己企业查看工作联系没有网站所有评论中心文章用户首页作者技术问题相关下载搜索使用软件在线主题资料视频回复注册网络收藏内容推荐市场消息空间发布什么好友生活图片发展如果手机新闻最新方式北京提供关于更多这个系统知道游戏广告其他发表安全第一会员进行点击版权电子世界设计免费教育加入活动他们商品博客现在上海如何已经留言详细社区登录本站需要价格支持国际链接国家建设朋友阅读法律位置经济选择这样当前分类排行因为交易最后音乐不能通过行业科技可能设备合作大家社会研究专业全部项目这里还是开始情况电脑文件品牌帮助文化资源大学学习地址浏览投资工程要求怎么时候功能主要目前资讯城市方法电影招聘声明任何健康数据美国汽车介绍但是交流生产所以电话显示一些单位人员分析地图旅游工具学生系列网友帖子密码频道控制地区基本全国网上重要第二喜欢进入友情这些考试发现培训以上政府成为环境香港同时娱乐发送一定开发作品标准欢迎解决地方一下以及责任或者客户代表积分女人数码销售出现离线应用列表不同编辑统计查询不要有关机构很多播放组织政策直接能力来源時間看到热门关键专区非常英语百度希望美女比较知识规定建议部门意见精彩日本提高发言方面基金处理权限影片银行还有分享物品经营添加专家这种话题起来业务公告记录简介质量男人影响引用报告部分快速咨询时尚注意申请学校应该历史只是返回购买名称为了成功说明供应孩子专题程序一般會員只有其它保护而且今天窗口动态状态特别认为必须更新小说我們作为媒体包括那么一样国内是否根据电视学院具有过程由于人才出来不过正在明星故事关系标题商务输入一直基础教学了解建筑结果全球通知计划对于艺术相册发生真的建立等级类型经验实现制作来自标签以下原创无法其中個人一切指南关闭集团第三关注因此照片深圳商业广州日期高级最近综合表示专辑行为交通评价觉得精华家庭完成感觉安装得到邮件制度食品虽然转载报价记者方案行政人民用品东西提出酒店然后付款热点以前完全发帖设置领导工业医院看看经典原因平台各种增加材料新增之后职业效果今年论文我国告诉版主修改参与打印快乐机械观点存在精神获得利用继续你们这么模式语言能够雅虎操作风格一起科学体育短信条件治疗运动产业会议导航先生联盟可是問題结构作用调查資料自动负责农业访问实施接受讨论那个反馈加强女性范围服務休闲今日客服觀看参加的话一点保证图书有效测试移动才能决定股票不断需求不得办法之间采用营销投诉目标爱情摄影有些複製文学机会数字装修购物农村全面精品其实事情水平提示上市谢谢普通教师上传类别歌曲拥有创新配件只要时代資訊达到人生订阅老师展示心理贴子網站主題自然级别简单改革那些来说打开代码删除证券节目重点次數多少规划资金找到以后大全主页最佳回答天下保障现代检查投票小时沒有正常甚至代理目录公开复制金融幸福版本形成准备行情回到思想怎样协议认证最好产生按照服装广东动漫采购新手组图面板参考政治容易天地努力人们升级速度人物调整流行造成文字韩国贸易开展相關表现影视如此美容大小报道条款心情许多法规家居书店连接立即举报技巧奥运登入以来理论事件自由中华办公妈妈真正不错全文合同价值别人监督具体世纪团队创业承担增长有人保持商家维修台湾左右股份答案实际电信经理生命宣传任务正式特色下来协会只能当然重新內容指导运行日志賣家超过土地浙江支付推出站长杭州执行制造之一推广现场描述变化传统歌手保险课程医疗经过过去之前收入年度杂志美丽最高登陆未来加工免责教程版块身体重庆出售成本形式土豆出價东方邮箱南京求职取得职位相信页面分钟网页确定图例网址积极错误目的宝贝机关风险授权病毒宠物除了評論疾病及时求购站点儿童每天中央认识每个天津字体台灣维护本页个性官方常见相机战略应当律师方便校园股市房屋栏目员工导致突然道具本网结合档案劳动另外美元引起改变第四会计說明隐私宝宝规范消费共同忘记体系带来名字發表开放加盟受到二手大量成人数量共享区域女孩原则所在结束通信超级配置当时优秀性感房产遊戲出口提交就业保健程度参数事业整个山东情感特殊分類搜尋属于门户财务声音及其财经坚持干部成立利益考虑成都包装用戶比赛文明招商完整真是眼睛伙伴威望领域卫生优惠論壇公共良好充分符合附件特点不可英文资产根本明显密碼公众民族更加享受同学启动适合原来问答本文美食绿色稳定终于生物供求搜狐力量严重永远写真有限竞争对象费用不好绝对十分促进点评影音优势不少欣赏并且有点方向全新信用设施形象资格突破随着重大于是毕业智能化工完美商城统一出版打造產品概况用于保留因素中國存储贴图最愛长期口价理财基地安排武汉里面创建天空首先完善驱动下面不再诚信意义阳光英国漂亮军事玩家群众农民即可名稱家具动画想到注明小学性能考研硬件观看清楚搞笑首頁黄金适用江苏真实主管阶段註冊翻译权利做好似乎通讯施工狀態也许环保培养概念大型机票理解匿名cuandoenviarmadridbuscariniciotiempoporquecuentaestadopuedenjuegoscontraest
+013f3328	(简体)(繁體)hrvatskiitalianorom
+013f5ad1	日本語简体字繁體字
+013f5af5	为什么计算机笔记本討論區服务器互联网房地产俱乐部出版社排行榜部落格进一步支付宝验证码委员会数据库消费者办公室讨论区深圳市播放器北京市大学生越来越管理员信息网serviciosart
+013fd4e4	正體中文简体中文繁体中文有限公司人民政府阿里巴巴社会主义操作系统政策法规informaci
+01402584	ul></div></div>after the deathwith respect tostyle="padding:is particularlydisplay:inline; type="submit" is divided into中文 (简体)responsabilidadadministraci
+01406469	正體中文 (繁體)
+01427a58	i5析uo5
+0142b13a	/~zC{礚
+01436bba	Z樲}gE3
+01437103	#?D嗫:C虏/
+01439976	p#J豶B4r
+0143f01c	Y;C;8V蓶m
+01448545	h蚻9N1=@
+01486678	中文简体繁體信息中国我们一个公司管理论坛可以服务时间个人产品自己企业查看工作联系没有网站所有评论中心文章用户首页作者技术问题相关下载搜索使用软件在线主题资料视频回复注册网络收藏内容推荐市场消息空间发布什么好友生活图片发展如果手机新闻最新方式北京提供关于更多这个系统知道游戏广告其他发表安全第一会员进行点击版权电子世界设计免费教育加入活动他们商品博客现在上海如何已经留言详细社区登录本站需要价格支持国际链接国家建设朋友阅读法律位置经济选择这样当前分类排行因为交易最后音乐不能通过行业科技可能设备合作大家社会研究专业全部项目这里还是开始情况电脑文件品牌帮助文化资源大学学习地址浏览投资工程要求怎么时候功能主要目前资讯城市方法电影招聘声明任何健康数据美国汽车介绍但是交流生产所以电话显示一些单位人员分析地图旅游工具学生系列网友帖子密码频道控制地区基本全国网上重要第二喜欢进入友情这些考试发现培训以上政府成为环境香港同时娱乐发送一定开发作品标准欢迎解决地方一下以及责任或者客户代表积分女人数码销售出现离线应用列表不同编辑统计查询不要有关机构很多播放组织政策直接能力来源時間看到热门关键专区非常英语百度希望美女比较知识规定建议部门意见精彩日本提高发言方面基金处理权限影片银行还有分享物品经营添加专家这种话题起来业务公告记录简介质量男人影响引用报告部分快速咨询时尚注意申请学校应该历史只是返回购买名称为了成功说明供应孩子专题程序一般會員只有其它保护而且今天窗口动态状态特别认为必须更新小说我們作为媒体包括那么一样国内是否根据电视学院具有过程由于人才出来不过正在明星故事关系标题商务输入一直基础教学了解建筑结果全球通知计划对于艺术相册发生真的建立等级类型经验实现制作来自标签以下原创无法其中個人一切指南关闭集团第三关注因此照片深圳商业广州日期高级最近综合表示专辑行为交通评价觉得精华家庭完成感觉安装得到邮件制度食品虽然转载报价记者方案行政人民用品东西提出酒店然后付款热点以前完全发帖设置领导工业医院看看经典原因平台各种增加材料新增之后职业效果今年论文我国告诉版主修改参与打印快乐机械观点存在精神获得利用继续你们这么模式语言能够雅虎操作风格一起科学体育短信条件治疗运动产业会议导航先生联盟可是問題结构作用调查資料自动负责农业访问实施接受讨论那个反馈加强女性范围服務休闲今日客服觀看参加的话一点保证图书有效测试移动才能决定股票不断需求不得办法之间采用营销投诉目标爱情摄影有些複製文学机会数字装修购物农村全面精品其实事情水平提示上市谢谢普通教师上传类别歌曲拥有创新配件只要时代資訊达到人生订阅老师展示心理贴子網站主題自然级别简单改革那些来说打开代码删除证券节目重点次數多少规划资金找到以后大全主页最佳回答天下保障现代检查投票小时沒有正常甚至代理目录公开复制金融幸福版本形成准备行情回到思想怎样协议认证最好产生按照服装广东动漫采购新手组图面板参考政治容易天地努力人们升级速度人物调整流行造成文字韩国贸易开展相關表现影视如此美容大小报道条款心情许多法规家居书店连接立即举报技巧奥运登入以来理论事件自由中华办公妈妈真正不错全文合同价值别人监督具体世纪团队创业承担增长有人保持商家维修台湾左右股份答案实际电信经理生命宣传任务正式特色下来协会只能当然重新內容指导运行日志賣家超过土地浙江支付推出站长杭州执行制造之一推广现场描述变化传统歌手保险课程医疗经过过去之前收入年度杂志美丽最高登陆未来加工免责教程版块身体重庆出售成本形式土豆出價东方邮箱南京求职取得职位相信页面分钟网页确定图例网址积极错误目的宝贝机关风险授权病毒宠物除了評論疾病及时求购站点儿童每天中央认识每个天津字体台灣维护本页个性官方常见相机战略应当律师方便校园股市房屋栏目员工导致突然道具本网结合档案劳动另外美元引起改变第四会计說明隐私宝宝规范消费共同忘记体系带来名字發表开放加盟受到二手大量成人数量共享区域女孩原则所在结束通信超级配置当时优秀性感房产遊戲出口提交就业保健程度参数事业整个山东情感特殊分類搜尋属于门户财务声音及其财经坚持干部成立利益考虑成都包装用戶比赛文明招商完整真是眼睛伙伴威望领域卫生优惠論壇公共良好充分符合附件特点不可英文资产根本明显密碼公众民族更加享受同学启动适合原来问答本文美食绿色稳定终于生物供求搜狐力量严重永远写真有限竞争对象费用不好绝对十分促进点评影音优势不少欣赏并且有点方向全新信用设施形象资格突破随着重大于是毕业智能化工完美商城统一出版打造產品概况用于保留因素中國存储贴图最愛长期口价理财基地安排武汉里面创建天空首先完善驱动下面不再诚信意义阳光英国漂亮军事玩家群众农民即可名稱家具动画想到注明小学性能考研硬件观看清楚搞笑首頁黄金适用江苏真实主管阶段註冊翻译权利做好似乎通讯施工狀態也许环保培养概念大型机票理解匿名cuandoenviarmadridbuscariniciotiempoporquecuentaestadopuedenjuegoscontraest
+0148d488	(简体)(繁體)hrvatskiitalianorom
+0148fc31	日本語简体字繁體字
+0148fc55	为什么计算机笔记本討論區服务器互联网房地产俱乐部出版社排行榜部落格进一步支付宝验证码委员会数据库消费者办公室讨论区深圳市播放器北京市大学生越来越管理员信息网serviciosart
+01497644	正體中文简体中文繁体中文有限公司人民政府阿里巴巴社会主义操作系统政策法规informaci
+0149c6e4	ul></div></div>after the deathwith respect tostyle="padding:is particularlydisplay:inline; type="submit" is divided into中文 (简体)responsabilidadadministraci
+014a05c9	正體中文 (繁體)
+0151bff6	g端口 1455 被占用
+0151c00f	可能 Codex 正在登录或已被其他程序占用
+0151c046	请关闭后重试
+0151c065	授权登录失败
+0151c07d	落盘账号任务失败
+0151c09b	token 交换任务失败
+0151c0b9	换取登录凭据失败
+0151cf5f	B无法连接 OpenAI 换取登录凭据
+0151cf89	网络/代理问题
+0151d77a	zRELAY_KEY_UNAVAILABLE: 无法读取已保存的中转密钥
+0151d7b9	原密钥未改动
+0151d7ce	请检查本地密钥存储后重试
+0151d8b7	K旧 Provider ID 已安全迁移
+0151d8da	API Key 迁移失败
+0151ef7b	9路由目标已提交
+0151ef94	但恢复标记清理未完成
+0151f13d	:NativeOff 核心关闭已完成
+0151f160	但仍有待恢复项
+0151f294	VROUTER_TARGET_RECOVERY_REQUIRED: 路由状态仍需确认
+0151f2d1	ChatGPT 未自动启动
+0151f356	$孤儿任务目录准备未完成
+0151fef4	ECODEX_ENGINE_PROBE_TIMEOUT: ChatGPT 内嵌引擎版本检查超时
+0151ff44	未判定为旧版
+01520079	RCODEX_ENGINE_PROBE_EXIT: ChatGPT 内嵌引擎版本检查异常退出
+015200d4	未判定为旧版
+01520134	: 修复后复查仍异常
+01520153	(已从备份恢复 auth.json
+01520182	:已尝试从备份恢复 auth.json
+015201a8	但复查仍异常
+015201c0	恢复 auth.json 失败
+015201dd	本地代理运行中 :
+015201fa	迁移快照有 
+0152020b	  个文件无法读取/解析
+0152022e	 个文件写入失败
+01520245	*检测到无效占位符 token
+0152027f	可能被第三方工具覆盖
+01520317	请在编辑页面重新输入 API Key
+0152033f	密钥读取失败
+01520359	请先检查本地密钥存储及目录权限后重试
+01520392	读取失败不等于密钥缺失
+015203b6	 个 Provider 密钥缺失
+015203d2	  个 Provider 密钥存储异常
+015203f5	access_token 有效
+01520420	access_token 有效
+01520452	access_token 将在 
+01520468	 分钟后过期
+01520490	有 refresh_token
+015204a4	请在账号管理页刷新或切换账号自动续期
+015204e7	'无账号目录包含非当前模型
+01520516	重新生成后恢复一致
+01520537	 目录不存在
+0152054a	 目录不可写
+0152055c	state_5.sqlite 无法以
+01520588	文件系统异常
+015205ad	E恢复资料已保留
+015205c6	当前自动修复不会覆盖或删除它
+015205f6	无法创建备份目录
+01520614	已备份并移除 
+01520628	@ 个旧版线程数据库
+01520645	备份在 relay/state-db-backups/
+01520673	1 个旧库相关文件被占用
+015206aa	请完全退出 Codex
+015206c2	含 computer-use / node_repl 等插件子进程
+01520700	或手动删除该文件
+015207a8	 处 section
+015207bd	5顶层 openai_base_url 重定向到第三方域名
+01520803	 处第三方注入残留
+0152081d	zconfig.toml 含第三方工具残留
+01520845	会与 AiMaMi 智能路由冲突或把官方请求打到第三方域名
+0152089a	9已尝试重新写入路由契约
+015208bf	但复查仍异常
+01520904	Codex 运行中
+01520920	/ 条主线程引用了失效的 AiMaMi provider
+01520954	这些主线程在 Codex 中可能无法正常对话
+0152098b	修复会同步接管 DB 与 Rollout
+015209b2	保留仍有效的官方模型
+015209d3	否则回落当前官方默认模型
+015209fa	仅修复 AiMaMi 残留
+01520a14	混合外部归属时停止
+01520a32	未确认的第三方任务不接管
+01520a71	 个旧版线程数据库残留
+01520a91	U系统无法读取 Codex 配置
+01520ab4	诊断结果不完整且不会执行自动修复
+01520afc	&aimai1 HTTP-only 路由契约异常
+01520b53	路由目标态存在 
+01520bc8	文件系统正常
+01520beb	磁盘空间偏低
+01520c0d	"磁盘空间严重偏低
+01520c36	"磁盘空间严重不足
+01520c5f	!takeover 备份复查仍异常
+01520c83	C损坏的 takeover 备份已原样隔离
+01520caf	活动阻塞已解除
+01520cca	sqlite/ 子目录留有 
+01520ce4	 本非当前线程数据库
+01520d02	当前活库是根目录的 
+01520d23	`sqlite/` 子目录下另有 
+01520d47	这通常是旧版 Codex 迁移后留下的废弃库
+01520d7e	Codex 不会再读它
+01520d96	删除或保留都不影响当前线程
+01520dcf	它的线程记录仍会被
+01520ded	线程缺历史文件
+01520e08	provider 未收敛
+01520e2f	可能让那些检查报出与当前线程无关的条目
+01520e6b	AiMaMi 不会自动处理这个方向
+01520e96	仅凭路径无法排除
+01520eb1	该库刚被迁走
+01520ed2	删错会真丢线程
+01520f0a	已清理第三方注入
+01520f27	 处 section
+01520f3b	原配置已备份
+01520f4e	-旧版线程迁移修复后复查仍异常
+01520f7e	:已将旧版迁移线程恢复为官方 provider
+01520fca	!旧版线程迁移修复失败
+01520fee	4project_state_integrity: 修复后复查仍异常
+01521025	5已尝试修复缺失 rollout
+01521046	但复查仍异常
+0152106a	 条缺失 rollout
+01521088	 条不可恢复空壳线程
+015210a6	全局配置存在 
+015210bb	 处无效引用
+015210cc	4没有发现可修复的旧版调用项 ID
+01521102	" 条线程无法检查
+01521133	h 个旧版调用项 ID
+0152114d	变更记录已保存到 codexmate/relay/response-item-id-history-repair-backup
+015211a3	 条线程无法复查
+015211ca	# 个旧版调用项 ID
+015211ef	% 个未收敛
+01521200	写入失败线程
+0152125e	#检测到 legacy 顶层 profile = "
+01521287	: 条线程被旧版迁移标记
+015212aa	可能无法正常显示
+015212ec	线程库可重建 roots=
+01521333	读取线程库失败
+0152134d	(.codex-global-state.json 读取失败
+0152137b	项目入口/线程归属可能异常
+015213a5	可从备份恢复 
+015213c1	无可信备份需隔离 
+015213ef	读取状态库失败 
+01521443	% 条活跃线程缺少 rollout 文件
+015216f9	: 不是普通文件
+01521710	智能路由无法安全原子替换
+01521736	本轮完整检查 
+0152175a	: 条仅部分检查
+01521771	结论仅对已检查部分成立
+0152179f	I 条历史文件缺失
+015217c5	线程缺历史文件
+015217ec	 条记录结构异常
+01521804	3 条历史继承引用指向已不存在的 rollout
+0152183b	 条无法读取
+01521857	这些线程可能无法正常分页打开
+01521884	AiMaMi 不会自动改写历史
+015218a6	请从备份恢复
+015218c7	.已检查部分未发现结构异常
+01521916	&线程调用项 ID 健康
+01521948	" 条线程无法检查调用项 ID
+0152196c	B这些 rollout 无法完整读取
+01521991	未做任何修改
+015219bd	% 条线程无法检查
+015219e6	 条线程包含 
+015219f9	 个旧版调用项 ID
+01521a13	旧版 AiMaMi 曾为工具搜索和自定义工具写入官方不接受的 ID 前缀
+01521a6a	切换官模续聊时会返回 invalid_value
+01521a99	修复只改精确命中的 tool_search_call.id 和 custom_tool_call.id
+01521ae3	保留 call_id
+01521af4	工具结果和对话内容
+01521b1e	$虚拟账号残留复查仍异常
+01521cd3	 的目标模型 
+01521ce5	@ 没有可验证的受支持推理档位
+01521d11	未修改任何线程
+01521d62	C当前原生目录没有可用的修复模型
+01521d93	无法接管线程 
+01521dab	未修改任何线程
+01522053	 个无效的全局配置键
+01522071	已尝试修复 
+01522090	但复查仍异常
+015220b0	, 条线程的 DB/Rollout provider 收敛为 
+015220e0	线程 provider 已收敛到 
+01522133	已有有效目录由 ChatGPT 原生管理
+01522160	等待下次原生刷新
+0152217b	无可用目录时不保证混合菜单
+015221c6	缓存和刷新由 ChatGPT 原生管理
+015222cf	 条线程写入失败
+015222f7	 条系统提示异常线程
+0152231e	清理迁移快照 
+01522332	h 条以防回滚再次写入异常值
+0152235b	原始行已备份到 codexmate/relay/guardian-prompt-fix-backup
+015223c6	但复查未完全收敛
+01522440	%线程系统提示健康
+01522471	" 条线程无法检查系统提示
+01522495	j这些 rollout 无法读取或缺少 session_meta
+015224ca	诊断不能确认系统提示是否健康
+01522503	) 条线程的系统提示异常
+01522532	缺失/为空 
+01522663	已尝试修复 
+01522674	( 条线程 model
+01522688	但复查仍异常
+015226ab	" 条线程 model
+015226bf	rollout 同步 
+015226d7	 条线程暂未自动映射
+01522779	q 条 aimai1 活跃主线程的 model 既不在当前 Catalog 中
+015227bd	也不是可直通的官方裸模型
+015227ed	 条缺少 model
+0152280b	"读取 Catalog 或线程库失败 
+0152285f	" 条线程模型无法安全路由
+01522919	= 条孤儿主线程一次性纳入 AiMaMi 管理
+0152294d	DB 更新 
+01522960	Rollout 原子更新 
+0152297e	保留官方模型 
+015229bd	恢复记录已保存到 codexmate/relay/thread-provider-adoptions/
+01522a01	7未发现失效的 AiMaMi Rollout provider
+01522a44	/ 个 Rollout 引用了失效的 AiMaMi provider
+01522aac	 项线程 provider 未收敛
+01522acb	4 条 rollout 结构损坏
+01522ae8	无法判断收敛状态
+01522b12	: 条线程 rollout 结构损坏
+01522b35	已与正常线程隔离
+01522b4f	( 条旧对话保留了中转模型选择
+01522c22	resync config 失败: 
+01522c3c	: resync 后复查仍异常
+01522c97	$按当前状态重收敛 RouterOn
+01522cf2	v检测到损坏的 takeover 备份
+01522d18	已原样隔离后解除阻塞
+01522d39	无法自动还原其中不可解析的配置
+01522d6b	"已隔离路由冲突配置
+01522e22	, 条中转线程回到原始模型
+01522e68	 项原模型恢复失败
+01522f72	$ 已收敛线程 provider
+01522fab	  已补齐线程 instructions
+01522fcf	. 已清理 Claude 私有 reasoning
+015230b2	i 条结构损坏的线程 rollout
+015230d7	原文件和数据库记录均未改动
+01523101	其余线程已正常收敛
+01523126	i 条线程的 instructions 未能补齐
+01523151	路由核心状态已完成
+0152316f	请在系统诊断中继续修复
+01523192	" 已校准线程模型目录
+015231cd	= 条线程模型无法映射
+015231ed	将由系统诊断继续处理
+0152320d	T 已更新线程主状态
+0152322a	Windows 历史 rollout 因替换受限保持原文件
+01523266	 模型目录校准错误
+01523429	%按当前状态重收敛 NativeOff
+015234ea	E旧版虚拟账号残留清理失败
+01523512	已交给诊断继续处理
+0152353d	v检测到损坏的 takeover 备份
+01523563	已原样隔离后完成关闭
+01523584	无法自动还原其中不可解析的配置
+015235b6	 已还原 takeover 备份
+015235e5	Itakeover 备份还原失败
+01523604	已保留备份等待诊断/启动自愈
+015236ce	. 条无账号模式临时借位的任务模型
+01523714	N无账号任务模型恢复失败
+01523739	已保留恢复记录等待后续重试
+015237c0	9线程收敛失败
+015237d6	已交给系统诊断继续处理
+01523c0e	已从 rollout 回填 
+01523c25	p 条线程 cwd
+01523c37	但线程库中仍没有可用于重建项目入口的真实项目 cwd
+01523c80	未写入 global-state
+01523c97	%已重建 Codex 项目索引
+01523cd0	已从 rollout 回填 
+01523ce7	6 条线程 cwd
+01523cf9	并重建 Codex 项目索引
+01524000	rollout 文件不存在
+0152403d	f对话数据已删除
+01524056	但桌面目录未能同步
+01524074	请稍后通过索引健康检查处理残留
+01524265	x 个孤立 rollout
+0152427b	请先清理孤立文件并重新巡检
+015242a5	在关系未收敛前拒绝删除缺失 rollout 的线程
+0152439c	MChatGPT 完整线程状态库不可用
+015243c6	拒绝判断或清理孤立数据
+01524a83	r新凭据已保存
+01524a99	但客户端登录状态尚未确认
+01524ac0	请确认当前登录状态后重新授权该账号
+01524b58	但 ChatGPT 启动失败
+01524beb	但客户端写入进程尚未稳定
+01524c12	请关闭 ChatGPT 后重新打开
+01524ccb	 个中转模型
+01524ce4	&AiMaMi 将替换当前 auth 快照为 
+01524d10	Codex 将重启以应用新账号
+01527d64	AiMaMi提示
+0152894b	iROUTER_TARGET_RECOVERY_REQUIRED: 路由开关记录已是目标状态
+01528994	但实际状态无法稳定恢复
+015289cc	但自动重新打开 ChatGPT 失败
+015289f8	请手动打开 ChatGPT
+01528cec	*无账号登录切换未达到请求状态
+01528d58	E无账号登录切换失败
+01528d77	已恢复切换前的稳定路由状态
+01528da5	jROUTER_TARGET_RECOVERY_REQUIRED: 无账号登录切换失败
+01528de5	且恢复切换前状态也失败
+01528e23	ChatGPT 重新启动失败
+01528ed8	!中转卡片清单无法验证
+01528efc	4智能路由端口与当前代理不一致
+01528f3f	I智能路由认证模式与配置不一致
+01528f6d	期望 requires_openai_auth=
+0152924e	)API Key 保存失败
+0152ad5e	"ChatGPT app-server 请求超时
+0152ad83	)等待 ChatGPT app-server 响应失败
+0152add4	)ChatGPT app-server 响应缺少 result
+0152ae54	#启动 ChatGPT app-server 失败
+0152ae7a	"ChatGPT app-server 拒绝请求
+0152aea7	:ChatGPT app-server 返回了无法识别的线程记录
+0152aee4	=ChatGPT app-server 返回的工作目录与目标不一致
+0152af4a	^SESSION_DELETE_UNAVAILABLE: 无法连接 ChatGPT 官方线程服务
+0152af91	未发送删除请求
+0152b125	/base_url 未指向 /codex/router/v1
+0152b15c	base_url 端口漂移
+0152b18a	requires_openai_auth 必须为 
+0152b324	\; 路由恢复记录已保留
+0152b345	请检查记录或使用匹配版本处理
+0152b382	\ROUTER_JOURNAL_REMOVED_SYNC_UNCONFIRMED: 恢复记录已删除
+0152b3c4	但目录同步未确认
+0152b3e7	已完成的路由状态不会因此回滚
+0152b4c0	3无法读取中转密钥
+0152b4dc	未写入导出文件
+0152b7f1	$已启用但本地代理未运行
+0152b81b	请重启 AiMaMi 后再试
+0152b83a	智能路由健康
+0152b86c	 个 Codex Provider 
+0152b88d	-已启用但检测到旧版顶层 profile = "
+0152b8c1	Codex 0.134+ 会拒绝该配置
+0152b8e3	请关闭后重新启用智能路由
+0152b90a	让 AiMaMi 自动清理旧注入
+0152b92f	Codex 配置不一致
+0152b94c	AiMaMi 会在启动 / 切换智能路由时自动重写配置并重启 Codex
+0152b99c	8endpoint 必须以 http:// 或 https:// 开头
+0152b9d7	%resource 必须是 provider
+0152b9ff	#路径必须是 v1/import
+0152ba26	!scheme 必须是 aimami
+0152ba4b	URL 解析失败: 
+0152ba60	缺少必填参数 
+0152bfaa	QCODEX_TRANSITION_QUIET_TIMEOUT: 未能在时限内确认 Codex 安全写入窗口
+0152bffe	kCODEX_ORPHAN_WRITER_TIMEOUT: ChatGPT 主进程已退出
+0152c039	但孤儿 Codex 写入进程未能正常终止
+0152c071	安全停止请求错误
+0152c125	\CODEX_FORCE_KILL_FAILED: 以下 Codex 相关进程无法终止
+0152c167	请手动结束后重试
+0152c189	终止命令错误
+0152c7db	7AiMaMi 当前仅支持 Codex 中转
+0152c802	无法导入 app=
+0152db52	a 不符合当前最新版 ChatGPT 线程数据库结构
+0152db8d	请更新并启动 ChatGPT 完成迁移
+0152dc4d	 条活跃线程
+0152dd21	JChatGPT 官方线程接口暂不可用
+0152dd4b	已降级为本地只读索引
+0152dd96	1[AiMaMi][sessions] Codex 线程索引不存在
+0152dde2	1[AiMaMi][sessions] Codex 线程索引不可用
+0152e028	*无法确认线程 rollout 是否存在
+0152e05d	%无法读取 Codex 线程数据库
+0152e08b	列表可能不完整
+0152e194	 时线程异常退出
+0152e1ab	+无法确认临时 worktree 是否干净
+0152e1d9	1无法识别临时 worktree 对应的主仓库
+0152e20e	读取 commondir 失败
+0152e236	 秒安全上限
+0152ee6c	c新凭据已保存
+0152ee82	但当前登录写入失败
+0152eea0	请处理写入错误后重新授权该账号
+0152eed2	K新凭据已保存
+0152eee8	但账号列表更新失败
+0152ef06	请刷新账号列表
+0152f127	检测到 DB 占用进程
+0152f16f	!- 当前快照
+0152f181	正在切换至 
+0152f1a1	稳定态检查已跳过
+0152f1be	- 当前目标态
+0152f1dd	无法确定最新版 ChatGPT 活跃数据库
+0152f21e	最近发生过 
+0152f230	 路由切换失败
+0152f27f	当前稳定态需结合不变量判断
+0152f2b0	路由正在切换至 
+0152f2cb	已跳过稳定态检查
+0152f2e6	避免把中间态误判为异常
+0152f956	中转原模型恢复记录
+0152f976	本次操作未能完成
+0152ff6d	无法检查任务 
+0152ff82	 的历史记录
+01530586	 条记录结构异常
+0153059e	#: 继承的历史引用已不存在
+015316c1	=磁盘可用空间不足
+015316dd	智能路由本次可能需要约 
+01531700	# MB 临时空间
+01531714	当前仅剩约 
+0153172c	为保护线程文件
+01531744	本次操作尚未关闭 ChatGPT
+01531767	也未修改任何路由数据
+01531788	请清理磁盘后重试
+015320bd	ChatGPT 线程目录库
+015320d9	未修改目录数据
+01538429	解压输出超过上限 
+01538510	 deflate 按 zlib 解压失败
+01538539	回退 raw deflate
+01538586	不支持的 content-encoding: 
+01538791	转发失败: 
+015387a2	Provider 不健康: 
+015387b9	上游错误 (
+015387cf	上游错误 (
+015387e2	数据库错误: 
+015387f6	请求/响应转换错误: 
+01538814	请求超时: 
+01538885	#上游响应体超过大小上限: 
+015388b4	地址绑定失败: 
+015388cb	停止失败: 
+015388dc	请求转发失败: 
+015388f3	Provider不健康: 
+01538909	上游错误 (状态码 
+01538929	配置错误: 
+0153893a	格式转换错误: 
+01538951	无效的请求: 
+01538970	流式响应空闲超时: 
+0153899a	认证失败: 
+015389ab	内部错误: 
+01853e28	i5析uo5
+0185ab2a	/~zC{礚
+0185fbe8	i5析uo5
+018668ea	/~zC{礚
+0186bca8	i5析uo5
+018729aa	/~zC{礚
+01877a68	i5析uo5
+0187e76a	/~zC{礚
+01f3f3d8	報!j6&&X
+01f3f7b1	FCY诙WR
+01f41616	4[KNS峡

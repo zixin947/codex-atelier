@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "status": "Original recommended example, not an official game palette",
+  "themes": {
+    "light": {
+      "canvas": "#ECEEE6",
+      "surface": "#F7F8F2",
+      "raised": "#FFFFFF",
+      "ink": "#20231F",
+      "muted": "#575E55",
+      "line": "#D0D4CA",
+      "control-line": "#72796F",
+      "signal": "#FFFA00",
+      "on-signal": "#20231F",
+      "accent-text": "#5C5700",
+      "focus": "#5C5700",
+      "positive": "#246149",
+      "caution": "#775100",
+      "negative": "#A8322B",
+      "screen": "#171C17",
+      "on-screen": "#EAEFE4",
+      "track": "#75816E",
+      "screen-caution": "#F1C76B"
+    },
+    "dark": {
+      "canvas": "#121512",
+      "surface": "#1D221C",
+      "raised": "#282F26",
+      "ink": "#EAEFE4",
+      "muted": "#AAB5A3",
+      "line": "#424D3D",
+      "control-line": "#7E8C75",
+      "signal": "#FFFA00",
+      "on-signal": "#20231F",
+      "accent-text": "#FFFA00",
+      "focus": "#FFFA00",
+      "positive": "#8EDBB2",
+      "caution": "#F1C76B",
+      "negative": "#FF9B90",
+      "screen": "#10150F",
+      "on-screen": "#EAEFE4",
+      "track": "#75816E",
+      "screen-caution": "#F1C76B"
+    }
+  },
+  "checks": [
+    {
+      "name": "ink on canvas",
+      "foreground": "ink",
+      "background": "canvas",
+      "minimum": 4.5
+    },
+    {
+      "name": "ink on surface",
+      "foreground": "ink",
+      "background": "surface",
+      "minimum": 4.5
+    },
+    {
+      "name": "ink on raised",
+      "foreground": "ink",
+      "background": "raised",
+      "minimum": 4.5
+    },
+    {
+      "name": "muted on canvas",
+      "foreground": "muted",
+      "background": "canvas",
+      "minimum": 4.5
+    },
+    {
+      "name": "muted on surface",
+      "foreground": "muted",
+      "background": "surface",
+      "minimum": 4.5
+    },
+    {
+      "name": "muted on raised",
+      "foreground": "muted",
+      "background": "raised",
+      "minimum": 4.5
+    },
+    {
+      "name": "accent-text on canvas",
+      "foreground": "accent-text",
+      "background": "canvas",
+      "minimum": 4.5
+    },
+    {
+      "name": "accent-text on surface",
+      "foreground": "accent-text",
+      "background": "surface",
+      "minimum": 4.5
+    },
+    {
+      "name": "accent-text on raised",
+      "foreground": "accent-text",
+      "background": "raised",
+      "minimum": 4.5
+    },
+    {
+      "name": "positive on canvas",
+      "foreground": "positive",
+      "background": "canvas",
+      "minimum": 4.5
+    },
+    {
+      "name": "positive on surface",
+      "foreground": "positive",
+      "background": "surface",
+      "minimum": 4.5
+    },
+    {
+      "name": "positive on raised",
+      "foreground": "positive",
+      "background": "raised",
+      "minimum": 4.5
+    },
+    {
+      "name": "caution on canvas",
+      "foreground": "caution",
+      "background": "canvas",
+      "minimum": 4.5
+    },
+    {
+      "name": "caution on surface",
+      "foreground": "caution",
+      "background": "surface",
+      "minimum": 4.5
+    },
+    {
+      "name": "caution on raised",
+      "foreground": "caution",
+      "background": "raised",
+      "minimum": 4.5
+    },
+    {
+      "name": "negative on canvas",
+      "foreground": "negative",
+      "background": "canvas",
+      "minimum": 4.5
+    },
+    {
+      "name": "negative on surface",
+      "foreground": "negative",
+      "background": "surface",
+      "minimum": 4.5
+    },
+    {
+      "name": "negative on raised",
+      "foreground": "negative",
+      "background": "raised",
+      "minimum": 4.5
+    },
+    {
+      "name": "on-signal on signal",
+      "foreground": "on-signal",
+      "background": "signal",
+      "minimum": 4.5
+    },
+    {
+      "name": "on-screen on screen",
+      "foreground": "on-screen",
+      "background": "screen",
+      "minimum": 4.5
+    },
+    {
+      "name": "signal on screen",
+      "foreground": "signal",
+      "background": "screen",
+      "minimum": 3
+    },
+    {
+      "name": "track on screen",
+      "foreground": "track",
+      "background": "screen",
+      "minimum": 3
+    },
+    {
+      "name": "screen-caution on screen",
+      "foreground": "screen-caution",
+      "background": "screen",
+      "minimum": 4.5
+    },
+    {
+      "name": "control-line on surface",
+      "foreground": "control-line",
+      "background": "surface",
+      "minimum": 3
+    },
+    {
+      "name": "control-line on raised",
+      "foreground": "control-line",
+      "background": "raised",
+      "minimum": 3
+    },
+    {
+      "name": "focus on canvas",
+      "foreground": "focus",
+      "background": "canvas",
+      "minimum": 3
+    },
+    {
+      "name": "focus on surface",
+      "foreground": "focus",
+      "background": "surface",
+      "minimum": 3
+    },
+    {
+      "name": "focus on raised",
+      "foreground": "focus",
+      "background": "raised",
+      "minimum": 3
+    }
+  ]
+}

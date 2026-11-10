@@ -1,11 +1,20 @@
 <script setup lang="ts">
+import CockpitRepair from './CockpitRepair.vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { invoke, isTauri } from '@tauri-apps/api/core'
 import Icon from '../../shared/components/Icon.vue'
 import Modal from '../../shared/components/Modal.vue'
 import { threadsService as service } from '../../services/threads'
 import type { ThreadCatalog, ThreadDetail, ThreadPlan, ThreadBackup } from '../../types/threads'
-import { compact, filterThreads, projectName, usageSegments, exportMarkdown } from './model'
+import {
+  compact,
+  filterThreads,
+  projectName,
+  usageSegments,
+  exportMarkdown,
+  scopeThreads,
+  threadKind,
+} from './model'
 import './threads.css'
 import UsageHistory from './UsageHistory.vue'
 const catalog = ref<ThreadCatalog | null>(null)
@@ -16,6 +25,9 @@ const busy = ref(false),
   detail = ref<ThreadDetail | null>(null),
   detailBusy = ref(false),
   detailError = ref('')
+const scope = ref('conversation')
+const repairTarget = ref('')
+const repairRange = ref('all')
 const search = ref(''),
   project = ref(''),
   archive = ref('all'),
@@ -91,8 +103,9 @@ const rows = computed(() =>
     model: r.model || usageCache.value[r.id]?.models.at(-1) || '',
   })),
 )
+const scoped = computed(() => scopeThreads(rows.value, scope.value))
 const filtered = computed(() =>
-  filterThreads(rows.value, {
+  filterThreads(scoped.value, {
     search: search.value,
     project: project.value,
     archive: archive.value,
@@ -103,10 +116,10 @@ const filtered = computed(() =>
   }),
 )
 const projects = computed(() =>
-  [...new Set(rows.value.map((r) => r.cwd))].map((path) => ({
+  [...new Set(scoped.value.map((r) => r.cwd))].map((path) => ({
     path,
     name: projectName(path),
-    count: rows.value.filter((r) => r.cwd === path).length,
+    count: scoped.value.filter((r) => r.cwd === path).length,
   })),
 )
 const models = computed(() => [...new Set(rows.value.map((r) => r.model).filter(Boolean))])
@@ -127,13 +140,43 @@ const totals = computed(() => ({
   archived: filtered.value.filter((r) => r.archived).length,
   mismatch: filtered.value.filter((r) => r.provider !== catalog.value?.provider).length,
 }))
-const mismatch = computed(() => rows.value.filter((r) => r.provider !== catalog.value?.provider))
+const mismatch = computed(() =>
+  filtered.value.filter(
+    (r) => threadKind(r) === 'conversation' && r.provider !== catalog.value?.provider,
+  ),
+)
+const alignable = computed(() => filtered.value.filter((r) => threadKind(r) === 'conversation'))
+const canAlignTargets = computed(
+  () =>
+    targets.value.length > 0 &&
+    targets.value.every((id) =>
+      rows.value.some((r) => r.id === id && threadKind(r) === 'conversation'),
+    ),
+)
 const segments = computed(() => (detail.value?.usage ? usageSegments(detail.value.usage) : []))
 const segmentLabels = ['输入（非缓存）', '缓存输入', '输出（非推理）', '推理输出']
 const segmentTotal = computed(() => segments.value.reduce((a, b) => a + b, 0))
 const targets = computed(() =>
   checked.value.length ? checked.value : selected.value ? [selected.value] : [],
 )
+const providerOptions = computed(() =>
+  [
+    ...new Set([
+      ...(catalog.value?.providerOptions ?? []),
+      catalog.value?.provider ?? '',
+      ...rows.value.map((r) => r.provider),
+    ]),
+  ]
+    .filter(Boolean)
+    .sort(),
+)
+function openAlignment(range: string) {
+  repairRange.value = range
+  if (!providerOptions.value.includes(repairTarget.value)) {
+    repairTarget.value = catalog.value?.provider || providerOptions.value[0] || ''
+  }
+  inspecting.value = true
+}
 const date = (n: number) =>
   n
     ? new Date(n).toLocaleString('zh-CN', {
@@ -144,9 +187,15 @@ const date = (n: number) =>
       })
     : '未知'
 const bytes = (n: number) => `${(n / 1024 / 1024).toFixed(1)} MB`
-watch([search, project, archive, model, start, end, sort], () => {
+watch([search, project, archive, model, start, end, sort, scope], () => {
   page.value = 1
   checked.value = []
+  if (!filtered.value.some((r) => r.id === selected.value)) {
+    selected.value = ''
+    detail.value = null
+    detailError.value = ''
+    detailSequence++
+  }
 })
 watch(range, () => {
   end.value = ''
@@ -168,8 +217,9 @@ async function load() {
     scanning.value = false
     usageCache.value = {}
     catalog.value = await service.catalog()
-    checked.value = checked.value.filter((id) => rows.value.some((r) => r.id === id))
-    if (!rows.value.some((r) => r.id === selected.value)) selected.value = rows.value[0]?.id ?? ''
+    checked.value = checked.value.filter((id) => scoped.value.some((r) => r.id === id))
+    if (!scoped.value.some((r) => r.id === selected.value))
+      selected.value = scoped.value[0]?.id ?? ''
     if (selected.value) await readDetail(selected.value)
   } catch (e) {
     error.value = String(e)
@@ -221,9 +271,11 @@ async function apply() {
   busy.value = true
   error.value = ''
   try {
-    await service.apply(plan.value.ticket)
+    const result = await service.apply(plan.value.ticket)
     plan.value = null
-    notice.value = '索引操作已完成，备份已保存。请在 Desktop 核对实际状态。'
+    notice.value = result
+      ? `${result.localProjectRecoveryDeferred ? '项目恢复已延后，尚未全部完成；需退出相关 Desktop 后再执行。' : ''}${result.message}。${result.verificationError ? `修复后复检失败：${result.verificationError}` : result.remainingChanges === undefined ? '' : `复检剩余 ${result.remainingChanges} 项待处理`}。元数据重建失败 ${result.metadataRebuildFailedCount ?? 0} 项；跳过文件 ${result.skippedRolloutFileCount ?? 0} 项、数据库 ${result.skippedSqliteFileCount ?? 0} 项。${result.backupDirs?.length ? `备份：${result.backupDirs.join('；')}` : ''}`
+      : '演示索引已更新。'
     await load()
   } catch (e) {
     error.value = String(e)
@@ -307,7 +359,15 @@ onMounted(() => {
       </div>
       <div class="thread-heading-actions">
         <span class="thread-source">{{
-          catalog?.source === 'demo' ? '演示数据 · 不连接本机' : catalog ? '本机索引' : '尚未读取'
+          catalog?.source === 'demo'
+            ? '演示数据 · 不连接本机'
+            : catalog?.listingSource === 'official'
+              ? '官方线程列表 · 本机索引补充'
+              : catalog?.listingSource === 'index'
+                ? '本机线程索引 · 跨 Provider'
+                : catalog
+                  ? '原始索引 · 官方列表未确认'
+                  : '尚未读取'
         }}</span
         ><button class="button" :disabled="busy" @click="load">
           <Icon name="refresh" :class="{ spinning: busy }" />{{ busy ? '更新中…' : '刷新' }}
@@ -325,6 +385,16 @@ onMounted(() => {
       <button v-if="!busy" class="button" @click="load">重试</button>
     </div>
     <template v-else>
+      <p class="thread-notice">
+        按本机索引和父子关系区分普通对话与子任务，跨 Provider
+        保留记录；索引存在不代表可成功续聊。已载入索引
+        {{ rows.length }} 条 · 普通对话
+        {{ rows.filter((r) => threadKind(r) === 'conversation').length }} · 子任务
+        {{ rows.filter((r) => threadKind(r) === 'subtask').length }} · 未验证
+        {{
+          rows.filter((r) => threadKind(r) === 'unverified').length
+        }}。缺少记录文件不等于无效对话；未验证记录可切换范围查看，不会自动删除。
+      </p>
       <div class="thread-summary">
         <article class="thread-stat thread-stat-main">
           <span>THREADS / 当前筛选</span
@@ -363,6 +433,12 @@ onMounted(() => {
         </article>
       </div>
       <div class="thread-toolbar">
+        <select v-model="scope" aria-label="线程统计范围">
+          <option value="conversation">普通对话</option>
+          <option value="subtask">子任务</option>
+          <option value="unverified">未验证索引</option>
+          <option value="all">全部索引</option>
+        </select>
         <div class="thread-segments" aria-label="归档筛选">
           <button
             v-for="item in [
@@ -393,12 +469,14 @@ onMounted(() => {
           <option value="title">标题</option>
         </select>
         <button
-          v-if="catalog.provider && mismatch.length"
+          v-if="catalog.provider && alignable.length"
           class="button"
           :disabled="busy"
-          @click="inspecting = true"
+          @click="openAlignment('all')"
         >
-          <Icon name="alert" />Provider 差异 {{ mismatch.length }}
+          <Icon name="shield" />线程对齐检查<span v-if="mismatch.length">
+            · {{ mismatch.length }} 项与当前连接不同</span
+          >
         </button>
       </div>
       <div class="thread-subtoolbar">
@@ -410,6 +488,15 @@ onMounted(() => {
         ><button :disabled="busy" @click="openBackups">操作备份</button
         ><button @click="scanUsage">
           {{ scanning ? `停止解析 ${scanned}/${visible.length}` : '解析本页用量' }}</button
+        ><button
+          class="button primary thread-sync-button"
+          :disabled="
+            (checked.length ? !canAlignTargets : !alignable.length) || !catalog.provider || busy
+          "
+          :title="checked.length ? `同步勾选的 ${checked.length} 条主对话` : '同步全部主对话'"
+          @click="openAlignment(checked.length ? 'selected' : 'all')"
+        >
+          <Icon name="refresh" :size="16" />同步线程</button
         ><span v-if="scanFailures">{{ scanFailures }} 条解析失败</span>
         <span class="thread-toolbar-spacer" /><select v-model="range" aria-label="时间范围">
           <option value="all">全部时间</option>
@@ -651,52 +738,38 @@ onMounted(() => {
         ><span>索引读取 {{ date(catalog.checkedAt) }}</span>
       </footer>
     </template>
-    <Modal v-if="inspecting" title="Provider 差异" @close="inspecting = false"
-      ><p>
-        当前配置 Provider：<strong>{{ catalog?.provider || '未知' }}</strong>
+    <CockpitRepair
+      v-if="inspecting"
+      :total="rows.length"
+      :selected="checked"
+      @close="inspecting = false"
+    />
+    <Modal v-if="plan" title="确认索引变更" @close="!busy && (plan = null)"
+      ><p v-if="plan.targetProvider">
+        目标 Provider：<strong>{{ plan.targetProvider }}</strong> · 范围
+        {{ plan.selectedCount }} 条主对话
       </p>
-      <p>
-        发现 {{ mismatch.length }} 条不同 Provider 的索引记录。不同不一定是错误；只有确认需要在当前
-        Provider 下显示时才对齐。
-      </p>
-      <div class="thread-diff">
-        <div v-for="r in mismatch.slice(0, 100)" :key="r.id">
-          <b>{{ r.title }}</b
-          ><code>{{ r.provider || '空' }} → {{ catalog?.provider }}</code>
+      <p v-for="w in plan.warnings" :key="w" class="thread-detail-warning">{{ w }}</p>
+      <div v-if="plan.upstreamReport" class="thread-diff" aria-label="线程修复预览报告">
+        <div>
+          <b>线程修复引擎</b
+          ><span
+            >数据库更新 {{ plan.upstreamReport.updatedSqliteRowCount ?? 0 }} 项；文件时间调整
+            {{ plan.upstreamReport.changedRolloutFileCount ?? 0 }} 项</span
+          ><span
+            >目录新增 {{ plan.upstreamReport.insertedCatalogRowCount ?? 0 }} 项、移除
+            {{ plan.upstreamReport.removedCatalogRowCount ?? 0 }} 项；全局状态
+            {{ plan.upstreamReport.updatedGlobalStateEntryCount ?? 0 }} 项</span
+          ><span
+            >跳过文件 {{ plan.upstreamReport.skippedRolloutFileCount ?? 0 }} 项、数据库
+            {{ plan.upstreamReport.skippedSqliteFileCount ?? 0 }} 项</span
+          >
         </div>
       </div>
-      <p class="thread-detail-warning">
-        这是索引级修复，不改会话文件、不转换加密历史，不保证跨账号或跨模型续聊成功。
-      </p>
-      <button
-        class="button primary"
-        :disabled="!mismatch.length || !catalog?.provider || busy"
-        @click="
-          preview(
-            'provider',
-            catalog!.provider,
-            mismatch.slice(0, 100).map((r) => r.id),
-          )
-        "
-      >
-        预览{{ mismatch.length > 100 ? '前 100 条' : '' }}修改<Icon name="arrow" /></button
-      ><button
-        class="button"
-        :disabled="!mismatch.length || !catalog?.provider || busy"
-        @click="
-          preview(
-            'migration',
-            catalog!.provider,
-            mismatch.slice(0, 100).map((r) => r.id),
-          )
-        "
-      >
-        预览完整迁移
-      </button>
-      <p>完整迁移同时修改会话文件元数据，执行前需退出客户端；非元数据记录保持原字节。</p>
-    </Modal>
-    <Modal v-if="plan" title="确认索引变更" @close="!busy && (plan = null)"
-      ><p v-for="w in plan.warnings" :key="w" class="thread-detail-warning">{{ w }}</p>
+      <details v-if="plan.upstreamReport">
+        <summary>查看上游完整报告</summary>
+        <pre class="thread-upstream-report">{{ JSON.stringify(plan.upstreamReport, null, 2) }}</pre>
+      </details>
       <div class="thread-diff">
         <div v-for="c in plan.changes" :key="c.id">
           <b>{{ c.title }}</b
@@ -706,17 +779,49 @@ onMounted(() => {
       <p v-if="plan.rollouts?.length">
         另有 {{ plan.rollouts.length }} 个会话文件元数据将迁移，原文件已保存在预览备份中。
       </p>
-      <p v-if="!plan.changes.length && !plan.rollouts?.length">没有需要修改的记录。</p>
+      <p v-if="plan.visibilityChanges">
+        另有 {{ plan.visibilityChanges }} 项可见性标记、派生索引或文件时间戳调整，聊天文件内容不变。
+      </p>
+      <div v-if="plan.metadataChanges?.length" class="thread-diff">
+        <div v-for="m in plan.metadataChanges" :key="`${m.id}:${m.field}`">
+          <b>{{ rows.find((r) => r.id === m.id)?.title || m.id }} · {{ m.field }}</b>
+          <code
+            >{{ m.before === null ? 'NULL' : String(m.before).slice(0, 80) || '空' }} →
+            {{ String(m.after ?? 'NULL').slice(0, 80) }}</code
+          >
+        </div>
+      </div>
+      <div v-if="plan.indexChanges?.length" class="thread-diff">
+        <div v-for="i in plan.indexChanges" :key="`${i.database}:${i.table}:${i.id}`">
+          <b>{{ i.id }} · {{ i.table }}</b
+          ><code>{{ i.database }}</code
+          ><code>{{ i.before || '空' }} → {{ i.after }}</code>
+        </div>
+      </div>
+      <div v-if="plan.fileTimeChanges?.length" class="thread-diff">
+        <div v-for="t in plan.fileTimeChanges" :key="t.path">
+          <b>会话文件修改时间</b><code>{{ t.path }}</code>
+          <code
+            >{{ new Date(t.before).toLocaleString('zh-CN') }} →
+            {{ new Date(t.after).toLocaleString('zh-CN') }}</code
+          >
+        </div>
+      </div>
+      <p v-if="!plan.changes.length && !plan.rollouts?.length && !plan.visibilityChanges">
+        没有需要修改的记录。
+      </p>
       <label class="thread-confirm"
-        ><input
-          v-model="confirmed"
-          type="checkbox"
-        />我已结束所选对话的生成，并确认上述修改范围。</label
+        ><input v-model="confirmed" type="checkbox" />我已核对所选线程、目标 Provider
+        和上述修改范围。</label
       >
       <p v-if="error" role="alert" class="thread-alert">{{ error }}</p>
       <button
         class="button primary"
-        :disabled="!confirmed || (!plan.changes.length && !plan.rollouts?.length) || busy"
+        :disabled="
+          !confirmed ||
+          (!plan.changes.length && !plan.rollouts?.length && !plan.visibilityChanges) ||
+          busy
+        "
         @click="apply"
       >
         {{ busy ? '执行中…' : '保存备份并执行' }}

@@ -48,6 +48,8 @@ pub struct Plan {
     pub changes: Vec<String>,
     pub warnings: Vec<String>,
     pub count: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub process: Option<process::ProcessPreview>,
 }
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -66,7 +68,7 @@ struct Ticket {
     created_at: u64,
     root: PathBuf,
     fingerprint: String,
-    desktop: Option<PathBuf>,
+    native_process: Option<process::PreparedAction>,
 }
 #[derive(Default)]
 pub struct MaintenanceState {
@@ -175,32 +177,26 @@ pub async fn maintenance_apply(
             return Err("维护目标已变化".into());
         }
         if matches!(ticket.view.action.as_str(), "restart" | "forceKill") {
-            let path = ticket.desktop.ok_or("没有可用的 Desktop 目标")?;
-            if process::discover().as_ref() != Some(&path) {
-                return Err("Desktop 路径已变化，请重新预览".into());
-            }
-            if ticket.view.action == "forceKill" {
-                let count = process::force_kill(&path, &process::SystemForceRunner)?;
-                return Ok(result(
-                    "forceKill",
-                    if count == 0 {
-                        "未检测到目标 Desktop 进程，无需结束。".into()
-                    } else {
-                        format!("已结束 {count} 个目标 Desktop 进程；未重新启动。")
-                    },
-                    count,
-                    vec![],
-                    None,
-                ));
-            }
-            process::restart(&path, &process::SystemRunner)?;
-            return Ok(result(
-                "restart",
-                "Desktop 已重新启动（进程已确认；会话就绪需在客户端核对）。".into(),
-                1,
-                vec![],
-                None,
-            ));
+            use crate::gateway::storage::{open_private, private_dir};
+            use fs2::FileExt;
+            let app_root = app
+                .path()
+                .app_data_dir()
+                .map_err(|_| "无法定位维护锁目录")?;
+            private_dir(&app_root.join("maintenance"))?;
+            let write_gate = open_private(&app_root.join("maintenance/codex-write.lock"))?;
+            write_gate
+                .try_lock_exclusive()
+                .map_err(|_| "配置修复正在执行，未操作进程")?;
+            private_dir(&app_root.join("thread-backups"))?;
+            let thread_gate = open_private(&app_root.join("thread-backups/mutation.lock"))?;
+            thread_gate
+                .try_lock_exclusive()
+                .map_err(|_| "线程维护正在执行，未操作进程")?;
+            let plan = ticket
+                .native_process
+                .ok_or("没有已审核的原生进程计划，请重新预览")?;
+            return process::apply_native(&plan);
         }
         store::apply(&ticket)
     })

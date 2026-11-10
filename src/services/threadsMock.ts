@@ -33,13 +33,19 @@ export function createThreadDemo(): ThreadsService {
     tokens: i === 7 ? null : [4850000, 805900, 5600000, 256600, 1100000][i % 5]!,
     rolloutPath: `/demo/sessions/${i}.jsonl`,
     source: 'desktop',
+    kind: 'conversation',
   }))
   const plans = new Map<string, ThreadPlan>()
   const history: { backup: ThreadBackup; old: ThreadRecord[]; after: ThreadRecord[] }[] = []
   function plan(ids: string[], action: ThreadPlan['action'], value: string) {
+    if (action === 'provider' && !['atelier', ...rows.map((r) => r.provider)].includes(value)) {
+      throw Error('目标 Provider 不在演示配置或索引中')
+    }
     const p: ThreadPlan = {
       ticket: crypto.randomUUID(),
       action,
+      targetProvider: action === 'provider' ? value : undefined,
+      selectedCount: ids.length,
       changes: rows
         .filter((r) => ids.includes(r.id))
         .map((r) => ({
@@ -65,6 +71,7 @@ export function createThreadDemo(): ThreadsService {
         source: 'demo',
         database: '演示索引 · 不连接本机',
         provider: 'atelier',
+        providerOptions: ['atelier', 'legacy-relay'],
         checkedAt: Date.now(),
         threads: structuredClone(rows),
         warnings: [],

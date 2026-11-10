@@ -1,11 +1,10 @@
 import pixelNameplate from '../../assets/branding/codex-pixel-nameplate.png'
 
-/* Timing adapted from dsh-theme-endfield (MIT), 30-boot-loader.js.
- * Source: 359bfad889b4f3d2e79515c4145f624f34ba84f1. See THIRD_PARTY_NOTICES.md.
- * Horizontal cockpit composition follows the user's screenshot; all insignia
- * are drawn for Atelier. The pixel nameplate is generated from the user's
- * requested Blossom reference; provenance: docs/codex-pixel-nameplate.md.
- * Only a local interface animation; it never represents account/network progress.
+/* Original Atelier boot sequence.
+ * The pixel nameplate is generated for this project from the user's requested
+ * Blossom reference; provenance: docs/codex-pixel-nameplate.md. Remaining marks
+ * are drawn here. Only a local interface animation: the counter reflects mount
+ * progress, never account or network work.
  */
 export interface BootAnimationOptions {
   ready: () => boolean
@@ -17,7 +16,7 @@ export function mountEndfieldLoader(options: BootAnimationOptions): () => void {
   plate.dataset.endfieldLoader = ''
   plate.tabIndex = -1
   plate.setAttribute('role', 'region')
-  plate.setAttribute('aria-label', '终末地启动动画')
+  plate.setAttribute('aria-label', '工作站启动动画')
   plate.innerHTML = `
     <div aria-hidden="true" translate="no" lang="en" class="notranslate">
       <div class="field-boot-grid"></div>
@@ -51,8 +50,8 @@ export function mountEndfieldLoader(options: BootAnimationOptions): () => void {
         <img src="${pixelNameplate}" alt="Codex 像素铭牌，右侧为结形标志" decoding="sync" fetchpriority="high" />
       </div>
       <div class="field-boot-channel field-boot-channel-left"><b>01</b><span><small>INTERFACE</small><strong data-endfield-loader-interface>INITIALIZING</strong></span></div>
-      <div class="field-boot-channel field-boot-channel-right"><b>02</b><span><small>VISUAL SYSTEM</small><strong>ENDFIELD</strong></span></div>
-      <div data-endfield-loader-brand><h1>CODEX ATELIER</h1><p>ENDFIELD WORKBENCH / YOUR PERSONAL CONTROL ROOM</p></div>
+      <div class="field-boot-channel field-boot-channel-right"><b>02</b><span><small>VISUAL SYSTEM</small><strong>ATELIER</strong></span></div>
+      <div data-endfield-loader-brand><h1>CODEX ATELIER</h1><p>WORKBENCH / YOUR PERSONAL CONTROL ROOM</p></div>
       <div class="field-boot-progress">
         <div class="field-boot-progress-track"><div data-endfield-loader-progress></div></div>
         <div class="field-boot-progress-caption"><span>WORKSPACE / INITIALIZING</span><b>ATELIER SYSTEMS 01-A</b></div>

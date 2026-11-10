@@ -13,6 +13,9 @@ vi.mock('../src/services/accounts', () => ({
     refresh: vi.fn(),
     autoRefreshStatus: vi.fn(),
     setAutoRefreshInterval: vi.fn(),
+    preview: vi.fn(),
+    apply: vi.fn(),
+    networkSettings: vi.fn(),
   },
 }))
 const now = 1_800_000_000_000
@@ -76,6 +79,11 @@ beforeEach(() => {
       },
     ],
   }
+  vi.mocked(accountsService.networkSettings).mockResolvedValue({
+    revision: 'fixture-network',
+    settings: { mode: 'system', url: null },
+    subscription: null,
+  })
   vi.mocked(accountsService.snapshot).mockImplementation(async () => structuredClone(current))
   vi.mocked(accountsService.detectCurrent).mockImplementation(async () => structuredClone(current))
   nativeStatus = {
@@ -117,6 +125,83 @@ function finished(updated = 1, failed = 0, error: string | null = null) {
   }
   useAccountRefresh().accept(structuredClone(nativeStatus))
 }
+describe('independent subscription API status', () => {
+  it('reports quota-only partial success without a false all-failed count or green subscription state', async () => {
+    vi.mocked(accountsService.refresh).mockResolvedValue({
+      snapshot: structuredClone(current),
+      results: [
+        {
+          id: 'fixture-account',
+          ok: true,
+          partial: true,
+          message: '额度已更新；订阅连接失败，保留旧资料',
+        },
+      ],
+    })
+    const page = await open()
+    await flushPromises()
+    expect(page.text()).toContain('订阅 API 尚未验证')
+    await page.get('[aria-label="刷新全部额度"]').trigger('click')
+    await flushPromises()
+    expect(page.text()).toContain('1 项部分成功')
+    expect(page.text()).toContain('0 项失败')
+    expect(page.text()).toContain('额度已更新；订阅连接失败')
+    expect(page.text()).not.toContain('订阅 API 最近正常')
+  })
+})
+describe('official account connection switch', () => {
+  it('does not change routing on detection and shows reviewed direct changes before confirmation', async () => {
+    vi.mocked(accountsService.preview).mockResolvedValue({
+      ticket: 'official-ticket',
+      target: '/fixture/auth.json',
+      before: '旧账号',
+      after: '官方账号',
+      expiresAt: now + 300_000,
+      rollback: false,
+      warning: '仅修改所列凭据与配置',
+      connection: '官方直连 · 绕过Atelier路由网关',
+      changes: ['撤销当前Provider选择，保留Provider定义'],
+    })
+    vi.mocked(accountsService.apply).mockResolvedValue(structuredClone(current))
+    const page = await open()
+    await flushPromises()
+    expect(accountsService.preview).not.toHaveBeenCalled()
+    expect(accountsService.apply).not.toHaveBeenCalled()
+    await page.get('.account-switch-action').trigger('click')
+    await flushPromises()
+    expect(page.text()).toContain('官方直连 · 绕过Atelier路由网关')
+    expect(page.text()).toContain('保留Provider定义')
+    const confirm = () => page.findAll('button').find((b) => b.text() === '备份并切换')!
+    expect(confirm().attributes('disabled')).toBeDefined()
+    await page.get('dialog input[type="checkbox"]').setValue(true)
+    await confirm().trigger('click')
+    await flushPromises()
+    expect(accountsService.apply).toHaveBeenCalledWith('official-ticket')
+  })
+  it('cancelled switch does not apply a direct-connection change', async () => {
+    vi.mocked(accountsService.preview).mockResolvedValue({
+      ticket: 'cancel-ticket',
+      target: '/fixture/auth.json',
+      before: '旧账号',
+      after: '官方账号',
+      expiresAt: now + 300_000,
+      rollback: false,
+      warning: '预览',
+      connection: '官方直连',
+      changes: [],
+    })
+    const page = await open()
+    await flushPromises()
+    await page.get('.account-switch-action').trigger('click')
+    await flushPromises()
+    await page
+      .findAll('button')
+      .find((b) => b.text() === '取消')!
+      .trigger('click')
+    expect(accountsService.apply).not.toHaveBeenCalled()
+  })
+})
+
 describe('native account background refresh integration', () => {
   it('saves the frequency in the native controller and never starts a page quota timer', async () => {
     const page = await open()

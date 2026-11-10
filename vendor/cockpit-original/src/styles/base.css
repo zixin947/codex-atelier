@@ -1,0 +1,294 @@
+/* ============================================
+   Cockpit Tools - Design System
+   Brand Direction: floating dashboard with soft gradients
+   ============================================ */
+
+/* Important limits in the first layer also override component-specific important styles. */
+@layer simplified-visuals;
+
+:root {
+  /* Typography */
+  --font-sans: 'Inter', 'Segoe UI', sans-serif;
+  /* Windows has neither JetBrains Mono nor SFMono-Regular by default, so without
+     these fallbacks the stack collapsed to the browser's generic `monospace`,
+     which renders digits like "4" with a missing top-right corner. */
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', 'Cascadia Mono', 'SFMono-Regular', 'Consolas',
+    'DejaVu Sans Mono', monospace;
+
+  /* Brand Colors */
+  --primary: #1d4ed8;
+  --primary-hover: #1e40af;
+  --primary-light: rgba(29, 78, 216, 0.12);
+  --accent: #0ea5a5;
+
+  /* Status Colors */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --warning-strong: #f97316;
+  --danger: #ef4444;
+
+  /* Background Colors */
+  --bg-primary: #f6f5f2;
+  /* Solid surfaces: dialogs / dropdowns / menus (no transparency) */
+  --bg-secondary: #ffffff;
+  --bg-surface: var(--bg-secondary);
+  /* Soft panels: cards / list rows (slight transparency to show gradient) */
+  --bg-tertiary: #eef2f7;
+  --bg-card: rgba(255, 255, 255, 0.75);
+  --bg-hover: rgba(15, 23, 42, 0.06);
+
+  /* Text Colors */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  /* Border Colors */
+  --border: rgba(15, 23, 42, 0.12);
+  --border-light: rgba(15, 23, 42, 0.08);
+
+  /* Shadows */
+  --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 12px 24px rgba(15, 23, 42, 0.12);
+  --shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.18);
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #1d4ed8 0%, #0ea5a5 100%);
+  --gradient-success: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  --gradient-danger: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Component sizing */
+  --modal-close-icon-size: 16px;
+}
+
+/* === Dark Theme === */
+[data-theme="dark"] {
+  /* Brand Colors - slightly brighter for dark mode */
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-light: rgba(59, 130, 246, 0.15);
+  --accent: #14b8a6;
+
+  /* Status Colors */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --warning-strong: #f97316;
+  --danger: #ef4444;
+
+  /* Background Colors - dark palette */
+  --bg-primary: #0f172a;
+  /* Solid surfaces: dialogs / dropdowns / menus (no transparency) */
+  --bg-secondary: #1e293b;
+  --bg-surface: var(--bg-secondary);
+  /* Soft panels: cards / list rows (slight transparency to show gradient) */
+  --bg-tertiary: #334155;
+  --bg-card: rgba(30, 41, 59, 0.85);
+  --bg-hover: rgba(255, 255, 255, 0.08);
+
+  /* Text Colors - inverted */
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  /* Border Colors */
+  --border: rgba(255, 255, 255, 0.12);
+  --border-light: rgba(255, 255, 255, 0.06);
+
+  /* Shadows - darker */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 12px 24px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.45);
+
+  color-scheme: dark;
+}
+
+/* Theme color packs (#1399) — layered on light/dark base */
+[data-theme-color="nord"] {
+  --primary: #5e81ac;
+  --primary-hover: #81a1c1;
+  --accent: #88c0d0;
+}
+[data-theme-color="nord"][data-theme="dark"] {
+  --bg-primary: #2e3440;
+  --bg-secondary: #3b4252;
+  --bg-tertiary: #434c5e;
+  --text-primary: #eceff4;
+  --text-secondary: #d8dee9;
+}
+[data-theme-color="tokyo-night"] {
+  --primary: #7aa2f7;
+  --primary-hover: #89b4fa;
+  --accent: #bb9af7;
+}
+[data-theme-color="tokyo-night"][data-theme="dark"] {
+  --bg-primary: #1a1b26;
+  --bg-secondary: #24283b;
+  --bg-tertiary: #414868;
+  --text-primary: #c0caf5;
+  --text-secondary: #a9b1d6;
+}
+[data-theme-color="catppuccin"] {
+  --primary: #89b4fa;
+  --accent: #cba6f7;
+}
+[data-theme-color="catppuccin"][data-theme="dark"] {
+  --bg-primary: #1e1e2e;
+  --bg-secondary: #313244;
+  --text-primary: #cdd6f4;
+}
+[data-theme-color="gruvbox"] {
+  --primary: #d79921;
+  --accent: #689d6a;
+}
+[data-theme-color="gruvbox"][data-theme="dark"] {
+  --bg-primary: #282828;
+  --bg-secondary: #3c3836;
+  --text-primary: #ebdbb2;
+}
+[data-theme-color="everforest"] {
+  --primary: #a7c080;
+  --accent: #7fbbb3;
+}
+[data-theme-color="everforest"][data-theme="dark"] {
+  --bg-primary: #2d353b;
+  --bg-secondary: #343f44;
+  --text-primary: #d3c6aa;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: radial-gradient(circle at 12% 10%, rgba(29, 78, 216, 0.12), transparent 45%),
+    radial-gradient(circle at 90% 5%, rgba(14, 165, 165, 0.12), transparent 40%),
+    linear-gradient(180deg, #f8f7f4 0%, #eef1f6 100%);
+  color: var(--text-primary);
+  line-height: 1.6;
+  color-scheme: light;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Dark mode body background */
+[data-theme="dark"] body,
+html[data-theme="dark"] body {
+  background: radial-gradient(circle at 12% 10%, rgba(59, 130, 246, 0.15), transparent 45%),
+    radial-gradient(circle at 90% 5%, rgba(20, 184, 166, 0.12), transparent 40%),
+    linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  color-scheme: dark;
+}
+
+@layer simplified-visuals {
+  html[data-reduced-motion="true"] body:not(.floating-card-overlay-root) {
+    background: var(--bg-primary) !important;
+  }
+
+  /* Stop decorative animations; keep the existing loading indicators. */
+  html[data-reduced-motion="true"],
+  html[data-reduced-motion="true"]::before,
+  html[data-reduced-motion="true"]::after,
+  html[data-reduced-motion="true"] *:not(:is(.loading-spinner, .spin, .spin svg, .icon-spin, .floating-card-spin, .animate-spin, .chatgpt-plan-spin, .codex-official-spin, .official-auth-spin, .pelican-spinner, .codex-proxy-latency-spinner)),
+  html[data-reduced-motion="true"] *::before,
+  html[data-reduced-motion="true"] *::after {
+    animation: none !important;
+  }
+
+  html[data-reduced-motion="true"] .flying-rocket,
+  html[data-reduced-motion="true"] .side-nav-update-progress-ripple {
+    display: none !important;
+  }
+
+  /* Disable transitions, filters and shadows across the interface. */
+  html[data-reduced-motion="true"],
+  html[data-reduced-motion="true"]::before,
+  html[data-reduced-motion="true"]::after,
+  html[data-reduced-motion="true"] *,
+  html[data-reduced-motion="true"] *::before,
+  html[data-reduced-motion="true"] *::after,
+  html[data-reduced-motion="true"] *::-webkit-slider-thumb {
+    transition: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Cards stay still on hover; positioning transforms on controls remain intact. */
+  html[data-reduced-motion="true"] :where(.accounts-page, .codex-accounts-page, .ghcp-accounts-page) :is(.account-card, .codex-account-card, .ghcp-account-card) {
+    transform: none !important;
+  }
+
+  /* Keep the original account surfaces and state indicators from reduced motion. */
+  html[data-reduced-motion="true"] :where(
+    .accounts-page .toolbar,
+    .accounts-page .accounts-grid .account-card,
+    .accounts-page .card-quota-grid,
+    .codex-accounts-page .codex-accounts-grid .codex-account-card,
+    .ghcp-accounts-page .ghcp-accounts-grid .ghcp-account-card
+  ) {
+    background: var(--bg-surface) !important;
+  }
+
+  html[data-reduced-motion="true"] :where(
+    .accounts-page .account-card.selected,
+    .codex-accounts-page .codex-accounts-grid .codex-account-card.selected,
+    .ghcp-accounts-page .ghcp-accounts-grid .ghcp-account-card.selected
+  ) {
+    background: color-mix(in srgb, var(--bg-surface) 88%, var(--primary) 12%) !important;
+  }
+
+  html[data-reduced-motion="true"] :where(
+    .accounts-page .account-card.disabled,
+    .ghcp-accounts-page .ghcp-accounts-grid .ghcp-account-card.disabled
+  ) {
+    background: color-mix(in srgb, var(--bg-surface) 92%, var(--danger) 8%) !important;
+  }
+
+  html[data-reduced-motion="true"] :where(
+    .codex-accounts-page .codex-accounts-grid .codex-account-card:is(.new-api-exclusive, .api-key-usage-account, .sponsor-api-account),
+    .claude-accounts-page .codex-account-card.sponsor-api-account,
+    .claude-accounts-page .ghcp-account-card.sponsor-api-account
+  ) {
+    background: var(--bg-surface) !important;
+  }
+}
+
+/* Optional OLED palette; independent of the existing theme packs. */
+html[data-theme-color="oled"] {
+  --bg-primary: #fff;
+  --bg-secondary: #fff;
+  --bg-tertiary: #f5f5f5;
+  --bg-card: #fff;
+  --bg-hover: rgba(0, 0, 0, 0.06);
+  --text-primary: #000;
+  --text-secondary: #333;
+  --text-muted: #666;
+  --border: rgba(0, 0, 0, 0.2);
+  --border-light: rgba(0, 0, 0, 0.1);
+}
+html[data-theme-color="oled"][data-theme="dark"] {
+  --bg-primary: #000;
+  --bg-secondary: #000;
+  --bg-tertiary: #111;
+  --bg-card: #000;
+  --bg-hover: rgba(255, 255, 255, 0.1);
+  --text-primary: #fff;
+  --text-secondary: #ddd;
+  --text-muted: #aaa;
+  --border: rgba(255, 255, 255, 0.25);
+  --border-light: rgba(255, 255, 255, 0.12);
+}
+html[data-theme-color="oled"] body {
+  background: var(--bg-primary);
+}

@@ -82,11 +82,32 @@ export interface AccountEdit {
 export interface AccountResult {
   id: string
   ok: boolean
+  partial?: boolean
   message: string
 }
 export interface AccountBatch {
   snapshot: AccountsSnapshot
   results: AccountResult[]
+}
+export interface ApiNetworkSettings {
+  mode: 'system' | 'direct' | 'manual'
+  url: string | null
+}
+export interface ApiNetworkView {
+  revision: string
+  settings: ApiNetworkSettings
+  subscription: { state: 'ok' | 'error'; message: string; checkedAt: number } | null
+}
+export interface ApiNetworkProbe {
+  code: string
+  reachable: boolean
+  statusCode: number | null
+  elapsedMs: number
+  message: string
+}
+export interface ApiNetworkDetection {
+  candidates: string[]
+  message: string
 }
 export interface AccountAutoRefreshStatus {
   version: number
@@ -106,4 +127,6 @@ export interface AccountSwitch {
   expiresAt: number
   rollback: boolean
   warning: string
+  connection: string
+  changes: string[]
 }

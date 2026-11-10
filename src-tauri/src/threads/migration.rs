@@ -83,6 +83,9 @@ pub(super) fn prepare(s: &Store, rows: &[Thread], target: &str) -> Result<Vec<Ro
         let p = PathBuf::from(&row.rollout_path);
         let p = if p.is_absolute() { p } else { s.home.join(p) };
         let path = approved(s, &p)?;
+        if path.extension().is_some_and(|e| e == "zst") {
+            return Err("完整迁移暂不支持压缩会话，请勿使用仅索引修复代替完整迁移".into());
+        }
         let before = bounded(&path)?;
         total += before.len();
         if total > 128 * 1024 * 1024 {

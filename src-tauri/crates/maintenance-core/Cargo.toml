@@ -1,0 +1,20 @@
+[package]
+name = "atelier-maintenance-core"
+version = "0.1.0"
+edition = "2021"
+description = "Evidence-backed maintenance algorithms recovered for Codex Atelier"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+fs2 = "0.4.3"
+base64 = "0.22"
+sha2 = "0.10"
+chrono = { version = "0.4.45", default-features = false, features = ["std"] }
+url = "2"
+toml = "0.9"
+rusqlite = { version = "0.41.1", features = ["bundled"] }
+zstd = "0.14.3"
+
+[dev-dependencies]
+tempfile = "3"

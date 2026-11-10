@@ -2,6 +2,10 @@
  * Atelier insignia and CSS/SVG artwork are independently drawn for this project.
  * Animation timing derives from dsh-theme-endfield (MIT); see notices. */
 [data-endfield-loader] {
+  /* The boot plate is a dark cut-away, not a light-theme surface, so it keeps
+     its own literal palette. Do not point these at themselves or at the paper
+     tokens: a self-reference is a var() cycle, which resolves to nothing and
+     made the whole splash transparent. */
   --boot-paper: #edf0e9;
   --boot-signal: #fff54b;
   --boot-dark: #070b0c;
@@ -156,7 +160,7 @@
   left: 0;
   right: 0;
   top: 48%;
-  background: #090e0efa;
+  background: color-mix(in srgb, var(--boot-dark) 98%, transparent);
   font-weight: 900;
   font-size: clamp(13px, 1.6vw, 29px);
   letter-spacing: -0.6px;
@@ -175,7 +179,7 @@
   height: auto;
   aspect-ratio: 1900 / 828;
   transform: translate(-50%, -50%);
-  background: #101615;
+  background: color-mix(in srgb, var(--boot-dark) 88%, #1d2a24);
 }
 .field-boot-emblem img {
   display: block;

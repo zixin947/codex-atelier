@@ -19,19 +19,14 @@ pub struct Rpc {
 }
 impl Rpc {
     pub async fn start(home: &Path) -> Result<Self, String> {
+        Self::start_mode(home, true).await
+    }
+    async fn start_mode(home: &Path, account_mode: bool) -> Result<Self, String> {
         let binary = binary()
             .ok_or("未找到 Codex Desktop 内置引擎。请安装 Desktop；Atelier 不会安装或升级 CLI。")?;
         let mut command = Command::new(&binary);
+        command.args(launch_args(account_mode));
         command
-            .args([
-                "app-server",
-                "--listen",
-                "stdio://",
-                "-c",
-                "cli_auth_credentials_store=\"file\"",
-                "-c",
-                "model_provider=\"openai\"",
-            ])
             .current_dir(home)
             .env("CODEX_HOME", home)
             .env_remove("OPENAI_API_KEY")
@@ -66,12 +61,11 @@ impl Rpc {
             events: VecDeque::new(),
             user_agent: String::new(),
         };
-        let initialized = rpc
-            .call(
-                "initialize",
-                json!({"clientInfo":{"name":"codex_atelier_accounts","version":"0.1.0"}}),
-            )
-            .await?;
+        let mut params = json!({"clientInfo":{"name":if account_mode {"codex_atelier_accounts"} else {"codex_atelier_threads"},"version":"0.1.0"}});
+        if !account_mode {
+            params["capabilities"] = json!({"experimentalApi":true});
+        }
+        let initialized = rpc.call("initialize", params).await?;
         rpc.user_agent = initialized["userAgent"]
             .as_str()
             .filter(|s| s.len() < 512 && !s.chars().any(char::is_control))
@@ -158,4 +152,30 @@ impl Rpc {
 }
 fn binary() -> Option<PathBuf> {
     crate::desktop_runtime::binary()
+}
+
+fn launch_args(account_mode: bool) -> &'static [&'static str] {
+    if account_mode {
+        &[
+            "app-server",
+            "--listen",
+            "stdio://",
+            "-c",
+            "cli_auth_credentials_store=\"file\"",
+            "-c",
+            "model_provider=\"openai\"",
+        ]
+    } else {
+        &["app-server", "--listen", "stdio://"]
+    }
+}
+#[cfg(test)]
+mod thread_context_tests {
+    use super::*;
+    #[test]
+    fn thread_listing_preserves_the_actual_provider_and_auth_storage() {
+        assert_eq!(launch_args(false), &["app-server", "--listen", "stdio://"]);
+        assert!(launch_args(true).contains(&"model_provider=\"openai\""));
+        assert!(launch_args(true).contains(&"cli_auth_credentials_store=\"file\""));
+    }
 }

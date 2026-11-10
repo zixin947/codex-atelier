@@ -1,7 +1,9 @@
 mod background;
+mod direct;
 mod local;
 mod metadata;
-mod rpc;
+mod network;
+pub(crate) mod rpc;
 pub(crate) mod storage;
 mod switch;
 pub(crate) mod types;
@@ -32,6 +34,7 @@ struct Attempt {
 struct Accounts {
     store: Store,
     background: Arc<background::Controller>,
+    network: network::Network,
     attempts: Mutex<HashMap<String, Arc<Attempt>>>,
     tickets: Mutex<HashMap<String, switch::Ticket>>,
     login_gate: tokio::sync::Mutex<()>,
@@ -49,8 +52,10 @@ impl AccountsState {
                 .join("codex-accounts"),
         )?;
         let background = background::Controller::open(store.root.join("auto-refresh.json"));
+        let network = network::Network::new(&store.root);
         let value = Arc::new(Accounts {
             store,
+            network,
             background,
             attempts: Mutex::new(HashMap::new()),
             tickets: Mutex::new(HashMap::new()),
@@ -118,7 +123,7 @@ impl Accounts {
             // Reuse the real quota path on Atelier-owned profiles. No local
             // login detection, subscription scraping or model requests here.
             match self.refresh(&id, false, false).await {
-                Ok(()) => result.updated += 1,
+                Ok(_) => result.updated += 1,
                 Err(error) => {
                     result.failed += 1;
                     if result.error.is_none() {
@@ -171,7 +176,7 @@ impl Accounts {
         id: &str,
         refresh_metadata: bool,
         include_reset_details: bool,
-    ) -> Result<(), String> {
+    ) -> Result<RefreshOutcome, String> {
         let _lock = self.store.lock(id)?;
         let expected_identity = self
             .store
@@ -241,10 +246,24 @@ impl Accounts {
             return Err("凭据身份与账号档案不一致，未采用结果。".into());
         }
         let subscription = if refresh_metadata {
-            Some(if let Some(auth) = &auth {
-                metadata::subscription(auth, &user_agent).await
-            } else {
-                Err("本应用的账号凭据暂不可读，未更新订阅信息。".into())
+            Some(match self.network.begin() {
+                Ok(request) => {
+                    let mut result = if let Some(auth) = &auth {
+                        metadata::subscription(auth, &user_agent, &request.settings).await
+                    } else {
+                        Err("本应用的账号凭据暂不可读，未更新订阅信息。".into())
+                    };
+                    match self.network.record(&request, &result) {
+                        Ok(true) => (),
+                        Ok(false) => {
+                            result =
+                                Err("API网络设置在请求中变化，未采用旧订阅结果；请重新刷新".into())
+                        }
+                        Err(e) => result = Err(e),
+                    }
+                    result
+                }
+                Err(e) => Err(e),
             })
         } else {
             None
@@ -307,10 +326,9 @@ impl Accounts {
         if let Some(error) = quota_error {
             return Err(error);
         }
-        if let Some(error) = metadata_error {
-            return Err(format!("额度已更新；{error}"));
-        }
-        Ok(())
+        Ok(RefreshOutcome {
+            subscription_error: metadata_error,
+        })
     }
     async fn begin(
         self: &Arc<Self>,
@@ -630,6 +648,7 @@ pub fn accounts_import(
         results.push(ItemResult {
             id: (i + 1).to_string(),
             ok: result.is_ok(),
+            partial: false,
             message: match result {
                 Ok(_) => "已导入；身份与额度待刷新核实。".into(),
                 Err(e) => e,
@@ -640,6 +659,54 @@ pub fn accounts_import(
         snapshot: a.snapshot()?,
         results,
     })
+}
+fn refresh_result(id: String, result: Result<RefreshOutcome, String>) -> ItemResult {
+    match result {
+        Ok(RefreshOutcome {
+            subscription_error: Some(error),
+        }) => ItemResult {
+            id,
+            ok: true,
+            partial: true,
+            message: format!("额度已更新；订阅资料未更新：{error}"),
+        },
+        Ok(_) => ItemResult {
+            id,
+            ok: true,
+            partial: false,
+            message: "本次请求的账号资料已更新（未请求的链路不计为成功）。".into(),
+        },
+        Err(error) => ItemResult {
+            id,
+            ok: false,
+            partial: false,
+            message: error,
+        },
+    }
+}
+#[tauri::command]
+pub fn accounts_network_settings(
+    app: tauri::AppHandle,
+    state: State<'_, AccountsState>,
+) -> Result<network::View, String> {
+    state.get(&app)?.network.view()
+}
+#[tauri::command]
+pub fn accounts_network_save(
+    app: tauri::AppHandle,
+    state: State<'_, AccountsState>,
+    settings: network::Settings,
+    revision: String,
+) -> Result<network::View, String> {
+    state.get(&app)?.network.save(settings, &revision)
+}
+#[tauri::command]
+pub async fn accounts_network_detect() -> Result<network::Detection, String> {
+    network::detect().await
+}
+#[tauri::command]
+pub async fn accounts_network_test(settings: network::Settings) -> Result<network::Probe, String> {
+    network::test(settings).await
 }
 #[tauri::command]
 pub async fn accounts_refresh(
@@ -662,11 +729,7 @@ pub async fn accounts_refresh(
                 include_reset_details.unwrap_or(true),
             )
             .await;
-        results.push(ItemResult {
-            id,
-            ok: result.is_ok(),
-            message: result.err().unwrap_or("额度已刷新。".into()),
-        });
+        results.push(refresh_result(id, result));
     }
     Ok(BatchResult {
         snapshot: a.snapshot()?,
@@ -720,6 +783,7 @@ pub fn accounts_remove(
                 results.push(ItemResult {
                     id,
                     ok: true,
+                    partial: false,
                     message: "本地档案已移除。".into(),
                 });
                 current = a.store.read()?.revision;
@@ -728,6 +792,7 @@ pub fn accounts_remove(
                 results.push(ItemResult {
                     id,
                     ok: false,
+                    partial: false,
                     message: e,
                 });
                 break;

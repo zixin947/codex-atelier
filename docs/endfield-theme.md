@@ -21,24 +21,27 @@ Atelier 的可切换浅色皮肤。没有选择过皮肤时默认启用；右上
 
 ## 设计与来源
 
-实际查看了上游界面截图，并阅读 [dsh-theme-endfield](https://github.com/ymh0000123/dsh-theme-endfield) 的 [配色令牌](https://github.com/ymh0000123/dsh-theme-endfield/blob/main/src/client/41-mount-tokens.js) 与 [主题样式](https://github.com/ymh0000123/dsh-theme-endfield/blob/main/src/styles/theme.css)，参考纸灰、墨黑、信号黄、直角和工业制图语言。上游原创代码为 MIT；署名及许可见 [第三方说明](../THIRD_PARTY_NOTICES.md)。
+视觉语言来自公开的终末地风格界面（纸墨表面、单一信号色、测绘网格、深色仪表、按用途分形状），设计规范整理在仓库内的 `skills/endfield-ui-design/`。语义词令牌、组件样式、背景渲染与开屏动画均为本项目独立编写：不包含上游代码、游戏素材、官方 Logo 或字标。
 
-本项目独立编写 Vue/CSS 皮肤，保留 Atelier 标识、现有导航、页面组织和账号卡片排版。主仪表采用墨黑与信号黄，正常状态继续用绿色、告警用暖橙、错误用红色。正文保持系统中文字体，英文标识和状态数字采用现有等宽字体。背景已改为直接移植上游原版等高线渲染：高斯地形场、Marching Squares 提取、闭环与样条平滑、密度/覆盖率校验、24 FPS 缓慢变形及鼠标轨迹扰动。移除了初版手绘 SVG 与额外网格，画布连续覆盖工作站；保留上游 ENDFIELD 背景字标的尺寸、字重、字距和浅色透明度。
+语义色板取值：canvas `#ECEEE6`、surface `#F7F8F2`、ink `#20231F`、muted `#575E55`、signal `#FFFA00`、accent-text `#5C5700`、positive `#246149`、caution `#775100`、negative `#A8322B`、screen `#171C17`。黄色只用于行动、当前项和进度；正文与大面积中性色承担阅读。形状按用途区分：导航与表格直角，控件 4px，面板 6px，账号卡 14px，额度用圆弧，筛选用胶囊。
 
-背景源码固定于上游提交 `359bfad889b4f3d2e79515c4145f624f34ba84f1`，保留原始注释和 MIT 署名。仅将 DSH 的宿主查找替换为 Vue 工作站元素，并适配本地偏好与生命周期清理；没有接入 DSH 账号、网络、音频或注入宿主。默认使用上游 Canvas2D 路径，未启用 Worker 执行或放宽 Tauri CSP。字标为 CSS 文字，未复制游戏图片或字体资源；这是非官方同人风格皮肤。
+早先版本曾移植第三方等高线渲染与开屏时序，本次重写已全部替换，说明见 [第三方说明](../THIRD_PARTY_NOTICES.md)。
 
 ## 代码边界
 
-| 文件                                           | 职责                                           |
-| ---------------------------------------------- | ---------------------------------------------- |
-| `src/app/theme.ts`                             | 主题类型、初始化、偏好读取与保存               |
-| `src/shared/components/ThemePicker.vue`        | 皮肤缩略预览与选择按钮                         |
-| `src/styles/tokens/endfield.css`               | 颜色、语义状态、阴影、网格、字体令牌           |
-| `src/styles/themes/endfield.css`               | 通过 `data-theme="endfield"` 覆盖现有组件外观  |
-| `src/shared/background/EndfieldBackground.vue` | Vue 挂载、选项与生命周期                       |
-| `src/shared/background/vendor/`                | 原版等高线源码、生成 Worker 源字符串与来源记录 |
+| 文件                                            | 职责                                                 |
+| ----------------------------------------------- | ---------------------------------------------------- |
+| `src/app/theme.ts`                              | 主题类型、初始化、偏好读取与保存                     |
+| `src/styles/tokens/semantic.css`                | 双主题语义色板：表面、文字、线条、信号、状态、屏幕   |
+| `src/styles/tokens/theme.css`                   | 结构令牌：字体、间距、形状、动效、布局，及旧名别名   |
+| `src/styles/tokens/endfield.css`                | 终末地专有结构令牌与 `--field-*` 别名                |
+| `src/styles/main.css`                           | 基础与终末地视觉语法：外壳、面板、仪表、控件、页面   |
+| `src/styles/themes/endfield.css`                | 仅余桌面密度与深色区域焦点色                         |
+| `src/shared/background/atelier-background.ts`   | 原创测绘网格与等高线圆环渲染器                       |
+| `src/shared/background/EndfieldBackground.vue`  | Vue 挂载、选项与生命周期                             |
+| `src/shared/startup/endfield-loader.ts`         | 原创开屏动画、退出与焦点恢复                         |
 
-覆盖主工作台、扩展、诊断、账号卡片、连接、规划页、弹窗、通知、浮层与控件状态。切换皮肤只改 HTML 主题属性和外观偏好；账号、凭据、Hook、网关与 Rust 命令不受此模块控制。启动时先应用主题再挂载界面。设置中可分别关闭完整背景、动态等高线、鼠标扰动及字标，偏好保存在 `atelier.appearance.endfieldBackground`。减少动态效果和页面隐藏时停止动画；关闭背景或切回千禧皮肤时销毁画布、rAF、监听与观察器。暗底控件的焦点框使用信号黄。
+旧变量名（`--shell`、`--panel`、`--paper`、`--edge`、`--mint`、`--raised` 等）保留为指向语义令牌的别名，功能样式表无需改名即可跟随主题。切换皮肤只改 HTML 主题属性和外观偏好；账号、凭据、Hook、网关与 Rust 命令不受控制。设置中可分别关闭完整背景、背景动画、鼠标扰动及背景标记，偏好保存在 `atelier.appearance.endfieldBackground`。减少动态效果和页面隐藏时停止动画；关闭背景或切回千禧皮肤时销毁画布、监听与观察器。暗底控件的焦点框使用信号色。
 
 右上角选择器支持点击外部或 Escape 关闭，方向键移动焦点，Enter/Space 选择。首次默认终末地；已保存的选择在重启后保留。
 
@@ -119,9 +122,9 @@ Atelier 的可切换浅色皮肤。没有选择过皮肤时默认启用；右上
 
 ## 启动开屏
 
-以用户提供的横版开屏截图为构图参考，独立绘制黑色网格、圆环刻度、三角铭记、Atelier 标识面板、横排 CODEX ATELIER 大标题、两侧编号和底部彩色横向进度线。没有使用截图里的游戏标识、DeepSeek 品牌图片或桌宠素材，也不声称已找到该截图对应的公开源码。左侧黄色细轨与底部进度线同步推进，百分比固定于左上角；不再使用右侧 END / FIELD 分行海报。
+以用户提供的横版开屏截图为构图参考，独立绘制黑色网格、圆环刻度、三角铭记、Atelier 标识面板、横排 CODEX ATELIER 大标题、两侧编号和底部彩色横向进度线。全部图形为本项目编写的 CSS/SVG，中央标记为自绘几何图案；没有使用游戏标识、第三方品牌图片或素材。
 
-生命周期和退出节奏仍参考上游同一提交的 [30-boot-loader.js](https://github.com/ymh0000123/dsh-theme-endfield/blob/359bfad889b4f3d2e79515c4145f624f34ba84f1/src/client/30-boot-loader.js)。状态文字表示本地界面初始化，不表示真实账号、网络、环境检查或额度刷新进度。启动动画按本项目需求默认开启。
+动画编排为本项目原创。状态文字表示本地界面初始化，不表示真实账号、网络、环境检查或额度刷新进度。启动动画按本项目需求默认开启。
 
 设置 → 界面皮肤 → 启动加载动画可关闭或预览，偏好保存在 `atelier.appearance.startupAnimation`。只在终末地主题每次页面启动时自动播放一次；路由和主题切换不重播。预览会关闭设置弹窗后播放，可按 Esc 跳过；按用户要求，开屏右上角不再显示跳过按钮。系统减少动效时直接跳过，播放中切至减少动效、隐藏窗口或切走终末地也会移除开屏。
 
@@ -133,9 +136,7 @@ Atelier 的可切换浅色皮肤。没有选择过皮肤时默认启用；右上
 
 横版构图根据首轮截图收小了圆环、放大主标题，并重新检查两种目标尺寸与 960×700。底部横向进度线具有实际推进值；初始化未完成时与百分比一起保持在 95%，不会仅显示一条静态装饰线。设置预览和 Esc 跳过在浏览器中再次通过。
 
-中央铭牌已换为内置图片生成工具制作的像素图：左侧 Codex 字样，右侧采用用户指定的 OpenAI / ChatGPT 结形标志参考。图片随前端离线打包，使用 `image-rendering: pixelated` 保留像素边缘，右上角跳过按钮已移除。参考源、清晰 SVG 和完整编辑提示词见 [像素铭牌说明](codex-pixel-nameplate.md)。[1440×900](screenshots/endfield/startup-pixel-1440.png) · [1280×800](screenshots/endfield/startup-pixel-1280.png) 为浏览器实际渲染；检查了本地图片加载、按钮移除、Esc 和 960×700 下无横向溢出。
-
-像素版同样通过 16 项隔离测试、类型检查/构建、格式检查及 macOS 打包；已重启 Atelier 并查看 [像素铭牌原生截图](screenshots/endfield/startup-pixel-native.png)，确认图片显示且右上角没有按钮。只查看演示工作台与外观设置，没有操作真实 Codex 客户端或真实账号。
+中央铭牌已改为本项目绘制的 SVG 几何标记（三角轮廓、十字、中心方块），不再使用任何像素图片素材；左右两侧的频道文字改为 `INTERFACE` 与 `VISUAL SYSTEM / ATELIER`。开屏的 `aria-label` 为“工作站启动动画”，测试依赖的 `data-endfield-loader-*` 属性保持不变。
 
 `pnpm exec vitest run tests/startup.test.ts tests/prototype.test.ts` 共 16 项通过；前端类型检查与构建、修改文件的 Prettier 检查、`git diff --check` 及 `pnpm tauri build --bundles app` 通过。新版 Atelier 原生窗口已重新启动，并在前台重播横版开屏，记录了 [macOS 实机截图](screenshots/endfield/startup-horizontal-native.png)。此项仅验证外观与播放；未打开真实账号页、执行账号操作或操作真实 Codex 客户端。
 
@@ -147,12 +148,12 @@ Atelier 的可切换浅色皮肤。没有选择过皮肤时默认启用；右上
 - 前端类型检查/构建、Rust 检查、格式检查、`git diff --check` 和 macOS `.app` 打包通过。
 - 没有运行真实账号检测、额度刷新、登录、切换或重置操作；没有启动新版 Tauri 窗口，也没有操作真实 Codex 客户端。原生渲染由用户验收。
 
-## 原版背景移植验证
+## 背景渲染验证
 
-- 静态检查确认 vendored 主运行时无未定义的全局依赖，未包含账户读取或网络请求。
-- 隔离浏览器确认 Canvas 有实际像素，连续帧像素摘要变化，背景确实在动态绘制。
-- 关闭完整背景后画布移除；重新启用和切换主题后均只有一个画布。
-- 模拟系统减少动态效果后，跨多个动画帧的像素摘要保持一致。
-- 原版几何与绘制算法保留；仅适配宿主、偏好与清理，不宣称与 DSH 不同布局的页面逐像素相同。
+- `src/shared/background/atelier-background.ts` 为原创实现：测绘网格每 48px 一条、每 4 条加粗，四组锚点各 5 圈等高线圆环缓慢相位漂移，针尖靠近时圆环转为强调色并绘制十字标记。没有网络请求、账户读取或 Worker。
+- 隔离浏览器确认 Canvas 有实际像素，开启动画时连续帧不同，关闭后静止。
+- 关闭完整背景后画布隐藏；重新启用后只有一个画布。
+- 模拟减少动态效果时背景保持静止；页面隐藏时停止重绘，恢复可见后继续。
+- 删除 `src/shared/background/vendor/` 后构建、类型检查与测试仍通过。
 
 右上角入口已在隔离浏览器确认：无保存偏好时默认终末地；点击切换千禧机壳后刷新可恢复选择；键盘可切回终末地，Escape 关闭并返回焦点，外部点击关闭。

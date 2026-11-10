@@ -1,0 +1,287 @@
+/* The cockpit is a separate document, so it needs the token layers itself:
+   semantic.css carries the colours, theme.css the structure, endfield.css the
+   --field-* aliases this sheet maps onto. */
+@import '../../styles/tokens/semantic.css';
+@import '../../styles/tokens/theme.css';
+@import '../../styles/tokens/endfield.css';
+
+.thread-sync-surface {
+  --font-sans: var(--field-font-display);
+  --primary: var(--ink);
+  --primary-hover: color-mix(in srgb, var(--ink) 82%, var(--screen));
+  --primary-light: var(--field-signal-wash);
+  --bg-primary: var(--shell);
+  --bg-secondary: var(--panel);
+  --bg-surface: var(--paper);
+  --bg-tertiary: var(--shell);
+  --bg-hover: var(--panel);
+  --text-primary: var(--ink);
+  --text-secondary: var(--muted);
+  --text-muted: var(--muted);
+  --border: var(--edge);
+  --border-light: var(--field-line-soft);
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  background: transparent;
+  font-family: var(--font-sans);
+  letter-spacing: 0;
+}
+
+.thread-sync-surface .modal-overlay {
+  padding: 24px;
+  background: var(--scrim);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.thread-sync-surface .codex-api-switch-notice-modal {
+  width: min(800px, 100%);
+  max-width: 800px;
+  max-height: calc(100dvh - 48px);
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: var(--paper);
+  box-shadow: 6px 6px 0 color-mix(in srgb, var(--ink) 19%, transparent);
+  animation: none;
+}
+
+.thread-sync-surface .modal-header {
+  padding: 19px 24px;
+  border-bottom: 1px solid var(--ink);
+  border-left: 6px solid var(--field-signal);
+  background: var(--screen);
+}
+
+.thread-sync-surface .modal-header h2 {
+  color: var(--screen-ink);
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.thread-sync-surface .modal-close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--field-screen-line);
+  border-radius: 2px;
+  color: var(--screen-ink);
+  background: transparent;
+}
+
+.thread-sync-surface .modal-close:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--field-signal);
+  transform: none;
+}
+
+.thread-sync-surface .modal-body {
+  padding: 22px 26px;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
+.thread-sync-surface .codex-local-access-hide-confirm-desc {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.thread-sync-surface .codex-visibility-repair-options {
+  gap: 18px;
+}
+
+.thread-sync-surface
+  :is(.codex-visibility-repair-scope__title, .codex-visibility-repair-field > span) {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.thread-sync-surface .codex-visibility-repair-scope-card {
+  padding: 12px 15px;
+  border: 1px solid var(--edge);
+  border-radius: 2px;
+  background: var(--panel);
+  box-shadow: none;
+}
+
+.thread-sync-surface .codex-visibility-repair-scope-card:hover:not(:disabled) {
+  border-color: var(--ink);
+  background: var(--highlight);
+}
+
+.thread-sync-surface .codex-visibility-repair-scope-card.is-selected {
+  border-color: var(--ink);
+  background: var(--field-signal-wash);
+  box-shadow: inset 4px 0 0 var(--field-signal);
+}
+
+.thread-sync-surface .single-select-dropdown-trigger {
+  border: 1px solid var(--edge);
+  border-radius: 2px;
+  background: var(--paper);
+  box-shadow: none;
+}
+
+.thread-sync-surface .single-select-dropdown-trigger:is(:hover, .open):not(:disabled) {
+  border-color: var(--ink);
+  background: var(--highlight);
+  box-shadow: none;
+}
+
+.thread-sync-surface .single-select-dropdown-value {
+  font-size: 13px;
+  letter-spacing: 0;
+}
+
+.thread-sync-surface .single-select-dropdown-arrow {
+  border-radius: 0;
+  background: var(--shell);
+  color: var(--ink);
+}
+
+.thread-sync-surface .single-select-dropdown-trigger.open .single-select-dropdown-arrow {
+  background: var(--field-signal);
+}
+
+.thread-sync-surface .single-select-dropdown-menu {
+  padding: 5px;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  background: var(--paper);
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--ink) 13%, transparent);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  scrollbar-color: var(--muted) transparent;
+}
+
+.thread-sync-surface .single-select-dropdown-item {
+  border-radius: 0;
+}
+
+.thread-sync-surface .single-select-dropdown-item:is(:hover, .active) {
+  background: var(--field-signal-wash);
+  color: var(--ink);
+}
+
+.thread-sync-surface .single-select-dropdown-item-check {
+  color: var(--ink);
+}
+
+.thread-sync-surface .codex-api-switch-notice-repair-status {
+  border-radius: 2px;
+  overflow-wrap: anywhere;
+}
+
+.thread-sync-surface .codex-api-switch-notice-repair-status:is(.is-loading, .is-preview) {
+  border-color: var(--edge);
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.thread-sync-surface .codex-api-switch-notice-repair-status.is-warning {
+  border-color: color-mix(in srgb, var(--caution) 45%, transparent);
+  background: var(--field-warning-wash);
+  color: var(--caution);
+}
+
+.thread-sync-surface .codex-api-switch-notice-repair-status.is-success {
+  border-color: color-mix(in srgb, var(--positive) 40%, transparent);
+  background: var(--field-success-wash);
+  color: var(--green);
+}
+
+.thread-sync-surface .codex-visibility-repair-progress__bar {
+  height: 7px;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--shell);
+}
+
+.thread-sync-surface .codex-visibility-repair-progress__bar span {
+  border-radius: 0;
+  background: var(--field-signal);
+}
+
+.thread-sync-surface .modal-footer {
+  padding: 17px 26px;
+  border-top: 1px solid var(--edge);
+  background: var(--panel);
+  flex-wrap: wrap;
+}
+
+.thread-sync-surface .btn {
+  min-height: 36px;
+  padding: 8px 16px;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  font-size: 12px;
+  letter-spacing: 0;
+  box-shadow: none;
+  transition: background 120ms ease;
+}
+
+.thread-sync-surface .btn-secondary {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.thread-sync-surface .btn-secondary:hover:not(:disabled) {
+  color: var(--ink);
+  border-color: var(--ink);
+  background: var(--shell);
+  transform: none;
+  box-shadow: none;
+}
+
+.thread-sync-surface .btn-primary {
+  color: var(--ink);
+  background: var(--field-signal);
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.thread-sync-surface .btn-primary:hover:not(:disabled) {
+  color: var(--ink);
+  background: var(--field-signal-hover);
+  transform: none;
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.thread-sync-surface .btn:active:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: none;
+}
+
+.thread-sync-surface :is(button, input):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.thread-sync-surface .modal-close:focus-visible {
+  outline-color: var(--field-signal);
+}
+
+@media (max-width: 600px) {
+  .thread-sync-surface .modal-overlay {
+    padding: 12px;
+  }
+
+  .thread-sync-surface .codex-api-switch-notice-modal {
+    max-height: calc(100dvh - 24px);
+  }
+
+  .thread-sync-surface :is(.modal-header, .modal-body, .modal-footer) {
+    padding: 16px;
+  }
+
+  .thread-sync-surface .codex-visibility-repair-scope__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .thread-sync-surface :is(.btn, .modal-overlay, .codex-visibility-repair-progress__bar span) {
+    animation: none;
+    transition: none;
+  }
+}

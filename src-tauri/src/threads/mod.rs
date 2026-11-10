@@ -1,7 +1,12 @@
+pub mod original_commands;
+mod cockpit;
+mod listing;
 mod migration;
 mod mutations;
+mod quick_repair;
 mod records;
 mod usage_history;
+mod visibility;
 use crate::gateway::types::now_ms;
 use rusqlite::{Connection, OpenFlags};
 use serde::{Deserialize, Serialize};
@@ -26,6 +31,9 @@ pub struct Thread {
     pub tokens: Option<i64>,
     pub rollout_path: String,
     pub source: String,
+    pub kind: String,
+    #[serde(default)]
+    pub explicit_user: bool,
 }
 #[derive(Clone)]
 struct Store {
@@ -48,30 +56,17 @@ impl Store {
         })
     }
     fn db(&self) -> Result<PathBuf> {
-        let mut files = fs::read_dir(&self.home)
-            .map_err(|_| "无法读取 Codex 目录")?
-            .filter_map(|e| e.ok())
-            .filter_map(|e| {
-                let n = e.file_name().to_string_lossy().into_owned();
-                let version = n
-                    .strip_prefix("state_")?
-                    .strip_suffix(".sqlite")?
-                    .parse::<u32>()
-                    .ok()?;
-                Some((version, e.path()))
-            })
-            .collect::<Vec<_>>();
-        files.sort_by_key(|x| x.0);
-        let p = files.pop().ok_or("没有找到 state_*.sqlite 会话索引")?.1;
-        if fs::symlink_metadata(&p)
-            .map_err(err)?
-            .file_type()
-            .is_symlink()
-        {
-            return Err("不支持符号链接数据库".into());
-        }
-        Ok(p)
+        #[cfg(not(test))]
+        let environment = std::env::var_os("CODEX_SQLITE_HOME");
+        #[cfg(test)]
+        let environment: Option<std::ffi::OsString> = None;
+        listing::database(
+            self,
+            environment.as_deref(),
+            std::env::current_dir().ok().as_deref(),
+        )
     }
+
     fn connection(&self, write: bool) -> Result<Connection> {
         let c = Connection::open_with_flags(
             self.db()?,
@@ -85,10 +80,10 @@ impl Store {
         c.busy_timeout(Duration::from_secs(2)).map_err(err)?;
         Ok(c)
     }
-    fn provider(&self) -> Result<String> {
+    fn config(&self) -> Result<toml::Value> {
         let p = self.home.join("config.toml");
         if !p.exists() {
-            return Ok("openai".into());
+            return Ok(toml::Value::Table(Default::default()));
         }
         let file = fs::File::open(&p).map_err(err)?;
         if file.metadata().map_err(err)?.len() > 1024 * 1024 {
@@ -100,18 +95,56 @@ impl Store {
         if bytes.len() > 1024 * 1024 {
             return Err("配置文件过大".into());
         }
-        let config: toml::Value =
-            toml::from_str(std::str::from_utf8(&bytes).map_err(err)?).map_err(err)?;
-        Ok(config
-            .get("model_provider")
+        toml::from_str(std::str::from_utf8(&bytes).map_err(err)?).map_err(err)
+    }
+    fn provider(&self) -> Result<String> {
+        let config = self.config()?;
+        let selected = config
+            .get("profile")
             .and_then(|v| v.as_str())
+            .and_then(|name| config.get("profiles").and_then(|p| p.get(name)))
+            .and_then(|profile| profile.get("model_provider"))
+            .or_else(|| config.get("model_provider"));
+        Ok(selected
+            .map(|v| v.as_str().ok_or("model_provider 必须是字符串"))
+            .transpose()?
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
             .unwrap_or("openai")
             .into())
+    }
+    fn provider_ids(&self, rows: &[Thread]) -> Result<std::collections::BTreeSet<String>> {
+        let config = self.config()?;
+        let mut ids = std::collections::BTreeSet::from(["openai".to_owned(), self.provider()?]);
+        ids.extend(
+            rows.iter()
+                .map(|r| r.provider.clone())
+                .filter(|p| !p.is_empty()),
+        );
+        if let Some(providers) = config
+            .get("model_providers")
+            .and_then(toml::Value::as_table)
+        {
+            ids.extend(providers.keys().cloned());
+        }
+        if let Some(profiles) = config.get("profiles").and_then(toml::Value::as_table) {
+            ids.extend(
+                profiles
+                    .values()
+                    .filter_map(|p| p.get("model_provider").and_then(toml::Value::as_str))
+                    .map(str::to_owned),
+            );
+        }
+        ids.retain(|id| {
+            !id.trim().is_empty() && id.len() <= 256 && !id.chars().any(char::is_control)
+        });
+        Ok(ids)
     }
     fn rows(&self) -> Result<Vec<Thread>> {
         Self::query(&self.connection(false)?)
     }
     fn query(c: &Connection) -> Result<Vec<Thread>> {
+        let non_root = listing::non_root_ids(c)?;
         let columns = c
             .prepare("PRAGMA table_info(threads)")
             .map_err(err)?
@@ -123,6 +156,18 @@ impl Store {
             return Err("不支持此版本的线程数据库：缺少 threads.id".into());
         }
         let col = |name: &str, default: &str| {
+            let alternate = match name {
+                "updated_at" => "updated_at_ms",
+                "created_at" => "created_at_ms",
+                "parent_thread_id" => "parent_session_id",
+                _ => name,
+            };
+            let name =
+                if !columns.iter().any(|x| x == name) && columns.iter().any(|x| x == alternate) {
+                    alternate
+                } else {
+                    name
+                };
             if columns.iter().any(|x| x == name) {
                 format!("COALESCE({name},{default})")
             } else {
@@ -141,6 +186,10 @@ impl Store {
             ("tokens_used", "NULL"),
             ("rollout_path", "''"),
             ("source", "''"),
+            ("thread_source", "''"),
+            ("parent_thread_id", "''"),
+            ("has_user_event", "0"),
+            ("first_user_message", "''"),
         ];
         let sql = format!(
             "SELECT {} FROM threads ORDER BY {} DESC LIMIT 10001",
@@ -149,7 +198,7 @@ impl Store {
                 .map(|(n, d)| col(n, d))
                 .collect::<Vec<_>>()
                 .join(","),
-            col("updated_at", "0")
+            col("updated_at", "NULL")
         );
         let mut stmt = c.prepare(&sql).map_err(err)?;
         let rows = stmt
@@ -161,8 +210,28 @@ impl Store {
                         t
                     }
                 };
+                let source: String = r.get(10)?;
+                let explicit_user = r.get::<_, String>(11)?.trim().eq_ignore_ascii_case("user");
+                let id: String = r.get(0)?;
+                let kind = if explicit_user {
+                    "conversation"
+                } else if non_root.contains(&id) {
+                    "subtask"
+                } else {
+                    listing::kind(
+                        &source,
+                        &r.get::<_, String>(11)?,
+                        &r.get::<_, String>(12)?,
+                        r.get::<_, i64>(13)? != 0,
+                        &r.get::<_, String>(14)?,
+                        columns
+                            .iter()
+                            .any(|c| c == "has_user_event" || c == "first_user_message"),
+                    )
+                }
+                .to_owned();
                 Ok(Thread {
-                    id: r.get(0)?,
+                    id,
                     title: r.get(1)?,
                     cwd: r.get(2)?,
                     provider: r.get(3)?,
@@ -172,7 +241,9 @@ impl Store {
                     archived: r.get::<_, i64>(7)? != 0,
                     tokens: r.get(8)?,
                     rollout_path: r.get(9)?,
-                    source: r.get(10)?,
+                    source,
+                    kind,
+                    explicit_user,
                 })
             })
             .map_err(err)?
@@ -200,13 +271,24 @@ impl Store {
                 String::new()
             }
         };
+        let conversations = rows.iter().filter(|r| r.kind == "conversation").count();
+        let subtasks = rows.iter().filter(|r| r.kind == "subtask").count();
+        let unverified = rows.len() - conversations - subtasks;
+        let provider_options = match self.provider_ids(&rows) {
+            Ok(ids) => ids.into_iter().collect::<Vec<_>>(),
+            Err(e) => {
+                warnings.push(format!("Provider 候选读取失败：{e}"));
+                vec![]
+            }
+        };
         Ok(
-            json!({"source":"native","database":self.db()?.display().to_string(),"provider":provider,"checkedAt":now_ms(),"threads":rows,"warnings":warnings}),
+            json!({"source":"native","listingSource":"index","database":self.db()?.display().to_string(),"provider":provider,"providerOptions":provider_options,"checkedAt":now_ms(),"threads":rows,"warnings":warnings,"counts":{"indexed":rows.len(),"conversations":conversations,"subtasks":subtasks,"unverified":unverified}}),
         )
     }
 }
 #[tauri::command]
 pub async fn threads_catalog(app: tauri::AppHandle) -> Result<Value> {
+    // A provider-filtered app-server response cannot establish local index membership.
     tauri::async_runtime::spawn_blocking(move || Store::native(&app)?.catalog())
         .await
         .map_err(err)?
@@ -227,30 +309,62 @@ pub async fn threads_preview(
     action: String,
     value: String,
 ) -> Result<Value> {
-    tauri::async_runtime::spawn_blocking(move || Store::native(&app)?.preview(ids, action, value))
-        .await
-        .map_err(err)?
+    tauri::async_runtime::spawn_blocking(move || {
+        let s = Store::native(&app)?;
+        if matches!(action.as_str(), "provider" | "migration") {
+            cockpit::preview(&s, ids, action == "migration", value)
+        } else {
+            s.preview(ids, action, value)
+        }
+    })
+    .await
+    .map_err(err)?
 }
 #[tauri::command]
-pub async fn threads_apply(app: tauri::AppHandle, ticket: String, confirmed: bool) -> Result<()> {
+pub async fn threads_apply(
+    app: tauri::AppHandle,
+    ticket: String,
+    confirmed: bool,
+) -> Result<Value> {
     if !confirmed {
         return Err("需要明确确认".into());
     }
-    tauri::async_runtime::spawn_blocking(move || Store::native(&app)?.apply(&ticket))
-        .await
-        .map_err(err)?
+    tauri::async_runtime::spawn_blocking(move || {
+        let s = Store::native(&app)?;
+        if cockpit::pending(&s, &ticket)? {
+            cockpit::apply(&s, &ticket)
+        } else {
+            s.apply(&ticket)?;
+            Ok(json!({"message":"索引操作已执行"}))
+        }
+    })
+    .await
+    .map_err(err)?
 }
 #[tauri::command]
 pub async fn threads_backups(app: tauri::AppHandle) -> Result<Value> {
-    tauri::async_runtime::spawn_blocking(move || Store::native(&app)?.list_backups())
-        .await
-        .map_err(err)?
+    tauri::async_runtime::spawn_blocking(move || {
+        let s = Store::native(&app)?;
+        let mut list = s.list_backups()?.as_array().ok_or("备份格式错误")?.clone();
+        list.extend(cockpit::backups(&s)?);
+        list.sort_by_key(|r| std::cmp::Reverse(r["createdAt"].as_u64().unwrap_or(0)));
+        Ok(json!(list))
+    })
+    .await
+    .map_err(err)?
 }
 #[tauri::command]
 pub async fn threads_restore(app: tauri::AppHandle, id: String) -> Result<Value> {
-    tauri::async_runtime::spawn_blocking(move || Store::native(&app)?.restore(&id))
-        .await
-        .map_err(err)?
+    tauri::async_runtime::spawn_blocking(move || {
+        let s = Store::native(&app)?;
+        if cockpit::backed(&s, &id)? {
+            cockpit::restore(&s, &id)
+        } else {
+            s.restore(&id)
+        }
+    })
+    .await
+    .map_err(err)?
 }
 #[tauri::command]
 pub async fn threads_export(app: tauri::AppHandle, id: String, format: String) -> Result<String> {

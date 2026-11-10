@@ -11,15 +11,24 @@ use uuid::Uuid;
 
 pub struct Store {
     root: PathBuf,
+    image_config_path: Option<PathBuf>,
     gate: Mutex<()>,
 }
 impl Store {
+    /// Local-only default: never resolves HOME/config implicitly, including in tests.
     pub fn new(root: PathBuf) -> Result<Self, String> {
+        Self::new_inner(root, None)
+    }
+    pub fn new_with_config(root: PathBuf, config_path: PathBuf) -> Result<Self, String> {
+        Self::new_inner(root, Some(config_path))
+    }
+    fn new_inner(root: PathBuf, image_config_path: Option<PathBuf>) -> Result<Self, String> {
         private_dir(&root)?;
         private_dir(&root.join("credentials"))?;
         private_dir(&root.join("locks"))?;
         let store = Self {
             root,
+            image_config_path,
             gate: Mutex::new(()),
         };
         {
@@ -37,8 +46,31 @@ impl Store {
         Ok(store)
     }
     pub fn image_compat_enabled(&self) -> Result<bool, String> {
-        let app_data = self.root.parent().ok_or("无法定位网关所属应用目录")?;
-        Ok(crate::maintenance::utilities::read_settings_at(app_data)?.image_compat)
+        Ok(self
+            .image_config_path
+            .as_ref()
+            .is_some_and(|path| atelier_maintenance_core::image_compat::image_compat_enabled(path)))
+    }
+    pub(crate) fn routing_target(
+        &self,
+    ) -> Result<atelier_maintenance_core::transition_journal::TransitionTarget, String> {
+        crate::maintenance::diagnostics::gateway_route_target(
+            &self.root.join("router-intent.json"),
+            self.image_config_path.as_deref(),
+        )
+    }
+    pub(crate) fn with_routing_snapshot<T>(
+        &self,
+        observe: impl FnOnce(
+            Catalog,
+            atelier_maintenance_core::transition_journal::TransitionTarget,
+        ) -> Result<T, String>,
+    ) -> Result<T, String> {
+        let _guard = self.gate.lock().map_err(|_| "账号存储锁异常。")?;
+        let _file = self.file_lock()?;
+        let catalog = self.read_inner()?;
+        let target = self.routing_target()?;
+        observe(catalog, target)
     }
     fn path(&self) -> PathBuf {
         self.root.join("catalog.json")

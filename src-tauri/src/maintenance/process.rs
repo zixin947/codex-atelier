@@ -1,3 +1,9 @@
+#[path = "native_process.rs"]
+mod native;
+pub(super) use native::{apply_native, prepare_native, PreparedAction, ProcessPreview};
+#[cfg(test)]
+#[path = "native_process_tests.rs"]
+mod native_tests;
 use super::*;
 use std::{
     path::Path,
@@ -92,6 +98,7 @@ impl Runner for SystemRunner {
         thread::sleep(Duration::from_millis(200))
     }
 }
+#[cfg(test)]
 pub(super) fn restart(path: &Path, runner: &dyn Runner) -> Result<()> {
     if runner.running(path)? {
         runner.quit(path)?;
@@ -118,61 +125,19 @@ pub(super) fn restart(path: &Path, runner: &dyn Runner) -> Result<()> {
 }
 
 /// Fixed-target process control; neither a command string nor an arbitrary PID crosses IPC.
+#[cfg(test)]
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) struct ProcessEntry {
     pub pid: u32,
     pub executable: PathBuf,
 }
+#[cfg(test)]
 pub(super) trait ForceRunner {
     fn processes(&self) -> Result<Vec<ProcessEntry>>;
     fn terminate(&self, pid: u32) -> Result<()>;
     fn pause(&self);
 }
-pub(super) struct SystemForceRunner;
-impl ForceRunner for SystemForceRunner {
-    fn processes(&self) -> Result<Vec<ProcessEntry>> {
-        #[cfg(target_os = "macos")]
-        {
-            let output = Command::new("/bin/ps")
-                .args(["-axo", "pid=,comm="])
-                .stdin(Stdio::null())
-                .output()
-                .map_err(|_| "无法读取 Desktop 进程列表")?;
-            if !output.status.success() {
-                return Err("无法读取 Desktop 进程列表".into());
-            }
-            Ok(parse_processes(&String::from_utf8_lossy(&output.stdout)))
-        }
-        #[cfg(not(target_os = "macos"))]
-        {
-            Err("此平台尚不支持强制结束 Desktop".into())
-        }
-    }
-    fn terminate(&self, pid: u32) -> Result<()> {
-        if pid <= 1 || pid == std::process::id() {
-            return Err("不允许结束此进程".into());
-        }
-        #[cfg(target_os = "macos")]
-        {
-            let pid: i32 = pid.try_into().map_err(|_| "进程编号无效")?;
-            if unsafe { libc::kill(pid, libc::SIGKILL) } != 0 {
-                let error = std::io::Error::last_os_error();
-                if error.raw_os_error() != Some(libc::ESRCH) {
-                    return Err("结束 Desktop 进程失败，请检查系统权限".into());
-                }
-            }
-            Ok(())
-        }
-        #[cfg(not(target_os = "macos"))]
-        {
-            let _ = pid;
-            Err("此平台尚不支持强制结束 Desktop".into())
-        }
-    }
-    fn pause(&self) {
-        thread::sleep(Duration::from_millis(100));
-    }
-}
+#[cfg(test)]
 fn parse_processes(text: &str) -> Vec<ProcessEntry> {
     text.lines()
         .filter_map(|line| {
@@ -183,10 +148,12 @@ fn parse_processes(text: &str) -> Vec<ProcessEntry> {
         })
         .collect()
 }
+#[cfg(test)]
 fn belongs_to_app(entry: &ProcessEntry, app: &Path) -> bool {
     // The bundle boundary includes its WebKit/helper/server executables, not similarly named apps.
     entry.executable.starts_with(app.join("Contents")) && entry.pid != std::process::id()
 }
+#[cfg(test)]
 pub(super) fn force_kill(path: &Path, runner: &dyn ForceRunner) -> Result<usize> {
     if !path.is_absolute()
         || !matches!(

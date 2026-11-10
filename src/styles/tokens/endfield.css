@@ -1,48 +1,38 @@
-/* Paper/ink/signal palette adapted from ymh0000123/dsh-theme-endfield (MIT).
-   Attribution and source boundaries: docs/endfield-theme.md. */
+/* Endfield structural tokens only. Color comes from semantic.css; the --field-*
+   names here are aliases so existing selectors keep working during the rewrite.
+
+   No upstream palette, artwork or wordmark is used. The visual grammar is ours:
+   paper surfaces, one signal colour, flat rules instead of bevels. */
+
 :root[data-theme='endfield'] {
-  color-scheme: light;
-  --shell: #e8e8e2;
-  --panel: #f2f2ec;
-  --highlight: #fafaf5;
-  --edge: #c6c8c0;
-  --line: #252824;
-  --ink: #171a18;
-  --muted: #62665e;
-  --paper: #f8f8f2;
-  --screen: #1a1d1b;
-  --screen-ink: #f2f2e9;
-  --mint: #fff500;
-  --green: #2f684d;
-  --orange: #e19a43;
-  --orange-ink: #89520c;
-  --red: #b7342f;
   --radius: 0px;
-  --raised: 0 2px 0 #25282412;
-  --sunken: inset 0 0 0 1px #25282408;
-  --key: 2px 2px 0 #252824;
-  --field-signal: #fff500;
-  --field-signal-hover: #e8df00;
-  --field-signal-ink: #655800;
-  --field-signal-wash: #f4f1cf;
-  --field-line-soft: #d5d7cf;
-  --field-background-ink: #101110;
-  --field-screen-line: #434942;
-  --field-screen-muted: #b6bcb2;
-  --field-success-wash: #e3eee4;
-  --field-warning-wash: #f2e6cf;
-  --field-error-wash: #f6e5df;
-  --field-font-display: 'Arial', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+
+  --field-signal: var(--signal);
+  --field-signal-hover: var(--signal-hover);
+  --field-signal-ink: var(--accent-text);
+  --field-signal-wash: var(--signal-wash);
+  --field-line-soft: var(--hairline);
+  --field-background-ink: var(--ink);
+  --field-screen-line: var(--screen-line);
+  --field-screen-muted: var(--screen-muted);
+  --field-success-wash: var(--positive-wash);
+  --field-warning-wash: var(--caution-wash);
+  --field-error-wash: var(--negative-wash);
+
+  --field-font-display: 'Arial', 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
   --field-nav-cut: 10px;
   --field-nav-badge-cut: 4px;
   --field-nav-hover-shift: 3px;
   --field-nav-impact-duration: 460ms;
-  --field-nav-sweep: #fff50030;
-  --field-reading-veil: #e8e8e2ed;
-  --field-wordmark-opacity: 0.06;
-  --field-header-veil: #f2f2ecf5;
-  --field-control-radius: 4px;
-  --field-control-height: 34px;
+  --field-nav-sweep: #fffa0030;
+
+  /* Reading veils sit over the background canvas so text keeps its contrast. */
+  --field-reading-veil: #eef0e8ed;
+  --field-header-veil: #f7f8f2f5;
+
+  --field-control-radius: var(--radius-control);
+  --field-control-height: var(--control);
+
   --field-account-width: 300px;
   --field-account-height: 344px;
   --field-account-padding: 15px;
@@ -50,5 +40,5 @@
   --field-account-title: 14px;
   --field-account-body: 12px;
   --field-account-label: 11px;
-  --field-surface-shadow: 0 3px 12px #171a1808;
+  --field-surface-shadow: 0 3px 12px #20231f08;
 }

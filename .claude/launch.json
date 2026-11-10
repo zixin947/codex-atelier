@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "atelier-dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["exec", "vite", "--port", "5174", "--strictPort", "false"],
+      "port": 5174
+    }
+  ]
+}

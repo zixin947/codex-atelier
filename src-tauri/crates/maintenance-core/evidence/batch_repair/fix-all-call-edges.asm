@@ -1,0 +1,15 @@
+1003a6a20: 97ff5e91    	bl	0x10037e464 <__ZN13codexmate_lib4core5relay16codex_diagnostic25run_diagnostics_with_mode17hb80314df19198764E>
+1003a6d04: 97ff5a24    	bl	0x10037d594 <__ZN13codexmate_lib4core5relay16codex_diagnostic25fix_requires_quiet_window17ha04fb1a985f8b99bE>
+1003a6d54: 9403e10d    	bl	0x10049f188 <__ZN13codexmate_lib4core5relay16codex_diagnostic5audit11RepairAudit3fix17h09ed44c66da3de57E>
+1003a720c: 9403e336    	bl	0x10049fee4 <__ZN13codexmate_lib4core5relay16codex_diagnostic5audit11RepairAudit3fix17h804d2ec3928990d7E>
+1003a758c: 9403e326    	bl	0x1004a0224 <__ZN13codexmate_lib4core5relay16codex_diagnostic5audit11RepairAudit3fix17hbc9bf518a8c7d7e4E>
+1003a7908: 9403e325    	bl	0x1004a059c <__ZN13codexmate_lib4core5relay16codex_diagnostic5audit11RepairAudit4step17h11bc0d8e71ff2b93E>
+1003a7c24: 9403e1e9    	bl	0x1004a03c8 <__ZN13codexmate_lib4core5relay16codex_diagnostic5audit11RepairAudit4step17h0d2f14edfa84afebE>
+1003a7f50: 9403e369    	bl	0x1004a0cf4 <__ZN13codexmate_lib4core5relay16codex_diagnostic5audit11RepairAudit4step17h63275ca1577b1915E>
+1003a826c: 9403e315    	bl	0x1004a0ec0 <__ZN13codexmate_lib4core5relay16codex_diagnostic5audit11RepairAudit4step17he1c5b66acf25494bE>
+1003a8c4c: 9403df3a    	bl	0x1004a0934 <__ZN13codexmate_lib4core5relay16codex_diagnostic5audit11RepairAudit4step17h51433b136fc4e3a4E>
+1003a8c68: 97ff55ff    	bl	0x10037e464 <__ZN13codexmate_lib4core5relay16codex_diagnostic25run_diagnostics_with_mode17hb80314df19198764E>
+1003a8dd4: 9406d1a3    	bl	0x10055d460 <__ZN5alloc3vec16Vec$LT$T$C$A$GT$6retain17h36e657a59ee4c1e4E>
+1003a8f60: 9406d34b    	bl	0x10055dc8c <__ZN5alloc3vec16Vec$LT$T$C$A$GT$6retain17h9ea26e16746e508dE>
+1003a92ac: 9403daa5    	bl	0x10049fd40 <__ZN13codexmate_lib4core5relay16codex_diagnostic5audit11RepairAudit3fix17h6b49f42d765212b4E>
+1003a9820: 9403d6c3    	bl	0x10049f32c <__ZN13codexmate_lib4core5relay16codex_diagnostic5audit11RepairAudit3fix17h3a1c8ea42b85a4b9E>

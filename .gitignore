@@ -4,3 +4,10 @@ src-tauri/target/
 src-tauri/gen/
 *.local
 .DS_Store
+
+src-tauri/crates/maintenance-core/target/
+src-tauri/crates/cockpit-session-compat/target/
+
+# Local verification output and agent working notes
+artifacts/
+.zcode/

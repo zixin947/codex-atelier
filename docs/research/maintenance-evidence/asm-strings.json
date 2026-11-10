@@ -1,0 +1,992 @@
+{
+ "RepairAudit-fix": [],
+ "check_auth_integrity": [
+  {
+   "vm": "0x10130cc9c",
+   "text": "auth_integrity无可用备份。请在 AiMaMi 账号管理中重新登录 ChatGPT 以恢复 auth.json路由模式不恢复或覆盖 OpenAI 认证，请在 ChatGPT 中管理登录。jsonthread-router-migrationsrelay-state-cache.jsonresidual_cache已删除 relay-state-cacheFollow the user's instructio"
+  },
+  {
+   "vm": "0x10130ceec",
+   "text": "auth.json 不存在未发现文件型认证；ChatGPT 可能使用系统凭证存储，请在原生客户端确认登录状态。文件内容被清空，Codex 无法正常鉴权auth_modeaimami_router_unlock_authlast_refreshauth.json access_token 为空OAuth 凭证缺失，智能路由透传官方模"
+  },
+  {
+   "vm": "0x10130ceff",
+   "text": "未发现文件型认证；ChatGPT 可能使用系统凭证存储，请在原生客户端确认登录状态。文件内容被清空，Codex 无法正常鉴权auth_modeaimami_router_unlock_authlast_refreshauth.json access_token 为空OAuth 凭证缺失，智能路由透传官方模型将返回 401。"
+  },
+  {
+   "vm": "0x10130d154",
+   "text": "auth.json 无法读取无残留 relay-state-cacherelay-state-cache 正常relay-state-cache 引用了已删除的 provider清理后下次路由开关会重新缓存relay-state-cache 文件无法读取entries[AiMaMi][preflight] fixing config.toml syntax before takeovercodexmate_lib::core::relay::codex"
+  },
+  {
+   "vm": "0x10130d139",
+   "text": "auth.json JSON 格式损坏auth.json 无法读取无残留 relay-state-cacherelay-state-cache 正常relay-state-cache 引用了已删除的 provider清理后下次路由开关会重新缓存relay-state-cache 文件无法读取entries[AiMaMi][preflight] fixing config.toml syntax before takeovercodexm"
+  },
+  {
+   "vm": "0x10152029e",
+   "text": "\u000f解析错误：�"
+  },
+  {
+   "vm": "0x10130b590",
+   "text": "auth.json 为空API 密钥完整state-db-backupscc-switch 指纹/codex/router/v1thread_reconcilerestoring_configtakeover_restorerestore-rollbackBackup corruptedUntitled Sessioncodex-session.md"
+  },
+  {
+   "vm": "0x10130cf6d",
+   "text": "文件内容被清空，Codex 无法正常鉴权auth_modeaimami_router_unlock_authlast_refreshauth.json access_token 为空OAuth 凭证缺失，智能路由透传官方模型将返回 401。可能被第三方工具清空auth.json 正常（API Key 模式）auth.json access_token 格式异常token 不"
+  },
+  {
+   "vm": "0x10130d103",
+   "text": "auth.json 为 AiMaMi 虚拟账号（非真实账号）auth.json JSON 格式损坏auth.json 无法读取无残留 relay-state-cacherelay-state-cache 正常relay-state-cache 引用了已删除的 provider清理后下次路由开关会重新缓存relay-state-cache 文件无法读取entries[AiMaMi][pref"
+  },
+  {
+   "vm": "0x10130d0e0",
+   "text": "auth.json access_token 为占位符auth.json 为 AiMaMi 虚拟账号（非真实账号）auth.json JSON 格式损坏auth.json 无法读取无残留 relay-state-cacherelay-state-cache 正常relay-state-cache 引用了已删除的 provider清理后下次路由开关会重新缓存relay-state-cache 文"
+  },
+  {
+   "vm": "0x101520245",
+   "text": "*检测到无效占位符 token（长度：�+ 字符），可能被第三方工具覆盖"
+  },
+  {
+   "vm": "0x10130cfcb",
+   "text": "auth.json access_token 为空OAuth 凭证缺失，智能路由透传官方模型将返回 401。可能被第三方工具清空auth.json 正常（API Key 模式）auth.json access_token 格式异常token 不像是有效的 JWT，可能已损坏或被篡改auth.json 凭证正常auth.json access_token "
+  },
+  {
+   "vm": "0x10130cfe8",
+   "text": "OAuth 凭证缺失，智能路由透传官方模型将返回 401。可能被第三方工具清空auth.json 正常（API Key 模式）auth.json access_token 格式异常token 不像是有效的 JWT，可能已损坏或被篡改auth.json 凭证正常auth.json access_token 为占位符auth.json 为 AiM"
+  },
+  {
+   "vm": "0x10130d0ca",
+   "text": "auth.json 凭证正常auth.json access_token 为占位符auth.json 为 AiMaMi 虚拟账号（非真实账号）auth.json JSON 格式损坏auth.json 无法读取无残留 relay-state-cacherelay-state-cache 正常relay-state-cache 引用了已删除的 provider清理后下次路由开关会重新缓�"
+  },
+  {
+   "vm": "0x10130d06d",
+   "text": "auth.json access_token 格式异常token 不像是有效的 JWT，可能已损坏或被篡改auth.json 凭证正常auth.json access_token 为占位符auth.json 为 AiMaMi 虚拟账号（非真实账号）auth.json JSON 格式损坏auth.json 无法读取无残留 relay-state-cacherelay-state-cache �"
+  },
+  {
+   "vm": "0x10130d090",
+   "text": "token 不像是有效的 JWT，可能已损坏或被篡改auth.json 凭证正常auth.json access_token 为占位符auth.json 为 AiMaMi 虚拟账号（非真实账号）auth.json JSON 格式损坏auth.json 无法读取无残留 relay-state-cacherelay-state-cache 正常relay-state-cache 引用了已�"
+  },
+  {
+   "vm": "0x10130d049",
+   "text": "auth.json 正常（API Key 模式）auth.json access_token 格式异常token 不像是有效的 JWT，可能已损坏或被篡改auth.json 凭证正常auth.json access_token 为占位符auth.json 为 AiMaMi 虚拟账号（非真实账号）auth.json JSON 格式损坏auth.json 无法读取无残留 r"
+  }
+ ],
+ "check_config_third_party": [
+  {
+   "vm": "0x10130d360",
+   "text": "config_third_party已清理第三方注入并重写配置config_toml_syntax.fix-db-orphan.# Rebuilt by AiMaMi diagnostics · original config.toml was corrupted\n# 由 AiMaMi 系统诊断抢救重建 · 原 config.toml 存在无法解析的语法错误\n# 原文件已备份到 ~/.codex/codexmate/relay/"
+  },
+  {
+   "vm": "0x10130dabb",
+   "text": "无第三方注入残留检测到第三方域名重定向残留检测到第三方工具残留配置无法读取 config.toml文件不存在或无读取权限TOML 语法正常（空文件）TOML 语法正常config.toml TOML 语法错误TOML 语法（文件不存在，跳过）router_http_contract已�"
+  },
+  {
+   "vm": "0x10130db1e",
+   "text": "无法读取 config.toml文件不存在或无读取权限TOML 语法正常（空文件）TOML 语法正常config.toml TOML 语法错误TOML 语法（文件不存在，跳过）router_http_contract已重新写入 aimai1 HTTP-only 路由契约ps-ax-oetime=,comm="
+  },
+  {
+   "vm": "0x10130db36",
+   "text": "文件不存在或无读取权限TOML 语法正常（空文件）TOML 语法正常config.toml TOML 语法错误TOML 语法（文件不存在，跳过）router_http_contract已重新写入 aimai1 HTTP-only 路由契约ps-ax-oetime=,comm="
+  },
+  {
+   "vm": "0x10130d4af",
+   "text": ", \nauth_token_expiryToken 过期检测（无 auth.json，跳过）"
+  },
+  {
+   "vm": "0x1015207a6",
+   "text": "�\u000f 处 section（�\u0003）"
+  },
+  {
+   "vm": "0x10130b5c0",
+   "text": "cc-switch 指纹/codex/router/v1thread_reconcilerestoring_configtakeover_restorerestore-rollbackBackup corruptedUntitled Sessioncodex-session.md"
+  },
+  {
+   "vm": "0x1015207bd",
+   "text": "5顶层 openai_base_url 重定向到第三方域名（�\u0003）"
+  },
+  {
+   "vm": "0x10130dafa",
+   "text": "检测到第三方工具残留配置无法读取 config.toml文件不存在或无读取权限TOML 语法正常（空文件）TOML 语法正常config.toml TOML 语法错误TOML 语法（文件不存在，跳过）router_http_contract已重新写入 aimai1 HTTP-only 路由契约ps-ax-oetime=,comm="
+  },
+  {
+   "vm": "0x1015207f9",
+   "text": "\u0007发现 �\u0019 处第三方注入残留"
+  },
+  {
+   "vm": "0x10152081d",
+   "text": "zconfig.toml 含第三方工具残留，会与 AiMaMi 智能路由冲突或把官方请求打到第三方域名。\n残留: �"
+  },
+  {
+   "vm": "0x10130dad3",
+   "text": "检测到第三方域名重定向残留检测到第三方工具残留配置无法读取 config.toml文件不存在或无读取权限TOML 语法正常（空文件）TOML 语法正常config.toml TOML 语法错误TOML 语法（文件不存在，跳过）router_http_contract已重新写入 aimai1 HTTP-o"
+  }
+ ],
+ "check_config_toml_syntax": [
+  {
+   "vm": "0x10130d399",
+   "text": "config_toml_syntax.fix-db-orphan.# Rebuilt by AiMaMi diagnostics · original config.toml was corrupted\n# 由 AiMaMi 系统诊断抢救重建 · 原 config.toml 存在无法解析的语法错误\n# 原文件已备份到 ~/.codex/codexmate/relay/config-backups/\n\n\napi_key_integrity, \nauth_token_expiryTo"
+  },
+  {
+   "vm": "0x10130dba5",
+   "text": "TOML 语法（文件不存在，跳过）router_http_contract已重新写入 aimai1 HTTP-only 路由契约ps-ax-oetime=,comm="
+  },
+  {
+   "vm": "0x10130db57",
+   "text": "TOML 语法正常（空文件）TOML 语法正常config.toml TOML 语法错误TOML 语法（文件不存在，跳过）router_http_contract已重新写入 aimai1 HTTP-only 路由契约ps-ax-oetime=,comm="
+  },
+  {
+   "vm": "0x10130db88",
+   "text": "config.toml TOML 语法错误TOML 语法（文件不存在，跳过）router_http_contract已重新写入 aimai1 HTTP-only 路由契约ps-ax-oetime=,comm="
+  },
+  {
+   "vm": "0x10130db77",
+   "text": "TOML 语法正常config.toml TOML 语法错误TOML 语法（文件不存在，跳过）router_http_contract已重新写入 aimai1 HTTP-only 路由契约ps-ax-oetime=,comm="
+  }
+ ],
+ "checked_fix_result": [
+  {
+   "vm": "0x101520132",
+   "text": "�\u001d: 修复后复查仍异常：�"
+  }
+ ],
+ "config_needs_syntax_fix": [],
+ "diagnose_codex_router": [
+  {
+   "vm": "0x1013ad420",
+   "text": "已启用但 catalog 缺失：可能写入失败，请检查 ~/.codex/codexmate/relay 目录权限。已启用但 ~/.codex/config.toml 未写入 model_catalog_json：Codex GUI 无法读取中转模型完整能力，请关闭后重新启用智能路由。已启用但 ~/.codex/config.toml 未写入 mo"
+  },
+  {
+   "vm": "0x10152b92e",
+   "text": "\u0018Codex 配置不一致：�R。AiMaMi 会在启动 / 切换智能路由时自动重写配置并重启 Codex。"
+  },
+  {
+   "vm": "0x1013ad397",
+   "text": "未启用智能路由：Codex 桌面应用走原生官方通道。已启用但本地代理未运行：请重启 AiMaMi 让代理拉起。已启用但 catalog 缺失：可能写入失败，请检查 ~/.codex/codexmate/relay 目录权限。已启用但 ~/.codex/config.toml 未写入 model_catalog_json"
+  },
+  {
+   "vm": "0x10152b7f1",
+   "text": "$已启用但本地代理未运行：� 。请重启 AiMaMi 后再试。"
+  },
+  {
+   "vm": "0x1013ad3d9",
+   "text": "已启用但本地代理未运行：请重启 AiMaMi 让代理拉起。已启用但 catalog 缺失：可能写入失败，请检查 ~/.codex/codexmate/relay 目录权限。已启用但 ~/.codex/config.toml 未写入 model_catalog_json：Codex GUI 无法读取中转模型完整能力，请关闭后�"
+  },
+  {
+   "vm": "0x10152b88d",
+   "text": "-已启用但检测到旧版顶层 profile = \"�p\"：Codex 0.134+ 会拒绝该配置。请关闭后重新启用智能路由，让 AiMaMi 自动清理旧注入。"
+  },
+  {
+   "vm": "0x10152b839",
+   "text": "\u001c智能路由健康：active=�\u0012 个中转 · 共 �\u001f 个 Codex Provider · 监听 :�"
+  },
+  {
+   "vm": "0x1013ad485",
+   "text": "已启用但 ~/.codex/config.toml 未写入 model_catalog_json：Codex GUI 无法读取中转模型完整能力，请关闭后重新启用智能路由。已启用但 ~/.codex/config.toml 未写入 model_provider router：Codex 新版不会进入 AiMaMi router，请关闭后重新启用智能路由�"
+  },
+  {
+   "vm": "0x1013ad51e",
+   "text": "已启用但 ~/.codex/config.toml 未写入 model_provider router：Codex 新版不会进入 AiMaMi router，请关闭后重新启用智能路由。已启用但当前没有任何已启用的中转 Provider：Codex 菜单只会看到官方模型，请在 AiMaMi 中启用至少一个中转。sw_vers-p"
+  },
+  {
+   "vm": "0x1013ad5b2",
+   "text": "已启用但当前没有任何已启用的中转 Provider：Codex 菜单只会看到官方模型，请在 AiMaMi 中启用至少一个中转。sw_vers-productVersion"
+  }
+ ],
+ "find_foreign_providers": [],
+ "find_third_party_base_url": [
+  {
+   "vm": "0x1013aa736",
+   "text": "# >>> aimami-relay managed start (DO NOT EDIT MANUALLY)# Generated by AiMaMi · 中转模型功能\n# 修改请通过 AiMaMi 应用页面，不要手动编辑\nx-aimami-catalog-revision# Codex 桌面 GUI 智能路由已启用：菜单可同时选择官方 + 中转模型\n# Codex 桌面 GUI 智能路由"
+  },
+  {
+   "vm": "0x1013aa893",
+   "text": "# <<< aimami-relay managed endaimai1profile# >>> aimami-relay codex-router top start (DO NOT EDIT MANUALLY)# Codex 智能路由：使用 HTTP-only 自定义 provider，避开内建 openai WebSocket 路径\n# 官方模型由 ChatGPT 原生发现和刷新；本地 /models 追加启用的中转卡片\n# "
+  },
+  {
+   "vm": "0x1013aa8be",
+   "text": "# >>> aimami-relay codex-router top start (DO NOT EDIT MANUALLY)# Codex 智能路由：使用 HTTP-only 自定义 provider，避开内建 openai WebSocket 路径\n# 官方模型由 ChatGPT 原生发现和刷新；本地 /models 追加启用的中转卡片\n# 无账号模式：使用原生免登录 pro"
+  }
+ ],
+ "first_section_part": [],
+ "fix_all": [
+  {
+   "vm": "0x10130cc9c",
+   "text": "auth_integrity无可用备份。请在 AiMaMi 账号管理中重新登录 ChatGPT 以恢复 auth.json路由模式不恢复或覆盖 OpenAI 认证，请在 ChatGPT 中管理登录。jsonthread-router-migrationsrelay-state-cache.jsonresidual_cache已删除 relay-state-cacheFollow the user's instructio"
+  },
+  {
+   "vm": "0x101310829",
+   "text": "所有项目正常，无需修复diagnostic fix-all requires a verified ChatGPT quiet windowprepare_config将重新写入 aimai1 HTTP-only 路由契约将随 config 一起重新生成 Catalogallresync_config无法启用 Codex 智能路由：请先在「Codex」标签下添加并激活至少一个中"
+  },
+  {
+   "vm": "0x10131084a",
+   "text": "diagnostic fix-all requires a verified ChatGPT quiet windowprepare_config将重新写入 aimai1 HTTP-only 路由契约将随 config 一起重新生成 Catalogallresync_config无法启用 Codex 智能路由：请先在「Codex」标签下添加并激活至少一个中转 Provider（点击该 Provider"
+  },
+  {
+   "vm": "0x10130e02b",
+   "text": "router_unlock_auth_residuethread_missing_rolloutsthread_provider_consistencythread_model_catalog_consistencythread_poisoned_instructionsthread_response_item_idslegacy_migrated_threadsconfig_global_validityproject_state_integrity开启关闭native_off_invalid_openai_thread_models\u0012智能路由正在��"
+  },
+  {
+   "vm": "0x10130e015",
+   "text": "takeover_backup_orphanrouter_unlock_auth_residuethread_missing_rolloutsthread_provider_consistencythread_model_catalog_consistencythread_poisoned_instructionsthread_response_item_idslegacy_migrated_threadsconfig_global_validityproject_state_integrity开启关闭native_off_invalid_openai_thread_model"
+  },
+  {
+   "vm": "0x10130d399",
+   "text": "config_toml_syntax.fix-db-orphan.# Rebuilt by AiMaMi diagnostics · original config.toml was corrupted\n# 由 AiMaMi 系统诊断抢救重建 · 原 config.toml 存在无法解析的语法错误\n# 原文件已备份到 ~/.codex/codexmate/relay/config-backups/\n\n\napi_key_integrity, \nauth_token_expiryTo"
+  },
+  {
+   "vm": "0x101310885",
+   "text": "prepare_config将重新写入 aimai1 HTTP-only 路由契约将随 config 一起重新生成 Catalogallresync_config无法启用 Codex 智能路由：请先在「Codex」标签下添加并激活至少一个中转 Provider（点击该 Provider 旁的「启用」按钮）。无法启用 Codex 智能路"
+  },
+  {
+   "vm": "0x10130d360",
+   "text": "config_third_party已清理第三方注入并重写配置config_toml_syntax.fix-db-orphan.# Rebuilt by AiMaMi diagnostics · original config.toml was corrupted\n# 由 AiMaMi 系统诊断抢救重建 · 原 config.toml 存在无法解析的语法错误\n# 原文件已备份到 ~/.codex/codexmate/relay/"
+  },
+  {
+   "vm": "0x10130dffe",
+   "text": "config_profile_conflicttakeover_backup_orphanrouter_unlock_auth_residuethread_missing_rolloutsthread_provider_consistencythread_model_catalog_consistencythread_poisoned_instructionsthread_response_item_idslegacy_migrated_threadsconfig_global_validityproject_state_integrity开启关闭native_off_inva"
+  },
+  {
+   "vm": "0x10130ca1d",
+   "text": "config_stale已清理残留注入并重写配置"
+  },
+  {
+   "vm": "0x10130dbce",
+   "text": "router_http_contract已重新写入 aimai1 HTTP-only 路由契约ps-ax-oetime=,comm="
+  },
+  {
+   "vm": "0x101310893",
+   "text": "将重新写入 aimai1 HTTP-only 路由契约将随 config 一起重新生成 Catalogallresync_config无法启用 Codex 智能路由：请先在「Codex」标签下添加并激活至少一个中转 Provider（点击该 Provider 旁的「启用」按钮）。无法启用 Codex 智能路由：请先�"
+  },
+  {
+   "vm": "0x10130d29b",
+   "text": "catalog_integrity已重新生成 Catalog已清理残留 router / 旧版中转注入 blockcurrent.jsonresidual_manifestmanifest 不存在，无需清理history已将残留 manifest 归档到 historyconfig_third_party已清理第三方注入并重写配置config_toml_syntax.fix-db-orphan.# Rebuilt by "
+  },
+  {
+   "vm": "0x10130dfa4",
+   "text": "catalog_path_validity已重新同步 config.toml 中的 catalog 路径router_postconditionconfig_profile_conflicttakeover_backup_orphanrouter_unlock_auth_residuethread_missing_rolloutsthread_provider_consistencythread_model_catalog_consistencythread_poisoned_instructionsthread_response_item_idslegac"
+  },
+  {
+   "vm": "0x1013108c0",
+   "text": "将随 config 一起重新生成 Catalogallresync_config无法启用 Codex 智能路由：请先在「Codex」标签下添加并激活至少一个中转 Provider（点击该 Provider 旁的「启用」按钮）。无法启用 Codex 智能路由：请先在已启用的中转卡片中选择模型。pr"
+  },
+  {
+   "vm": "0x1013108e8",
+   "text": "allresync_config无法启用 Codex 智能路由：请先在「Codex」标签下添加并激活至少一个中转 Provider（点击该 Provider 旁的「启用」按钮）。无法启用 Codex 智能路由：请先在已启用的中转卡片中选择模型。prepare_before_stopcatalog_ready=truerelay"
+  },
+  {
+   "vm": "0x1013108eb",
+   "text": "resync_config无法启用 Codex 智能路由：请先在「Codex」标签下添加并激活至少一个中转 Provider（点击该 Provider 旁的「启用」按钮）。无法启用 Codex 智能路由：请先在已启用的中转卡片中选择模型。prepare_before_stopcatalog_ready=truerelay pr"
+  },
+  {
+   "vm": "0x101522c3a",
+   "text": "�\u001b: resync 后复查仍异常"
+  },
+  {
+   "vm": "0x101522c21",
+   "text": "\u0016resync config 失败: �"
+  },
+  {
+   "vm": "0x10130da82",
+   "text": "db_orphan_providersrollout_orphan_providersconfig-backups无第三方注入残留检测到第三方域名重定向残留检测到第三方工具残留配置无法读取 config.toml文件不存在或无读取权限TOML 语法正常（空文件）TOML 语法正常config.toml TOML 语法错误TOML 语�"
+  },
+  {
+   "vm": "0x10130da95",
+   "text": "rollout_orphan_providersconfig-backups无第三方注入残留检测到第三方域名重定向残留检测到第三方工具残留配置无法读取 config.toml文件不存在或无读取权限TOML 语法正常（空文件）TOML 语法正常config.toml TOML 语法错误TOML 语法（文件不存�"
+  }
+ ],
+ "fix_auth_integrity": [
+  {
+   "vm": "0x10130cd01",
+   "text": "路由模式不恢复或覆盖 OpenAI 认证，请在 ChatGPT 中管理登录。jsonthread-router-migrationsrelay-state-cache.jsonresidual_cache已删除 relay-state-cacheFollow the user's instructions carefully. Respond helpfully and use tools when appropriate.proxy_running本地代理（智能路�"
+  },
+  {
+   "vm": "0x10130cc9c",
+   "text": "auth_integrity无可用备份。请在 AiMaMi 账号管理中重新登录 ChatGPT 以恢复 auth.json路由模式不恢复或覆盖 OpenAI 认证，请在 ChatGPT 中管理登录。jsonthread-router-migrationsrelay-state-cache.jsonresidual_cache已删除 relay-state-cacheFollow the user's instructio"
+  },
+  {
+   "vm": "0x10130ccaa",
+   "text": "无可用备份。请在 AiMaMi 账号管理中重新登录 ChatGPT 以恢复 auth.json路由模式不恢复或覆盖 OpenAI 认证，请在 ChatGPT 中管理登录。jsonthread-router-migrationsrelay-state-cache.jsonresidual_cache已删除 relay-state-cacheFollow the user's instructions carefully. "
+  },
+  {
+   "vm": "0x101520182",
+   "text": ":已尝试从备份恢复 auth.json，但复查仍异常：�"
+  },
+  {
+   "vm": "0x101520153",
+   "text": "(已从备份恢复 auth.json（来源：�\u0003）"
+  },
+  {
+   "vm": "0x1015201bf",
+   "text": "\u001a恢复 auth.json 失败：�"
+  }
+ ],
+ "fix_config_global_validity": [
+  {
+   "vm": "0x10130f608",
+   "text": "config.toml 不存在，无需修复model_reasoning_effortmodel_reasoning_effort 不能为空model_catalog_json 指向不存在的外部路径UPDATE threads SET model_provider = ?1 WHERE id = ?2 AND COALESCE(archived, 0) = 0 AND model_provider IS ?3UPDATE threads SET model_provider = ?1, reasoning_e"
+  },
+  {
+   "vm": "0x1013aa736",
+   "text": "# >>> aimami-relay managed start (DO NOT EDIT MANUALLY)# Generated by AiMaMi · 中转模型功能\n# 修改请通过 AiMaMi 应用页面，不要手动编辑\nx-aimami-catalog-revision# Codex 桌面 GUI 智能路由已启用：菜单可同时选择官方 + 中转模型\n# Codex 桌面 GUI 智能路由"
+  },
+  {
+   "vm": "0x1013aa893",
+   "text": "# <<< aimami-relay managed endaimai1profile# >>> aimami-relay codex-router top start (DO NOT EDIT MANUALLY)# Codex 智能路由：使用 HTTP-only 自定义 provider，避开内建 openai WebSocket 路径\n# 官方模型由 ChatGPT 原生发现和刷新；本地 /models 追加启用的中转卡片\n# "
+  },
+  {
+   "vm": "0x1013aa8be",
+   "text": "# >>> aimami-relay codex-router top start (DO NOT EDIT MANUALLY)# Codex 智能路由：使用 HTTP-only 自定义 provider，避开内建 openai WebSocket 路径\n# 官方模型由 ChatGPT 原生发现和刷新；本地 /models 追加启用的中转卡片\n# 无账号模式：使用原生免登录 pro"
+  },
+  {
+   "vm": "0x101522046",
+   "text": "\n已清除 �\u001c 个无效的全局配置键"
+  },
+  {
+   "vm": "0x10130e0e2",
+   "text": "config_global_validityproject_state_integrity开启关闭native_off_invalid_openai_thread_models\u0012智能路由正在���"
+  },
+  {
+   "vm": "0x10130f5e4",
+   "text": "无无效全局配置键需要清理config.toml 不存在，无需修复model_reasoning_effortmodel_reasoning_effort 不能为空model_catalog_json 指向不存在的外部路径UPDATE threads SET model_provider = ?1 WHERE id = ?2 AND COALESCE(archived, 0) = 0 AND model_provider IS ?3UPDATE threads "
+  }
+ ],
+ "fix_config_profile_conflict": [
+  {
+   "vm": "0x10130dffe",
+   "text": "config_profile_conflicttakeover_backup_orphanrouter_unlock_auth_residuethread_missing_rolloutsthread_provider_consistencythread_model_catalog_consistencythread_poisoned_instructionsthread_response_item_idslegacy_migrated_threadsconfig_global_validityproject_state_integrity开启关闭native_off_inva"
+  },
+  {
+   "vm": "0x10130e891",
+   "text": "已移除冲突的顶层 profile 并重写配置无第三方残留 + 顶层域名重定向清除 managed block 后 TOML 语法恢复正常已抢救重建 config.toml：保留可解析的 Codex 配置段、丢弃损坏内容（原文件已备份）config.toml 损坏严重，已重建为干净底板�"
+  }
+ ],
+ "fix_config_third_party": [
+  {
+   "vm": "0x10130d360",
+   "text": "config_third_party已清理第三方注入并重写配置config_toml_syntax.fix-db-orphan.# Rebuilt by AiMaMi diagnostics · original config.toml was corrupted\n# 由 AiMaMi 系统诊断抢救重建 · 原 config.toml 存在无法解析的语法错误\n# 原文件已备份到 ~/.codex/codexmate/relay/"
+  },
+  {
+   "vm": "0x10130d372",
+   "text": "已清理第三方注入并重写配置config_toml_syntax.fix-db-orphan.# Rebuilt by AiMaMi diagnostics · original config.toml was corrupted\n# 由 AiMaMi 系统诊断抢救重建 · 原 config.toml 存在无法解析的语法错误\n# 原文件已备份到 ~/.codex/codexmate/relay/config-backups/\n\n\n"
+  }
+ ],
+ "fix_config_toml_syntax": [
+  {
+   "vm": "0x10130d399",
+   "text": "config_toml_syntax.fix-db-orphan.# Rebuilt by AiMaMi diagnostics · original config.toml was corrupted\n# 由 AiMaMi 系统诊断抢救重建 · 原 config.toml 存在无法解析的语法错误\n# 原文件已备份到 ~/.codex/codexmate/relay/config-backups/\n\n\napi_key_integrity, \nauth_token_expiryTo"
+  }
+ ],
+ "fix_config_toml_syntax_text": [
+  {
+   "vm": "0x10130d3ba",
+   "text": "# Rebuilt by AiMaMi diagnostics · original config.toml was corrupted\n# 由 AiMaMi 系统诊断抢救重建 · 原 config.toml 存在无法解析的语法错误\n# 原文件已备份到 ~/.codex/codexmate/relay/config-backups/\n\n\napi_key_integrity, \nauth_token_expiryToken 过期检测（无 auth.json�"
+  },
+  {
+   "vm": "0x10130e8eb",
+   "text": "清除 managed block 后 TOML 语法恢复正常已抢救重建 config.toml：保留可解析的 Codex 配置段、丢弃损坏内容（原文件已备份）config.toml 损坏严重，已重建为干净底板（原文件已备份）数据库不存在，无需修复路由开启中不会执行旧版�"
+  }
+ ],
+ "fix_issue": [],
+ "fix_requires_quiet_window": [],
+ "is_cc_switch_fingerprint": [],
+ "ok_item": [],
+ "run_diagnostics_with_mode": [
+  {
+   "vm": "0x10130e215",
+   "text": "config_accessconfig.toml 可正常读取config.toml 尚不存在（正常）config.toml 无法读取路由不探测或刷新 OpenAI Token，登录交给 ChatGPTRouter HTTP 契约（路由未启用，跳过）"
+  },
+  {
+   "vm": "0x10130e261",
+   "text": "config.toml 无法读取路由不探测或刷新 OpenAI Token，登录交给 ChatGPTRouter HTTP 契约（路由未启用，跳过）"
+  },
+  {
+   "vm": "0x101520a91",
+   "text": "U系统无法读取 Codex 配置，诊断结果不完整且不会执行自动修复：�"
+  },
+  {
+   "vm": "0x10130e222",
+   "text": "config.toml 可正常读取config.toml 尚不存在（正常）config.toml 无法读取路由不探测或刷新 OpenAI Token，登录交给 ChatGPTRouter HTTP 契约（路由未启用，跳过）"
+  },
+  {
+   "vm": "0x10130e23d",
+   "text": "config.toml 尚不存在（正常）config.toml 无法读取路由不探测或刷新 OpenAI Token，登录交给 ChatGPTRouter HTTP 契约（路由未启用，跳过）"
+  },
+  {
+   "vm": "0x10130d966",
+   "text": "router_recovery_record路由恢复记录可正常读取路由恢复记录需要单独处理sqlitestate_db_relocation活库不在 sqlite/ 子目录，无需清理无旧库残留Codex 未明确配置 sqlite_home，无法证明根目录数据库是孤儿库；已保留全部数据库。db_orphan_provid"
+  },
+  {
+   "vm": "0x10130d97c",
+   "text": "路由恢复记录可正常读取路由恢复记录需要单独处理sqlitestate_db_relocation活库不在 sqlite/ 子目录，无需清理无旧库残留Codex 未明确配置 sqlite_home，无法证明根目录数据库是孤儿库；已保留全部数据库。db_orphan_providersrollout_orphan_prov"
+  },
+  {
+   "vm": "0x10130d99d",
+   "text": "路由恢复记录需要单独处理sqlitestate_db_relocation活库不在 sqlite/ 子目录，无需清理无旧库残留Codex 未明确配置 sqlite_home，无法证明根目录数据库是孤儿库；已保留全部数据库。db_orphan_providersrollout_orphan_providersconfig-backups无第三方�"
+  },
+  {
+   "vm": "0x1015205ad",
+   "text": "E恢复资料已保留；当前自动修复不会覆盖或删除它。�"
+  },
+  {
+   "vm": "0x10130ecd1",
+   "text": "登录由 ChatGPT 原生管理，不以 auth.json 判断登录状态无账号模式不使用 OpenAI 认证无 legacy 顶层 profileCodex 0.134+ 已不再支持 config.toml 顶层 profile；智能路由应改用 model_provider + model_catalog_json 的桌面端路由契约。顶层 profile 配置（�"
+  },
+  {
+   "vm": "0x10130ed15",
+   "text": "无账号模式不使用 OpenAI 认证无 legacy 顶层 profileCodex 0.134+ 已不再支持 config.toml 顶层 profile；智能路由应改用 model_provider + model_catalog_json 的桌面端路由契约。顶层 profile 配置（文件不可读，跳过）旧版线程迁移（数据库不存在，�"
+  },
+  {
+   "vm": "0x10130cc9c",
+   "text": "auth_integrity无可用备份。请在 AiMaMi 账号管理中重新登录 ChatGPT 以恢复 auth.json路由模式不恢复或覆盖 OpenAI 认证，请在 ChatGPT 中管理登录。jsonthread-router-migrationsrelay-state-cache.jsonresidual_cache已删除 relay-state-cacheFollow the user's instructio"
+  },
+  {
+   "vm": "0x10130f17b",
+   "text": "config_replace_readinessconfig.toml 为只读Windows 只读属性会导致路由开启/关闭写入 config.toml 时被拒绝访问。请先解除只读属性后重试。config.toml 权限未显示只读config.toml 不是普通文件无法检查 config.toml 可替换性thread_history_integrity线程�"
+  },
+  {
+   "vm": "0x10130f263",
+   "text": "无法检查 config.toml 可替换性thread_history_integrity线程历史结构存在异常线程历史结构自洽线程调用项 ID 健康（数据库不存在，跳过）无法完整检查线程调用项 ID已恢复或保留用户认证，并清理 AiMaMi 受管 auth/marker 残留RouterOn 无账�"
+  },
+  {
+   "vm": "0x10130f224",
+   "text": "config.toml 权限未显示只读config.toml 不是普通文件无法检查 config.toml 可替换性thread_history_integrity线程历史结构存在异常线程历史结构自洽线程调用项 ID 健康（数据库不存在，跳过）无法完整检查线程调用项 ID已恢复或保留用户认�"
+  },
+  {
+   "vm": "0x10130f245",
+   "text": "config.toml 不是普通文件无法检查 config.toml 可替换性thread_history_integrity线程历史结构存在异常线程历史结构自洽线程调用项 ID 健康（数据库不存在，跳过）无法完整检查线程调用项 ID已恢复或保留用户认证，并清理 AiMaMi 受管 auth"
+  },
+  {
+   "vm": "0x1015216f8",
+   "text": "�: 不是普通文件，智能路由无法安全原子替换"
+  },
+  {
+   "vm": "0x10130f193",
+   "text": "config.toml 为只读Windows 只读属性会导致路由开启/关闭写入 config.toml 时被拒绝访问。请先解除只读属性后重试。config.toml 权限未显示只读config.toml 不是普通文件无法检查 config.toml 可替换性thread_history_integrity线程历史结构存在异常�"
+  },
+  {
+   "vm": "0x10130f1a8",
+   "text": "Windows 只读属性会导致路由开启/关闭写入 config.toml 时被拒绝访问。请先解除只读属性后重试。config.toml 权限未显示只读config.toml 不是普通文件无法检查 config.toml 可替换性thread_history_integrity线程历史结构存在异常线程历史结构自�"
+  },
+  {
+   "vm": "0x10130ce07",
+   "text": "proxy_running本地代理（智能路由未启用，跳过检测）本地代理未运行请重启 AiMaMi 让代理自动拉起"
+  },
+  {
+   "vm": "0x1015201dc",
+   "text": "\u0017本地代理运行中 :�"
+  },
+  {
+   "vm": "0x10130ce14",
+   "text": "本地代理（智能路由未启用，跳过检测）本地代理未运行请重启 AiMaMi 让代理自动拉起"
+  },
+  {
+   "vm": "0x10130ce4a",
+   "text": "本地代理未运行请重启 AiMaMi 让代理自动拉起"
+  },
+  {
+   "vm": "0x10130ce5f",
+   "text": "请重启 AiMaMi 让代理自动拉起"
+  },
+  {
+   "vm": "0x10130dfea",
+   "text": "router_postconditionconfig_profile_conflicttakeover_backup_orphanrouter_unlock_auth_residuethread_missing_rolloutsthread_provider_consistencythread_model_catalog_consistencythread_poisoned_instructionsthread_response_item_idslegacy_migrated_threadsconfig_global_validityproject_state_integrity开启�"
+  },
+  {
+   "vm": "0x10130e3dc",
+   "text": "路由提交仍待确认恢复标记已保留；请重试当前路由开关或修复目标态，重新验证并提交后才可自动启动 ChatGPT。RouterOn 目标态稳定NativeOff 目标态稳定目标态非配置维度稳定（配置偏差由 config_stale 报告）可用空间不足 1 GB；普�"
+  },
+  {
+   "vm": "0x10130e3f4",
+   "text": "恢复标记已保留；请重试当前路由开关或修复目标态，重新验证并提交后才可自动启动 ChatGPT。RouterOn 目标态稳定NativeOff 目标态稳定目标态非配置维度稳定（配置偏差由 config_stale 报告）可用空间不足 1 GB；普通读写仍可能成功�"
+  },
+  {
+   "vm": "0x10130e489",
+   "text": "NativeOff 目标态稳定目标态非配置维度稳定（配置偏差由 config_stale 报告）可用空间不足 1 GB；普通读写仍可能成功，但批量线程迁移会在写入前单独校验所需临时空间可用空间不足 100 MB，请尽快清理磁盘可用空间不足 10 MB，ChatGP"
+  },
+  {
+   "vm": "0x10130e471",
+   "text": "RouterOn 目标态稳定NativeOff 目标态稳定目标态非配置维度稳定（配置偏差由 config_stale 报告）可用空间不足 1 GB；普通读写仍可能成功，但批量线程迁移会在写入前单独校验所需临时空间可用空间不足 100 MB，请尽快清理磁盘可用空"
+  },
+  {
+   "vm": "0x10130cbbc",
+   "text": "warningerror路由已关闭但 config.toml 仍有生效的 AiMaMi 路由配置路由已启用但 config.toml 不符合 RouterOn 契约Codex 配置一致性（文件不可读，跳过）ok/tokens/access_tokenOPENAI_API_KEY"
+  },
+  {
+   "vm": "0x10130cbc3",
+   "text": "error路由已关闭但 config.toml 仍有生效的 AiMaMi 路由配置路由已启用但 config.toml 不符合 RouterOn 契约Codex 配置一致性（文件不可读，跳过）ok/tokens/access_tokenOPENAI_API_KEY"
+  },
+  {
+   "vm": "0x101520b52",
+   "text": "\u0016路由目标态存在 �\n 项偏差"
+  },
+  {
+   "vm": "0x10130e4a2",
+   "text": "目标态非配置维度稳定（配置偏差由 config_stale 报告）可用空间不足 1 GB；普通读写仍可能成功，但批量线程迁移会在写入前单独校验所需临时空间可用空间不足 100 MB，请尽快清理磁盘可用空间不足 10 MB，ChatGPT 和 AiMaMi 可能无法"
+  },
+  {
+   "vm": "0x10130f0f2",
+   "text": "无示例线程 rollout 文件完整SELECT COUNT(*) FROM threads WHERE COALESCE(archived, 0) = 0"
+  },
+  {
+   "vm": "0x101521735",
+   "text": "\u0013本轮完整检查 �\u000e 条，另有 �: 条仅部分检查（结论仅对已检查部分成立）"
+  },
+  {
+   "vm": "0x101521796",
+   "text": "\u0007另有 �I 条历史文件缺失，已交由「线程缺历史文件」单独报告"
+  },
+  {
+   "vm": "0x1015217ea",
+   "text": "�\u0016 条记录结构异常"
+  },
+  {
+   "vm": "0x101521803",
+   "text": "�3 条历史继承引用指向已不存在的 rollout"
+  },
+  {
+   "vm": "0x101521839",
+   "text": "�\u0010 条无法读取"
+  },
+  {
+   "vm": "0x10130f288",
+   "text": "thread_history_integrity线程历史结构存在异常线程历史结构自洽线程调用项 ID 健康（数据库不存在，跳过）无法完整检查线程调用项 ID已恢复或保留用户认证，并清理 AiMaMi 受管 auth/marker 残留RouterOn 无账号模式的受管认证只能通过�"
+  },
+  {
+   "vm": "0x10130f2a0",
+   "text": "线程历史结构存在异常线程历史结构自洽线程调用项 ID 健康（数据库不存在，跳过）无法完整检查线程调用项 ID已恢复或保留用户认证，并清理 AiMaMi 受管 auth/marker 残留RouterOn 无账号模式的受管认证只能通过完整目标态重收敛�"
+  },
+  {
+   "vm": "0x101521852",
+   "text": "�p。这些线程可能无法正常分页打开；AiMaMi 不会自动改写历史，请从备份恢复。示例：��"
+  },
+  {
+   "vm": "0x10130e11b",
+   "text": "native_off_invalid_openai_thread_models\u0012智能路由正在���"
+  },
+  {
+   "vm": "0x1013107e9",
+   "text": "NativeOff 官方线程模型检查（路由启用中，跳过）所有项目正常，无需修复diagnostic fix-all requires a verified ChatGPT quiet windowprepare_config将重新写入 aimai1 HTTP-only 路由契约将随 config 一起重新生成 Catalogallresync_config无法启用 Codex 智能路�"
+  },
+  {
+   "vm": "0x1013107ba",
+   "text": "无法完整读取 NativeOff 官方线程模型NativeOff 官方线程模型检查（路由启用中，跳过）所有项目正常，无需修复diagnostic fix-all requires a verified ChatGPT quiet windowprepare_config将重新写入 aimai1 HTTP-only 路由契约将随 config 一起重新生成 Catal"
+  },
+  {
+   "vm": "0x10130f2be",
+   "text": "线程历史结构自洽线程调用项 ID 健康（数据库不存在，跳过）无法完整检查线程调用项 ID已恢复或保留用户认证，并清理 AiMaMi 受管 auth/marker 残留RouterOn 无账号模式的受管认证只能通过完整目标态重收敛，未直接清理 auth.jsonno e"
+  },
+  {
+   "vm": "0x1015218c7",
+   "text": ".已检查部分未发现结构异常（完整 �\u0014 条，部分检查 �\u0007 条）"
+  },
+  {
+   "vm": "0x10130d7ba",
+   "text": "、Catalog 与卡片模型及历史兼容映射不一致Catalog 缺少 models 数组Catalog 文件 JSON 格式损坏Catalog 文件无法读取sessionscodexmaterelay.aimami_probeprobe读写只读codex_home_writable文件系统正常（空间检测不可用）无残留迁移 manifest路由已关闭但"
+  },
+  {
+   "vm": "0x101522b4e",
+   "text": "�( 条旧对话保留了中转模型选择"
+  },
+  {
+   "vm": "0x101310700",
+   "text": "NativeOff 官方线程模型正常��"
+  },
+  {
+   "vm": "0x10130e0b3",
+   "text": "thread_response_item_idslegacy_migrated_threadsconfig_global_validityproject_state_integrity开启关闭native_off_invalid_openai_thread_models\u0012智能路由正在���"
+  },
+  {
+   "vm": "0x10130f2d6",
+   "text": "线程调用项 ID 健康（数据库不存在，跳过）无法完整检查线程调用项 ID已恢复或保留用户认证，并清理 AiMaMi 受管 auth/marker 残留RouterOn 无账号模式的受管认证只能通过完整目标态重收敛，未直接清理 auth.jsonno entry found for key\u0007任�"
+  },
+  {
+   "vm": "0x10130f310",
+   "text": "无法完整检查线程调用项 ID已恢复或保留用户认证，并清理 AiMaMi 受管 auth/marker 残留RouterOn 无账号模式的受管认证只能通过完整目标态重收敛，未直接清理 auth.jsonno entry found for key\u0007任务 ���"
+  },
+  {
+   "vm": "0x101521947",
+   "text": "�\" 条线程无法检查调用项 ID"
+  },
+  {
+   "vm": "0x10152196c",
+   "text": "B这些 rollout 无法完整读取，未做任何修改；示例：�"
+  },
+  {
+   "vm": "0x1015219b1",
+   "text": "\n；另有 �% 条线程无法检查，保持原样"
+  },
+  {
+   "vm": "0x1015219e4",
+   "text": "�\u0011 条线程包含 �\u0016 个旧版调用项 ID"
+  },
+  {
+   "vm": "0x101521a10",
+   "text": "�\b\u0001旧版 AiMaMi 曾为工具搜索和自定义工具写入官方不接受的 ID 前缀，切换官模续聊时会返回 invalid_value。修复只改精确命中的 tool_search_call.id 和 custom_tool_call.id，保留 call_id、工具结果和对话内容；示例：��"
+  },
+  {
+   "vm": "0x10130cd55",
+   "text": "thread-router-migrationsrelay-state-cache.jsonresidual_cache已删除 relay-state-cacheFollow the user's instructions carefully. Respond helpfully and use tools when appropriate.proxy_running本地代理（智能路由未启用，跳过检测）本地代理未运行请重启 AiMaMi 让代理自动�"
+  },
+  {
+   "vm": "0x10130d2f4",
+   "text": "current.jsonresidual_manifestmanifest 不存在，无需清理history已将残留 manifest 归档到 historyconfig_third_party已清理第三方注入并重写配置config_toml_syntax.fix-db-orphan.# Rebuilt by AiMaMi diagnostics · original config.toml was corrupted\n# 由 AiMaMi 系统诊断抢救�"
+  },
+  {
+   "vm": "0x10130d300",
+   "text": "residual_manifestmanifest 不存在，无需清理history已将残留 manifest 归档到 historyconfig_third_party已清理第三方注入并重写配置config_toml_syntax.fix-db-orphan.# Rebuilt by AiMaMi diagnostics · original config.toml was corrupted\n# 由 AiMaMi 系统诊断抢救重建 · 原"
+  },
+  {
+   "vm": "0x10130d8d4",
+   "text": "路由已关闭但迁移 manifest 未归档可能上次关闭中断，清理后不影响功能迁移 manifest 存在（路由启用中，正常）router_recovery_record路由恢复记录可正常读取路由恢复记录需要单独处理sqlitestate_db_relocation活库不在 sqlite/ 子目录，无�"
+  },
+  {
+   "vm": "0x10130d8ff",
+   "text": "可能上次关闭中断，清理后不影响功能迁移 manifest 存在（路由启用中，正常）router_recovery_record路由恢复记录可正常读取路由恢复记录需要单独处理sqlitestate_db_relocation活库不在 sqlite/ 子目录，无需清理无旧库残留Codex 未明确配置"
+  },
+  {
+   "vm": "0x10130d932",
+   "text": "迁移 manifest 存在（路由启用中，正常）router_recovery_record路由恢复记录可正常读取路由恢复记录需要单独处理sqlitestate_db_relocation活库不在 sqlite/ 子目录，无需清理无旧库残留Codex 未明确配置 sqlite_home，无法证明根目录数据库是孤"
+  },
+  {
+   "vm": "0x10130d8bc",
+   "text": "无残留迁移 manifest路由已关闭但迁移 manifest 未归档可能上次关闭中断，清理后不影响功能迁移 manifest 存在（路由启用中，正常）router_recovery_record路由恢复记录可正常读取路由恢复记录需要单独处理sqlitestate_db_relocation活库不在 s"
+  },
+  {
+   "vm": "0x10130cd6d",
+   "text": "relay-state-cache.jsonresidual_cache已删除 relay-state-cacheFollow the user's instructions carefully. Respond helpfully and use tools when appropriate.proxy_running本地代理（智能路由未启用，跳过检测）本地代理未运行请重启 AiMaMi 让代理自动拉起"
+  },
+  {
+   "vm": "0x10130cd83",
+   "text": "residual_cache已删除 relay-state-cacheFollow the user's instructions carefully. Respond helpfully and use tools when appropriate.proxy_running本地代理（智能路由未启用，跳过检测）本地代理未运行请重启 AiMaMi 让代理自动拉起"
+  },
+  {
+   "vm": "0x10130d16a",
+   "text": "无残留 relay-state-cacherelay-state-cache 正常relay-state-cache 引用了已删除的 provider清理后下次路由开关会重新缓存relay-state-cache 文件无法读取entries[AiMaMi][preflight] fixing config.toml syntax before takeovercodexmate_lib::core::relay::codex_diagnosticconfig.toml"
+  },
+  {
+   "vm": "0x10130d1f7",
+   "text": "relay-state-cache 文件无法读取entries[AiMaMi][preflight] fixing config.toml syntax before takeovercodexmate_lib::core::relay::codex_diagnosticconfig.toml..bakcatalog_integrity已重新生成 Catalog已清理残留 router / 旧版中转注入 blockcurrent.jsonresidual_manifestmanifest 不存在"
+  },
+  {
+   "vm": "0x10130d21b",
+   "text": "entries[AiMaMi][preflight] fixing config.toml syntax before takeovercodexmate_lib::core::relay::codex_diagnosticconfig.toml..bakcatalog_integrity已重新生成 Catalog已清理残留 router / 旧版中转注入 blockcurrent.jsonresidual_manifestmanifest 不存在，无需清理history已将残留 m"
+  },
+  {
+   "vm": "0x101521916",
+   "text": "&线程调用项 ID 健康（已检查 �\u0007 个）"
+  },
+  {
+   "vm": "0x10130d19d",
+   "text": "relay-state-cache 引用了已删除的 provider清理后下次路由开关会重新缓存relay-state-cache 文件无法读取entries[AiMaMi][preflight] fixing config.toml syntax before takeovercodexmate_lib::core::relay::codex_diagnosticconfig.toml..bakcatalog_integrity已重新生成 Catalog已清"
+  },
+  {
+   "vm": "0x10130d1cd",
+   "text": "清理后下次路由开关会重新缓存relay-state-cache 文件无法读取entries[AiMaMi][preflight] fixing config.toml syntax before takeovercodexmate_lib::core::relay::codex_diagnosticconfig.toml..bakcatalog_integrity已重新生成 Catalog已清理残留 router / 旧版中转注入 blockcurre"
+  },
+  {
+   "vm": "0x10130d185",
+   "text": "relay-state-cache 正常relay-state-cache 引用了已删除的 provider清理后下次路由开关会重新缓存relay-state-cache 文件无法读取entries[AiMaMi][preflight] fixing config.toml syntax before takeovercodexmate_lib::core::relay::codex_diagnosticconfig.toml..bakcatalog_integrity已�"
+  },
+  {
+   "vm": "0x10130f8ea",
+   "text": "尚未观测到目录请求，不能据此确认官方目录可用。等待 ChatGPT 原生目录请求官方目录刷新失败，未返回替代列表最近一次官方目录获取成功official_catalog_freshness官方目录（当前模式无需获取）无虚拟账号残留路由已关闭但虚拟�"
+  },
+  {
+   "vm": "0x10130f92f",
+   "text": "等待 ChatGPT 原生目录请求官方目录刷新失败，未返回替代列表最近一次官方目录获取成功official_catalog_freshness官方目录（当前模式无需获取）无虚拟账号残留路由已关闭但虚拟账号恢复文件仍残留当前 auth.json 未被虚拟账号占用�"
+  },
+  {
+   "vm": "0x10130f9a4",
+   "text": "official_catalog_freshness官方目录（当前模式无需获取）无虚拟账号残留路由已关闭但虚拟账号恢复文件仍残留当前 auth.json 未被虚拟账号占用，但 marker/backup 未完成清理；可安全执行修复以收敛 NativeOff 状态。路由已关闭但虚拟账号"
+  },
+  {
+   "vm": "0x10130f9be",
+   "text": "官方目录（当前模式无需获取）无虚拟账号残留路由已关闭但虚拟账号恢复文件仍残留当前 auth.json 未被虚拟账号占用，但 marker/backup 未完成清理；可安全执行修复以收敛 NativeOff 状态。路由已关闭但虚拟账号 auth 仍残留Codex 可�"
+  },
+  {
+   "vm": "0x1015221a6",
+   "text": "\r官方模型 �: 个；发现、缓存和刷新由 ChatGPT 原生管理。"
+  },
+  {
+   "vm": "0x10130f980",
+   "text": "最近一次官方目录获取成功official_catalog_freshness官方目录（当前模式无需获取）无虚拟账号残留路由已关闭但虚拟账号恢复文件仍残留当前 auth.json 未被虚拟账号占用，但 marker/backup 未完成清理；可安全执行修复以收敛 NativeOff 状"
+  },
+  {
+   "vm": "0x101522114",
+   "text": "\r最近检查=�\n，原因=�u。已有有效目录由 ChatGPT 原生管理；等待下次原生刷新，无可用目录时不保证混合菜单。"
+  },
+  {
+   "vm": "0x10130f950",
+   "text": "官方目录刷新失败，未返回替代列表最近一次官方目录获取成功official_catalog_freshness官方目录（当前模式无需获取）无虚拟账号残留路由已关闭但虚拟账号恢复文件仍残留当前 auth.json 未被虚拟账号占用，但 marker/backup 未完成清�"
+  },
+  {
+   "vm": "0x10130d4af",
+   "text": ", \nauth_token_expiryToken 过期检测（无 auth.json，跳过）"
+  },
+  {
+   "vm": "0x101520302",
+   "text": "\u000f缺失密钥：�)。请在编辑页面重新输入 API Key"
+  },
+  {
+   "vm": "0x10152033e",
+   "text": "\u0015密钥读取失败：�]。请先检查本地密钥存储及目录权限后重试，读取失败不等于密钥缺失"
+  },
+  {
+   "vm": "0x10130d49e",
+   "text": "api_key_integrity, \nauth_token_expiryToken 过期检测（无 auth.json，跳过）"
+  },
+  {
+   "vm": "0x1015203d1",
+   "text": "�  个 Provider 密钥存储异常"
+  },
+  {
+   "vm": "0x10130b5a0",
+   "text": "API 密钥完整state-db-backupscc-switch 指纹/codex/router/v1thread_reconcilerestoring_configtakeover_restorerestore-rollbackBackup corruptedUntitled Sessioncodex-session.md"
+  },
+  {
+   "vm": "0x1015203b4",
+   "text": "�\u001a 个 Provider 密钥缺失"
+  },
+  {
+   "vm": "0x10130d4b1",
+   "text": "\nauth_token_expiryToken 过期检测（无 auth.json，跳过）"
+  },
+  {
+   "vm": "0x1015208d6",
+   "text": "\t版本：�"
+  },
+  {
+   "vm": "0x10130dc26",
+   "text": "codex_process_stateCodex 未运行当前未检测到 Codex 进程。如需使用智能路由，请先启动 Codex已运行超过 7 天，建议重启 Codex，线程数据（数据库不存在，跳过）未发现失效的 AiMaMi 线程 provider仅核对 AiMaMi 管理的引用；其他原生、企业"
+  },
+  {
+   "vm": "0x10130dc39",
+   "text": "Codex 未运行当前未检测到 Codex 进程。如需使用智能路由，请先启动 Codex已运行超过 7 天，建议重启 Codex，线程数据（数据库不存在，跳过）未发现失效的 AiMaMi 线程 provider仅核对 AiMaMi 管理的引用；其他原生、企业或自定义 provid"
+  },
+  {
+   "vm": "0x10130dc48",
+   "text": "当前未检测到 Codex 进程。如需使用智能路由，请先启动 Codex已运行超过 7 天，建议重启 Codex，线程数据（数据库不存在，跳过）未发现失效的 AiMaMi 线程 provider仅核对 AiMaMi 管理的引用；其他原生、企业或自定义 provider 保持原样"
+  },
+  {
+   "vm": "0x1015208e2",
+   "text": "\u000f运行时长：�\u0005 天 �\u0007 小时"
+  },
+  {
+   "vm": "0x10130dc97",
+   "text": "已运行超过 7 天，建议重启 Codex，线程数据（数据库不存在，跳过）未发现失效的 AiMaMi 线程 provider仅核对 AiMaMi 管理的引用；其他原生、企业或自定义 provider 保持原样，不由本地定义缺失推断无效。无法完整读取线程数据库线�"
+  },
+  {
+   "vm": "0x101520903",
+   "text": "\u000fCodex 运行中�"
+  },
+  {
+   "vm": "0x10130dcc1",
+   "text": "，线程数据（数据库不存在，跳过）未发现失效的 AiMaMi 线程 provider仅核对 AiMaMi 管理的引用；其他原生、企业或自定义 provider 保持原样，不由本地定义缺失推断无效。无法完整读取线程数据库线程数据库位置正常E当前活库已确"
+  },
+  {
+   "vm": "0x10130d4b2",
+   "text": "auth_token_expiryToken 过期检测（无 auth.json，跳过）"
+  },
+  {
+   "vm": "0x10130e279",
+   "text": "路由不探测或刷新 OpenAI Token，登录交给 ChatGPTRouter HTTP 契约（路由未启用，跳过）"
+  },
+  {
+   "vm": "0x10130d4c3",
+   "text": "Token 过期检测（无 auth.json，跳过）"
+  },
+  {
+   "vm": "0x10130d6cb",
+   "text": "Token 过期检测（无法读取，跳过）Catalog 完整性（路由未启用，跳过）Catalog 文件缺失路由已启用但 catalog 不存在，Codex 菜单无法显示中转模型Catalog 文件为空需要重新生成Catalog 完整、Catalog 与卡片模型及历史兼容映射不一致Catal"
+  },
+  {
+   "vm": "0x10130d69f",
+   "text": "Token 过期检测（JSON 损坏，跳过）Token 过期检测（无法读取，跳过）Catalog 完整性（路由未启用，跳过）Catalog 文件缺失路由已启用但 catalog 不存在，Codex 菜单无法显示中转模型Catalog 文件为空需要重新生成Catalog 完整、Catalog 与卡"
+  },
+  {
+   "vm": "0x10130cf9d",
+   "text": "auth_modeaimami_router_unlock_authlast_refreshauth.json access_token 为空OAuth 凭证缺失，智能路由透传官方模型将返回 401。可能被第三方工具清空auth.json 正常（API Key 模式）auth.json access_token 格式异常token 不像是有效的 JWT，可能已损坏或被篡�"
+  },
+  {
+   "vm": "0x10130d537",
+   "text": "/tokens/refresh_token无法解析 access_token 过期时间token 格式异常，无法提取 exp claim无 refresh_token，过期后需重新登录有 refresh_token，账号管理页刷新或切换账号即可自动续期access_token 已过期且无 refresh_token需要重新登录 ChatGPTaccess_token"
+  },
+  {
+   "vm": "0x10130d4f7",
+   "text": "access_token 为空无法检测过期状态，需要重新登录/tokens/refresh_token无法解析 access_token 过期时间token 格式异常，无法提取 exp claim无 refresh_token，过期后需重新登录有 refresh_token，账号管理页刷新或切换账号即可自动续期access_token 已"
+  },
+  {
+   "vm": "0x10130d50a",
+   "text": "无法检测过期状态，需要重新登录/tokens/refresh_token无法解析 access_token 过期时间token 格式异常，无法提取 exp claim无 refresh_token，过期后需重新登录有 refresh_token，账号管理页刷新或切换账号即可自动续期access_token 已过期且无 refres"
+  },
+  {
+   "vm": "0x10130d848",
+   "text": "sessionscodexmaterelay.aimami_probeprobe读写只读codex_home_writable文件系统正常（空间检测不可用）无残留迁移 manifest路由已关闭但迁移 manifest 未归档可能上次关闭中断，清理后不影响功能迁移 manifest 存在（路由启用中，正常）router_recover"
+  },
+  {
+   "vm": "0x10130d850",
+   "text": "codexmaterelay.aimami_probeprobe读写只读codex_home_writable文件系统正常（空间检测不可用）无残留迁移 manifest路由已关闭但迁移 manifest 未归档可能上次关闭中断，清理后不影响功能迁移 manifest 存在（路由启用中，正常）router_recovery_record"
+  },
+  {
+   "vm": "0x10130d859",
+   "text": "relay.aimami_probeprobe读写只读codex_home_writable文件系统正常（空间检测不可用）无残留迁移 manifest路由已关闭但迁移 manifest 未归档可能上次关闭中断，清理后不影响功能迁移 manifest 存在（路由启用中，正常）router_recovery_record路由恢"
+  },
+  {
+   "vm": "0x101520535",
+   "text": "�\u0010 目录不存在"
+  },
+  {
+   "vm": "0x10130d86b",
+   "text": "probe读写只读codex_home_writable文件系统正常（空间检测不可用）无残留迁移 manifest路由已关闭但迁移 manifest 未归档可能上次关闭中断，清理后不影响功能迁移 manifest 存在（路由启用中，正常）router_recovery_record路由恢复记录可正常"
+  },
+  {
+   "vm": "0x10130d85e",
+   "text": ".aimami_probeprobe读写只读codex_home_writable文件系统正常（空间检测不可用）无残留迁移 manifest路由已关闭但迁移 manifest 未归档可能上次关闭中断，清理后不影响功能迁移 manifest 存在（路由启用中，正常）router_recovery_record路由恢复�"
+  },
+  {
+   "vm": "0x101520548",
+   "text": "�\u0010 目录不可写"
+  },
+  {
+   "vm": "0x10130d870",
+   "text": "读写只读codex_home_writable文件系统正常（空间检测不可用）无残留迁移 manifest路由已关闭但迁移 manifest 未归档可能上次关闭中断，清理后不影响功能迁移 manifest 存在（路由启用中，正常）router_recovery_record路由恢复记录可正常读�"
+  },
+  {
+   "vm": "0x10130d876",
+   "text": "只读codex_home_writable文件系统正常（空间检测不可用）无残留迁移 manifest路由已关闭但迁移 manifest 未归档可能上次关闭中断，清理后不影响功能迁移 manifest 存在（路由启用中，正常）router_recovery_record路由恢复记录可正常读取路�"
+  },
+  {
+   "vm": "0x10152055b",
+   "text": "\u0018state_5.sqlite 无法以�\u000f模式打开：�"
+  },
+  {
+   "vm": "0x10130d87c",
+   "text": "codex_home_writable文件系统正常（空间检测不可用）无残留迁移 manifest路由已关闭但迁移 manifest 未归档可能上次关闭中断，清理后不影响功能迁移 manifest 存在（路由启用中，正常）router_recovery_record路由恢复记录可正常读取路由恢�"
+  },
+  {
+   "vm": "0x10130d88f",
+   "text": "文件系统正常（空间检测不可用）无残留迁移 manifest路由已关闭但迁移 manifest 未归档可能上次关闭中断，清理后不影响功能迁移 manifest 存在（路由启用中，正常）router_recovery_record路由恢复记录可正常读取路由恢复记录需要单独"
+  },
+  {
+   "vm": "0x101520587",
+   "text": "\u0015文件系统异常（�\r 处问题）"
+  },
+  {
+   "vm": "0x101520c36",
+   "text": "\"磁盘空间严重不足（剩余 �\u0003）"
+  },
+  {
+   "vm": "0x10130e594",
+   "text": "可用空间不足 10 MB，ChatGPT 和 AiMaMi 可能无法安全写入数据已还原 takeover 备份并删除残留备份文件路由启用中 takeover 备份属于正常接管态，不执行还原。"
+  },
+  {
+   "vm": "0x101520bc7",
+   "text": "\u001c文件系统正常（剩余 �\u0003）"
+  },
+  {
+   "vm": "0x101520c0d",
+   "text": "\"磁盘空间严重偏低（剩余 �\u0003）"
+  },
+  {
+   "vm": "0x10130e563",
+   "text": "可用空间不足 100 MB，请尽快清理磁盘可用空间不足 10 MB，ChatGPT 和 AiMaMi 可能无法安全写入数据已还原 takeover 备份并删除残留备份文件路由启用中 takeover 备份属于正常接管态，不执行还原。"
+  },
+  {
+   "vm": "0x101520bea",
+   "text": "\u001c磁盘空间偏低（剩余 �\u0003）"
+  },
+  {
+   "vm": "0x10130e4e9",
+   "text": "可用空间不足 1 GB；普通读写仍可能成功，但批量线程迁移会在写入前单独校验所需临时空间可用空间不足 100 MB，请尽快清理磁盘可用空间不足 10 MB，ChatGPT 和 AiMaMi 可能无法安全写入数据已还原 takeover 备份并删除残留备份文件�"
+  },
+  {
+   "vm": "0x10130d9c1",
+   "text": "sqlitestate_db_relocation活库不在 sqlite/ 子目录，无需清理无旧库残留Codex 未明确配置 sqlite_home，无法证明根目录数据库是孤儿库；已保留全部数据库。db_orphan_providersrollout_orphan_providersconfig-backups无第三方注入残留检测到第三方域名�"
+  },
+  {
+   "vm": "0x10130d9c7",
+   "text": "state_db_relocation活库不在 sqlite/ 子目录，无需清理无旧库残留Codex 未明确配置 sqlite_home，无法证明根目录数据库是孤儿库；已保留全部数据库。db_orphan_providersrollout_orphan_providersconfig-backups无第三方注入残留检测到第三方域名重定�"
+  },
+  {
+   "vm": "0x101520a64",
+   "text": "\n检测到 �\u001f 个旧版线程数据库残留"
+  },
+  {
+   "vm": "0x10130ddda",
+   "text": "E当前活库已确认在 sqlite/ 子目录，根目录残留旧库（���"
+  },
+  {
+   "vm": "0x101520cc9",
+   "text": "\u0018sqlite/ 子目录留有 �\u001c 本非当前线程数据库"
+  },
+  {
+   "vm": "0x10130e67b",
+   "text": "?Catalog 路径（路由未启用，跳过）真实账号仍被静态目录覆盖请通过正常路由重收敛迁移至原生目录。官方目录使用原生发现，无静态目录覆盖codex-switchmodel_catalog_json 指向非 AiMaMi 路径model_catalog_json 指向第三方工具残留路径model"
+  },
+  {
+   "vm": "0x10130dedf",
+   "text": "检测到双布局线程数据库Codex 未通过 sqlite_home 明确当前数据库目录，AiMaMi 将保留两处数据库，避免在锁竞争或版本切换期间误删仍在使用的线程库。catalog_path_validity已重新同步 config.toml 中的 catalog 路径router_postconditionconfig_profil"
+  },
+  {
+   "vm": "0x10130df00",
+   "text": "Codex 未通过 sqlite_home 明确当前数据库目录，AiMaMi 将保留两处数据库，避免在锁竞争或版本切换期间误删仍在使用的线程库。catalog_path_validity已重新同步 config.toml 中的 catalog 路径router_postconditionconfig_profile_conflicttakeover_backup_orphanr"
+  },
+  {
+   "vm": "0x10130ddbf",
+   "text": "线程数据库位置正常E当前活库已确认在 sqlite/ 子目录，根目录残留旧库（���"
+  },
+  {
+   "vm": "0x101520d01",
+   "text": "\u001c当前活库是根目录的 � ；`sqlite/` 子目录下另有 ���\u0001。这通常是旧版 Codex 迁移后留下的废弃库，Codex 不会再读它，删除或保留都不影响当前线程。但请注意：它的线程记录仍会被「线程缺历史文件」「provider 未收敛」等检查计入�"
+  },
+  {
+   "vm": "0x101520451",
+   "text": "\u0014access_token 将在 �\u0010 分钟后过期"
+  },
+  {
+   "vm": "0x10130d5c9",
+   "text": "有 refresh_token，账号管理页刷新或切换账号即可自动续期access_token 已过期且无 refresh_token需要重新登录 ChatGPTaccess_token 已过期Token 过期检测（API Key 模式，不适用）Token 过期检测（JSON 损坏，跳过）Token 过期检测（无法读取，跳过"
+  },
+  {
+   "vm": "0x10130d54c",
+   "text": "无法解析 access_token 过期时间token 格式异常，无法提取 exp claim无 refresh_token，过期后需重新登录有 refresh_token，账号管理页刷新或切换账号即可自动续期access_token 已过期且无 refresh_token需要重新登录 ChatGPTaccess_token 已过期Token 过�"
+  },
+  {
+   "vm": "0x10130d572",
+   "text": "token 格式异常，无法提取 exp claim无 refresh_token，过期后需重新登录有 refresh_token，账号管理页刷新或切换账号即可自动续期access_token 已过期且无 refresh_token需要重新登录 ChatGPTaccess_token 已过期Token 过期检测（API Key 模式，不适用�"
+  },
+  {
+   "vm": "0x10130d66d",
+   "text": "Token 过期检测（API Key 模式，不适用）Token 过期检测（JSON 损坏，跳过）Token 过期检测（无法读取，跳过）Catalog 完整性（路由未启用，跳过）Catalog 文件缺失路由已启用但 catalog 不存在，Codex 菜单无法显示中转模型Catalog 文件为�"
+  },
+  {
+   "vm": "0x10130d657",
+   "text": "access_token 已过期Token 过期检测（API Key 模式，不适用）Token 过期检测（JSON 损坏，跳过）Token 过期检测（无法读取，跳过）Catalog 完整性（路由未启用，跳过）Catalog 文件缺失路由已启用但 catalog 不存在，Codex 菜单无法显示中转模"
+  },
+  {
+   "vm": "0x101520479",
+   "text": "\n已过期 �T 分钟。有 refresh_token，请在账号管理页刷新或切换账号自动续期"
+  },
+  {
+   "vm": "0x1015203f4",
+   "text": "\u001daccess_token 有效（剩余 �\n 小时）"
+  },
+  {
+   "vm": "0x10130d613",
+   "text": "access_token 已过期且无 refresh_token需要重新登录 ChatGPTaccess_token 已过期Token 过期检测（API Key 模式，不适用）Token 过期检测（JSON 损坏，跳过）Token 过期检测（无法读取，跳过）Catalog 完整性（路由未启用，跳过）Catalog 文件缺失路�"
+  },
+  {
+   "vm": "0x10130d63d",
+   "text": "需要重新登录 ChatGPTaccess_token 已过期Token 过期检测（API Key 模式，不适用）Token 过期检测（JSON 损坏，跳过）Token 过期检测（无法读取，跳过）Catalog 完整性（路由未启用，跳过）Catalog 文件缺失路由已启用但 catalog 不存在，Codex �"
+  },
+  {
+   "vm": "0x10152041f",
+   "text": "\u001daccess_token 有效（剩余 �\u0005 天 �\n 小时）"
+  },
+  {
+   "vm": "0x10130d59d",
+   "text": "无 refresh_token，过期后需重新登录有 refresh_token，账号管理页刷新或切换账号即可自动续期access_token 已过期且无 refresh_token需要重新登录 ChatGPTaccess_token 已过期Token 过期检测（API Key 模式，不适用）Token 过期检测（JSON 损坏，跳过�"
+  }
+ ],
+ "strip_all_managed_blocks": [],
+ "unescape_toml_basic_string": []
+}

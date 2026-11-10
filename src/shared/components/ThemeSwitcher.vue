@@ -7,7 +7,7 @@ const details = ref<HTMLDetailsElement>()
 const trigger = ref<HTMLElement>()
 const label = computed(() => (theme.value === 'endfield' ? '终末地' : '千禧机壳'))
 const choices: { id: ThemeId; label: string; detail: string }[] = [
-  { id: 'endfield', label: '终末地', detail: '纸墨工业 · 动态等高线' },
+  { id: 'endfield', label: '终末地', detail: '纸墨工业 · 信号色与测绘网格' },
   { id: 'millennium', label: '千禧机壳', detail: '奶油面板 · 薄荷绿' },
 ]
 function close(restoreFocus = false) {
@@ -94,16 +94,17 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 7px;
-  height: 34px;
+  height: var(--control);
   padding: 0 10px;
-  border: var(--border);
-  border-radius: var(--radius);
-  background: var(--panel);
-  box-shadow: var(--key);
-  cursor: pointer;
-  list-style: none;
   font-size: 11px;
   white-space: nowrap;
+  color: var(--ink);
+  background: var(--elevated);
+  border: 1px solid var(--control-line);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  list-style: none;
+  transition: background-color var(--motion-fast) var(--ease);
 }
 .theme-trigger::-webkit-details-marker {
   display: none;
@@ -112,7 +113,7 @@ onUnmounted(() => {
   color: var(--muted);
 }
 .theme-trigger > b {
-  font-weight: 600;
+  font-weight: 700;
 }
 .theme-trigger-arrow {
   transform: rotate(90deg);
@@ -121,82 +122,96 @@ onUnmounted(() => {
   transform: rotate(-90deg);
 }
 .theme-trigger:hover {
-  background: var(--paper);
+  background: var(--inset);
 }
 .theme-trigger:focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
+
 .theme-menu {
   position: absolute;
   right: 0;
-  top: calc(100% + 9px);
+  top: calc(100% + 8px);
   z-index: 20;
-  width: 244px;
-  padding: 7px;
-  background: var(--paper);
-  border: var(--border);
-  box-shadow: 3px 3px 0 var(--edge);
+  width: 248px;
+  padding: 6px;
+  background: var(--elevated);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-panel);
+  box-shadow: var(--shadow-overlay);
 }
 .theme-menu-label {
   display: flex;
+  align-items: baseline;
   justify-content: space-between;
-  padding: 6px 7px 10px;
-  color: var(--muted);
+  padding: 4px 6px 8px;
   font-size: 10px;
+  font-weight: 700;
+  color: var(--ink);
 }
 .theme-menu-label small {
   font: 8px var(--font-mono);
-  letter-spacing: 1px;
+  letter-spacing: 0.12em;
+  color: var(--faint);
 }
 .theme-menu-choice {
   display: flex;
   align-items: center;
   width: 100%;
-  gap: 10px;
-  padding: 10px 7px;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--ink);
+  gap: 9px;
+  padding: 8px 6px;
   text-align: left;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
 }
 .theme-menu-choice:hover {
-  background: var(--panel);
-  border-color: var(--edge);
+  background: var(--inset);
 }
 .theme-menu-choice[aria-pressed='true'] {
-  border-color: var(--line);
-  background: var(--panel);
+  border-color: var(--ink);
+  background: var(--inset);
+  box-shadow: inset 3px 0 0 var(--signal);
+}
+.theme-menu-choice[aria-pressed='true'] > svg {
+  color: var(--accent-text);
 }
 .theme-menu-copy {
   flex: 1;
+  min-width: 0;
 }
 .theme-menu-copy b {
   display: block;
   font-size: 12px;
+  font-weight: 700;
 }
 .theme-menu-copy small {
   display: block;
-  color: var(--muted);
+  margin-top: 3px;
   font-size: 10px;
-  margin-top: 5px;
+  color: var(--muted);
 }
+
+/* Swatch: the same four-part structure as the picker's larger preview. */
 .theme-menu-swatch {
-  --swatch-accent: #fff500;
-  --swatch-bg: #e8e8e2;
-  --swatch-ink: #171a18;
+  --swatch-accent: #fffa00;
+  --swatch-bg: #eceee6;
+  --swatch-ink: #20231f;
   position: relative;
-  width: 31px;
-  height: 32px;
-  border: 1px solid var(--swatch-ink);
-  background: var(--swatch-bg);
   flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  background: var(--swatch-bg);
+  border: 1px solid var(--swatch-ink);
+  border-radius: 2px;
+  overflow: hidden;
 }
 .theme-menu-swatch.millennium {
   --swatch-accent: #8fd6a0;
   --swatch-bg: #ddd4bf;
-  --swatch-ink: #403c37;
+  --swatch-ink: #393b34;
 }
 .theme-menu-swatch::before {
   content: '';
@@ -204,19 +219,29 @@ onUnmounted(() => {
   left: 0;
   top: 0;
   bottom: 0;
-  width: 7px;
+  width: 6px;
   background: var(--swatch-accent);
   border-right: 1px solid var(--swatch-ink);
 }
 .theme-menu-swatch i {
-  display: block;
   position: absolute;
-  left: 11px;
-  right: 3px;
+  left: 10px;
+  right: 4px;
   top: 5px;
-  height: 11px;
+  height: 10px;
   background: var(--swatch-ink);
 }
+.theme-menu-swatch i::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  right: 4px;
+  top: 15px;
+  height: 5px;
+  background: var(--swatch-ink);
+  opacity: 0.25;
+}
+
 @media (max-width: 1050px) {
   .theme-trigger {
     gap: 5px;

@@ -82,3 +82,19 @@ pnpm tauri build --bundles app
 ![系统诊断](screenshots/maintenance/diagnostics-1440.png)
 
 ![修复预览](screenshots/maintenance/repair-preview-1440.png)
+
+## 2026-11-10：按 AiMaMi 1.2.7 原版重做页面与系统诊断
+
+维护页与系统诊断弹窗改为按安装版原版排版复刻，样式用项目自有 CSS 写就并跟随当前皮肤，没有引入 Tailwind。
+
+- 维护页从带序号色块的卡片网格改为原版的单卡片 + 分隔行结构：18px 图标、14px 标题、12px 描述、右侧动作按钮或开关，九行顺序为系统诊断、调试日志、发送诊断信息、清理数据、重建注册表、强制关闭 Codex、Image 声明过滤、Claude 联网搜索、重启 Codex。
+- 对话框宽度按原版 448px，含加载态、全部正常态、四组滚动列表、条目行与「修复」按钮、「全部修复（N 项）」、「修复结果」块。
+- 交互改为原版语义：单项修复与全部修复都是一键执行，不再有用户可见的预览与勾选确认；预览、备份、读回校验仍由后端完成，只是不再呈现为步骤。重启 Codex 保留原版的二次确认弹窗。
+- 目录写入检查不再占用独立入口，改为挂到 `codex_home_writable` 这一条目的修复动作上，仍使用独立票据。
+- 智能路由切换期间按原版把每行文案替换为过渡说明并附「原始检测：」，此时不提供任何修复入口。
+
+条目证据与文案来源见 [系统诊断条目矩阵](research/maintenance-parity-matrix.md)，二进制常量提取结果见 [证据目录](research/maintenance-evidence/)。
+
+已按原版文案调整的条目：`config_access`、`config_toml_syntax`、`proxy_running`、`catalog_path_validity`、`catalog_integrity`、`official_catalog_freshness`、`codex_process_state`、`codex_home_writable`。
+
+仍需逐函数裁定的部分：`router_postcondition` 的提交确认条件、`project_state_integrity` 的索引算法、`native_off_invalid_openai_thread_models` 的模型映射规则，以及各 `fix_*` 的前置条件。这些没有证据时不宣称已对齐。

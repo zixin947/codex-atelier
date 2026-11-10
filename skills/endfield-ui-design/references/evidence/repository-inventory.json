@@ -1,0 +1,212 @@
+[
+  {
+    "name": "icaruszezen/endfield-ui",
+    "status": 200,
+    "url": "https://github.com/icaruszezen/endfield-ui",
+    "description": "《明日方舟：终末地》设计风格指导文档及组件库",
+    "license": "MIT",
+    "branch": "main",
+    "homepage": null,
+    "updated_at": "2026-10-30T12:54:27Z"
+  },
+  {
+    "name": "Statrue/endfield-design-skill",
+    "status": 200,
+    "url": "https://github.com/Statrue/endfield-design-skill",
+    "description": "面向 Claude Code / Codex 的设计 Skill：把《明日方舟：终末地》的视觉语言提炼成可判断、可验证的设计方法",
+    "license": "MIT",
+    "branch": "main",
+    "homepage": "",
+    "updated_at": "2026-10-25T02:30:38Z"
+  },
+  {
+    "name": "ymh0000123/dsh-theme-endfield",
+    "status": 200,
+    "url": "https://github.com/ymh0000123/dsh-theme-endfield",
+    "description": "终末地官网风格的 DSH Web 主题：奶油纸底、墨黑文字、信号黄强调、全直角工业编辑风。",
+    "license": "MIT",
+    "branch": "main",
+    "homepage": "",
+    "updated_at": "2026-11-01T15:07:07Z"
+  },
+  {
+    "name": "VBeatDead/ReEnd-Components",
+    "status": 200,
+    "url": "https://github.com/VBeatDead/ReEnd-Components",
+    "description": "Arknights: Endfield Design System — React component library with Tailwind CSS, TypeScript, and Radix UI",
+    "license": "MIT",
+    "branch": "main",
+    "homepage": "https://reend-components.pages.dev",
+    "updated_at": "2026-10-29T03:51:42Z"
+  },
+  {
+    "name": "Talos-Pioneers/ui",
+    "status": 200,
+    "url": "https://github.com/Talos-Pioneers/ui",
+    "description": "Arknights Endfield Blueprints UI Components",
+    "license": "AGPL-3.0",
+    "branch": "main",
+    "homepage": "https://talospioneers.com",
+    "updated_at": "2026-09-18T11:47:43Z"
+  },
+  {
+    "name": "Yue-plus/astro-endfield",
+    "status": 200,
+    "url": "https://github.com/Yue-plus/astro-endfield",
+    "description": null,
+    "license": "MIT",
+    "branch": "main",
+    "homepage": "http://astro.endfield.icu/",
+    "updated_at": "2026-03-07T15:32:24Z"
+  },
+  {
+    "name": "Yue-plus/endfield_icons",
+    "status": 200,
+    "url": "https://github.com/Yue-plus/endfield_icons",
+    "description": "明日方舟：终末地 图标 Logo",
+    "license": "MIT",
+    "branch": "main",
+    "homepage": "http://icons.endfield.icu/",
+    "updated_at": "2026-11-01T15:08:33Z"
+  },
+  {
+    "name": "Naptie/endfield-docmaker",
+    "status": 200,
+    "url": "https://github.com/Naptie/endfield-docmaker",
+    "description": "用于生成《明日方舟：终末地》游戏世界观中各机构签发的文档的工具",
+    "license": "MPL-2.0",
+    "branch": "main",
+    "homepage": "https://endfield.phi.zone/docmaker",
+    "updated_at": "2026-11-02T08:41:31Z"
+  },
+  {
+    "name": "Tassel97/EndfieldTheme",
+    "status": 200,
+    "url": "https://github.com/Tassel97/EndfieldTheme",
+    "description": "Arknights Endfield Flutter Theme",
+    "license": null,
+    "branch": "master",
+    "homepage": null,
+    "updated_at": "2026-09-09T04:08:38Z"
+  },
+  {
+    "name": "rison114514/dsh-endfield-ui",
+    "status": 200,
+    "url": "https://github.com/rison114514/dsh-endfield-ui",
+    "description": "Endfield-inspired industrial UI shell for DeepSeek Harness (dsh) — non-official fan theme. Install: dsh plugin --profile web add @rison/dsh-endfield-ui",
+    "license": null,
+    "branch": "main",
+    "homepage": "https://github.com/rison114514/dsh-endfield-ui#readme",
+    "updated_at": "2026-10-26T20:26:59Z"
+  },
+  {
+    "name": "INnoVationEE/dsh-endfield-theme",
+    "status": 200,
+    "url": "https://github.com/INnoVationEE/dsh-endfield-theme",
+    "description": "The Terminal — an unofficial Arknights: Endfield-inspired theme for the DeepSeek Harness Web UI with usage monitoring wigdet.",
+    "license": null,
+    "branch": "main",
+    "homepage": "https://github.com/deepseek-ai/deepseek-harness",
+    "updated_at": "2026-09-12T00:26:18Z"
+  },
+  {
+    "name": "Longxiangjunlin/dsh-endfield-theme",
+    "status": 200,
+    "url": "https://github.com/Longxiangjunlin/dsh-endfield-theme",
+    "description": "Arknights: Endfield theme for the DeepSeek Harness Web GUI — charcoal + hazard-yellow industrial HUD, first-paint boot splash, conversation backdrop.",
+    "license": "NOASSERTION",
+    "branch": "main",
+    "homepage": "",
+    "updated_at": "2026-11-01T15:22:08Z"
+  },
+  {
+    "name": "Xiaoli-Asuna/dsh-theme-endfield-style",
+    "status": 200,
+    "url": "https://github.com/Xiaoli-Asuna/dsh-theme-endfield-style",
+    "description": "Arknights: Endfield-style theme for the DeepSeek Harness web UI (unofficial fan work).",
+    "license": "MIT",
+    "branch": "main",
+    "homepage": "",
+    "updated_at": "2026-10-14T10:25:07Z"
+  },
+  {
+    "name": "LaoBiDeng321/Endfield-Style-Skill",
+    "status": 200,
+    "url": "https://github.com/LaoBiDeng321/Endfield-Style-Skill",
+    "description": "终末地风格改造技能：Transforms any web project into Arknights: Endfield (明日方舟：终末地) industrial-editorial style with 6 levels: loading-screen scope (full/boot-only/no-boot) x color scope (Endfield palette/keep original). Invoke when user asks for 终末地风格/Endfield style redesign, opening loading animation, or industrial style conversion.",
+    "license": "MIT",
+    "branch": "main",
+    "homepage": "",
+    "updated_at": "2026-10-10T07:01:50Z"
+  },
+  {
+    "name": "ChuwuYo/Endfield-Pomodoro",
+    "status": 200,
+    "url": "https://github.com/ChuwuYo/Endfield-Pomodoro",
+    "description": "Pomodoro website with custom music. 一个受 Cyber UI 和 终末地 风格启发的沉浸式 Web 番茄钟应用",
+    "license": "MIT",
+    "branch": "main",
+    "homepage": "https://pomo.chuwu.top",
+    "updated_at": "2026-10-31T00:51:18Z"
+  },
+  {
+    "name": "cloud-oc/endspace",
+    "status": 200,
+    "url": "https://github.com/cloud-oc/endspace",
+    "description": "受《明日方舟：终末地》官网启发制作的NotionNext主题。『明日方舟：終末地』の公式ウェブサイトにインスパイアされて制作されたNotionNextテーマです。NotionNext theme inspired by the official website of Arknights: Endfield.",
+    "license": "Apache-2.0",
+    "branch": "main",
+    "homepage": "https://cloud09.space",
+    "updated_at": "2026-10-10T14:50:20Z"
+  },
+  {
+    "name": "zhangtengjin-byte/Endfield-Belt-Font",
+    "status": 200,
+    "url": "https://github.com/SpicySugar16/Endfield-Belt-Font",
+    "description": "A font created in the style of the Endfield's belt",
+    "license": "OFL-1.1",
+    "branch": "main",
+    "homepage": null,
+    "updated_at": "2026-10-03T13:28:00Z"
+  },
+  {
+    "name": "leostudiooo/typst-touying-theme-endfield",
+    "status": 200,
+    "url": "https://github.com/leostudiooo/typst-touying-theme-endfield",
+    "description": "Typst Touying theme inspired by Arknights: Endfield.",
+    "license": "MIT",
+    "branch": "main",
+    "homepage": null,
+    "updated_at": "2026-10-30T14:03:05Z"
+  },
+  {
+    "name": "NCreeper233/endfield-logo-maker",
+    "status": 200,
+    "url": "https://github.com/NCreeper233/endfield-logo-maker",
+    "description": "明日方舟：终末地风格LOGO生成器",
+    "license": "MIT",
+    "branch": "main",
+    "homepage": "http://ark.ncreeper.top/",
+    "updated_at": "2026-10-10T06:58:34Z"
+  },
+  {
+    "name": "GlacierGlimmer/zmd-charge-plus",
+    "status": 200,
+    "url": "https://github.com/GlacierGlimmer/zmd-charge-plus",
+    "description": "基于zmd-charge二次开发的终末地风格Windows/Linux/MacOS/Android状态栏HUD+。An Endfield-inspired Windows/Linux/MacOS/Android status HUD built upon zmd-charge.",
+    "license": "MIT",
+    "branch": "main",
+    "homepage": "https://zmd-bar.x-neko.com",
+    "updated_at": "2026-11-02T07:39:02Z"
+  },
+  {
+    "name": "palmcivet/awesome-arknights-endfield",
+    "status": 200,
+    "url": "https://github.com/palmcivet/awesome-arknights-endfield",
+    "description": "A curated list of awesome things related to Arknights: Endfield. | 一个有关《明日方舟：终末地》的 Awesome List。",
+    "license": "MIT",
+    "branch": "main",
+    "homepage": "https://palmcivet.github.io/awesome-arknights-endfield/",
+    "updated_at": "2026-11-01T11:31:03Z"
+  }
+]

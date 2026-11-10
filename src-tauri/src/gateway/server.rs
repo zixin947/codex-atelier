@@ -1,7 +1,8 @@
 use super::{oauth::AuthManager, storage::Store, types::*};
+use crate::maintenance::diagnostics::official_catalog::{self, OfficialCatalogRuntime, Scope};
 use axum::{
     body::{Body, Bytes},
-    extract::{DefaultBodyLimit, State},
+    extract::{DefaultBodyLimit, RawQuery, State},
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
     routing::{get, post},
@@ -11,11 +12,18 @@ use futures_util::StreamExt;
 use serde_json::{json, Value};
 use std::{
     collections::{HashMap, VecDeque},
-    sync::{Arc, Mutex},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, Mutex,
+    },
     time::UNIX_EPOCH,
 };
 use tokio::sync::{oneshot, OwnedSemaphorePermit, Semaphore};
 use uuid::Uuid;
+
+#[cfg(test)]
+#[path = "official_catalog_integration_tests.rs"]
+mod official_catalog_integration_tests;
 
 #[derive(Default)]
 struct Stats {
@@ -28,6 +36,7 @@ struct Live {
     view: RuntimeView,
     key: Option<String>,
     shutdown: Option<oneshot::Sender<()>>,
+    alive: Option<Arc<AtomicBool>>,
     events: VecDeque<RouteEvent>,
     stats: HashMap<String, Stats>,
     responses: HashMap<String, String>,
@@ -40,6 +49,7 @@ pub struct GatewayServer {
     live: Mutex<Live>,
     lifecycle: tokio::sync::Mutex<()>,
     slots: Arc<Semaphore>,
+    official_catalog: Arc<OfficialCatalogRuntime>,
 }
 impl GatewayServer {
     pub fn new(store: Arc<Store>, auth: Arc<AuthManager>, client: reqwest::Client) -> Self {
@@ -50,6 +60,7 @@ impl GatewayServer {
             live: Mutex::new(Live::default()),
             lifecycle: tokio::sync::Mutex::new(()),
             slots: Arc::new(Semaphore::new(8)),
+            official_catalog: Arc::default(),
         }
     }
     pub fn view(&self) -> RuntimeView {
@@ -58,6 +69,29 @@ impl GatewayServer {
             .unwrap_or_else(|e| e.into_inner())
             .view
             .clone()
+    }
+    pub(crate) fn official_catalog_runtime(&self) -> Arc<OfficialCatalogRuntime> {
+        self.official_catalog.clone()
+    }
+    fn capture_official_scope(&self) -> Result<(Scope, Catalog), String> {
+        let result = self.store.with_routing_snapshot(|catalog, target| {
+            let scope = match catalog.settings.preferred_profile_id.as_deref() {
+                Some(id) => Scope::gateway_at_target(&catalog, id, target)?,
+                None => Scope::off(),
+            };
+            self.official_catalog.configure(&scope)?;
+            Ok((scope, catalog))
+        });
+        match result {
+            Ok(value) => Ok(value),
+            Err(error) => {
+                self.official_catalog.configure(&Scope::off())?;
+                Err(error)
+            }
+        }
+    }
+    pub(crate) fn synchronize_official_catalog(&self) -> Result<(), String> {
+        self.capture_official_scope().map(|_| ())
     }
     pub fn events(&self) -> Vec<RouteEvent> {
         self.live
@@ -71,6 +105,22 @@ impl GatewayServer {
     }
     pub fn active_requests(&self) -> usize {
         self.view().active_requests
+    }
+    /// Actual owned listener generation. Old handles remain stopped across a restart.
+    pub(crate) fn maintenance_proxy_handle(
+        &self,
+    ) -> Option<atelier_maintenance_core::router_verification::ProxyHandle> {
+        let live = self.live.lock().ok()?;
+        let port = live
+            .view
+            .address
+            .as_deref()
+            .and_then(|s| url::Url::parse(s).ok())?
+            .port()?;
+        Some(atelier_maintenance_core::router_verification::ProxyHandle {
+            port,
+            alive: live.alive.as_ref()?.clone(),
+        })
     }
     pub fn overlay_profiles(&self, p: &mut [Profile]) {
         let live = self.live.lock().unwrap_or_else(|e| e.into_inner());
@@ -96,6 +146,7 @@ impl GatewayServer {
             return Err("网关已运行或正在停止。".into());
         }
         let c = self.store.read()?;
+        let _ = self.synchronize_official_catalog();
         let preferred = c
             .settings
             .preferred_profile_id
@@ -109,8 +160,13 @@ impl GatewayServer {
             tokio::net::TcpListener::bind((std::net::Ipv4Addr::LOCALHOST, c.settings.port))
                 .await
                 .map_err(|_| "本地端口不可用，请修改端口后重试。")?;
-        let address = format!("http://127.0.0.1:{}/v1", c.settings.port);
+        let port = listener
+            .local_addr()
+            .map_err(|_| "无法读取已绑定的网关地址")?
+            .port();
+        let address = format!("http://127.0.0.1:{port}/v1");
         let (tx, rx) = oneshot::channel();
+        let alive = Arc::new(AtomicBool::new(true));
         {
             let mut live = self.live.lock().map_err(|_| "网关状态锁异常。")?;
             live.view.state = "running".into();
@@ -122,6 +178,7 @@ impl GatewayServer {
                 Uuid::new_v4().simple()
             ));
             live.shutdown = Some(tx);
+            live.alive = Some(alive.clone());
             live.responses.clear();
             live.sessions.clear();
         }
@@ -139,11 +196,13 @@ impl GatewayServer {
                     let _ = rx.await;
                 })
                 .await;
+            alive.store(false, Ordering::Release);
             let mut live = server.live.lock().unwrap_or_else(|e| e.into_inner());
             live.view.state = if result.is_ok() { "stopped" } else { "error" }.into();
             live.view.address = None;
             live.key = None;
             live.shutdown = None;
+            live.alive = None;
             if result.is_err() {
                 live.view.message = Some("网关监听已退出，请重新启动。".into());
             }
@@ -152,8 +211,12 @@ impl GatewayServer {
     }
     pub async fn stop(&self) -> Result<(), String> {
         let _lock = self.lifecycle.lock().await;
+        self.official_catalog.configure(&Scope::off())?;
         let mut live = self.live.lock().map_err(|_| "网关状态锁异常。")?;
         if let Some(shutdown) = live.shutdown.take() {
+            if let Some(alive) = &live.alive {
+                alive.store(false, Ordering::Release);
+            }
             live.view.state = "stopping".into();
             live.view.message = Some("已停止接收新请求，等待在途请求结束。".into());
             let _ = shutdown.send(());
@@ -277,7 +340,11 @@ async fn no_websocket() -> Response {
         "本版网关使用 HTTP/SSE，请设置 supports_websockets=false。",
     )
 }
-async fn models(State(server): State<Arc<GatewayServer>>, headers: HeaderMap) -> Response {
+async fn models(
+    State(server): State<Arc<GatewayServer>>,
+    headers: HeaderMap,
+    RawQuery(query): RawQuery,
+) -> Response {
     if let Err(e) = server.check(&headers) {
         return e;
     }
@@ -293,7 +360,149 @@ async fn models(State(server): State<Arc<GatewayServer>>, headers: HeaderMap) ->
         Some(p) => p,
         None => return failure(503, "no_selected_account", "请在 Atelier 选择当前账号。"),
     };
+    if p.kind == ProfileKind::Chatgpt {
+        if let Some(query) = query.as_deref().filter(|q| {
+            url::form_urlencoded::parse(q.as_bytes()).any(|(k, _)| k == "client_version")
+        }) {
+            return observed_official_models(server.clone(), &headers, query).await;
+        }
+    }
     Json(json!({"object":"list","data":p.models.iter().map(|m|json!({"id":m.id,"object":"model","owned_by":"configured-upstream"})).collect::<Vec<_>>()})).into_response()
+}
+async fn observed_official_models(
+    server: Arc<GatewayServer>,
+    incoming: &HeaderMap,
+    query: &str,
+) -> Response {
+    let version = match official_catalog::client_version(query) {
+        Ok(version) => version,
+        Err(_) => {
+            return failure(
+                400,
+                "invalid_client_version",
+                "需要唯一且有效的实际 client_version。",
+            )
+        }
+    };
+    let (scope, catalog) = match server.capture_official_scope() {
+        Ok(value) => value,
+        Err(_) => return failure(409, "catalog_source_unavailable", "当前路由来源无法核对。"),
+    };
+    if !matches!(
+        scope.mode(),
+        official_catalog::SourceMode::Native | official_catalog::SourceMode::GatewayChatgpt
+    ) {
+        return failure(
+            409,
+            "official_catalog_inactive",
+            "当前路由模式不要求获取官方目录。",
+        );
+    }
+    let profile = match catalog.profiles.iter().find(|p| {
+        Some(&p.id) == catalog.settings.preferred_profile_id.as_ref()
+            && p.kind == ProfileKind::Chatgpt
+            && p.enabled
+    }) {
+        Some(profile) => profile,
+        None => return failure(409, "catalog_source_changed", "当前所选账号来源已改变。"),
+    };
+    let permit = match server.slots.clone().acquire_owned().await {
+        Ok(permit) => permit,
+        Err(_) => return failure(503, "gateway_stopping", "网关正在停止。"),
+    };
+    let mut guard = RequestGuard::new(server.clone(), permit);
+    guard.profile = Some(profile.id.clone());
+    guard.attempts = 1;
+    let token = server.auth.access_token(&profile.id).await.ok();
+    let mut identity = incoming.clone();
+    // The local gateway key and a different Desktop account must not become the
+    // upstream identity. Use the actually selected profile's credential instead.
+    identity.remove("authorization");
+    identity.remove("chatgpt-account-id");
+    if let Some(token) = token {
+        if let Ok(value) = format!("Bearer {token}").parse() {
+            identity.insert("authorization", value);
+        }
+        use base64::Engine;
+        let claims = token
+            .split('.')
+            .nth(1)
+            .and_then(|p| {
+                base64::engine::general_purpose::URL_SAFE_NO_PAD
+                    .decode(p)
+                    .ok()
+            })
+            .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok());
+        if let Some(id) = claims
+            .as_ref()
+            .and_then(|v| v["https://api.openai.com/auth"]["chatgpt_account_id"].as_str())
+        {
+            if let Ok(value) = id.parse() {
+                identity.insert("chatgpt-account-id", value);
+            }
+        }
+    }
+    let observation = match server
+        .official_catalog
+        .observe_request(&scope, &identity, &version)
+        .await
+    {
+        Ok(result) => result,
+        Err(error) => {
+            guard.finish(false, "official_catalog_source_changed", None);
+            return failure(
+                error.response_status(),
+                "official_catalog_source_changed",
+                "官方目录请求无效或来源已改变。",
+            );
+        }
+    };
+    // Re-read the actual store/intent before returning or accepting an observation.
+    let still_current = if server.view().state == "running" {
+        server.capture_official_scope().ok().map(|(scope, _)| scope)
+    } else {
+        None
+    };
+    if still_current.as_ref() != Some(&scope) {
+        let _ = server
+            .official_catalog
+            .configure(still_current.as_ref().unwrap_or(&Scope::off()));
+        guard.finish(false, "official_catalog_source_changed", None);
+        return failure(
+            409,
+            "official_catalog_source_changed",
+            "官方目录请求期间配置或宿主状态改变。",
+        );
+    }
+    if !observation.published {
+        guard.finish(false, "official_catalog_superseded", None);
+        return failure(
+            409,
+            "official_catalog_superseded",
+            "此请求已被较新的目录请求替代。",
+        );
+    }
+    let status =
+        StatusCode::from_u16(observation.response_status()).unwrap_or(StatusCode::BAD_GATEWAY);
+    let failure_body = observation.failure_body();
+    let mut response = if let Some(value) = observation.catalog {
+        guard.finish(true, "official_catalog_ok", None);
+        (status, Json(value)).into_response()
+    } else {
+        guard.finish(false, "official_catalog_failed", None);
+        (
+            status,
+            Json(
+                failure_body
+                    .unwrap_or_else(|| json!({"error":{"code":"official_catalog_unavailable"}})),
+            ),
+        )
+            .into_response()
+    };
+    if let Some(etag) = observation.upstream_etag {
+        response.headers_mut().insert("etag", etag);
+    }
+    response
 }
 async fn responses(State(s): State<Arc<GatewayServer>>, h: HeaderMap, b: Bytes) -> Response {
     forward(s, h, b, false).await
@@ -770,7 +979,7 @@ fn validate_plan(v: &mut Value) -> Result<(), &'static str> {
 #[cfg(test)]
 mod image_compat_integration {
     use super::*;
-    use crate::gateway::storage::{atomic_private, private_dir};
+    use crate::gateway::storage::private_dir;
     #[tokio::test]
     async fn running_gateway_filters_next_request_and_restores_passthrough_without_restart() {
         let root =
@@ -799,7 +1008,9 @@ mod image_compat_integration {
         let upstream = tokio::spawn(async move { axum::serve(listener, mock).await.unwrap() });
         let reservation = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
         let port = reservation.local_addr().unwrap().port();
-        let store = Arc::new(Store::new(root.join("gateway")).unwrap());
+        let config_path = root.join("codex/config.toml");
+        let store =
+            Arc::new(Store::new_with_config(root.join("gateway"), config_path.clone()).unwrap());
         let id = Uuid::new_v4().to_string();
         store
             .upsert(
@@ -843,15 +1054,21 @@ mod image_compat_integration {
         let auth = Arc::new(AuthManager::new(store.clone(), client.clone()));
         let server = Arc::new(GatewayServer::new(store, auth, client.clone()));
         drop(reservation);
+        assert!(server.maintenance_proxy_handle().is_none());
         server.start().await.unwrap();
+        let first_handle = server.maintenance_proxy_handle().unwrap();
+        assert!(first_handle.alive.load(Ordering::Acquire));
+        assert!(
+            atelier_maintenance_core::router_verification::proxy_handle_port_accepts(
+                &first_handle,
+                &atelier_maintenance_core::router_verification::LocalPortTransport
+            )
+        );
         let key = server.local_key().unwrap();
         let request = json!({"model":"fixture-model","input":[{"type":"message","role":"user","content":[{"type":"input_image","image_url":"fixture-only"}]}],"tools":[{"type":"image_generation"},{"type":"function","name":"keep"}]});
-        for enabled in [true, false] {
-            atomic_private(
-                &root.join("maintenance/utility-settings.json"),
-                &serde_json::to_vec(&json!({"imageCompat":enabled})).unwrap(),
-            )
-            .unwrap();
+        for enabled in [false, true, false] {
+            atelier_maintenance_core::image_compat::set_image_compat(&config_path, enabled)
+                .unwrap();
             let response = client
                 .post(format!("http://127.0.0.1:{port}/v1/responses"))
                 .bearer_auth(&key)
@@ -866,15 +1083,34 @@ mod image_compat_integration {
             );
         }
         server.stop().await.unwrap();
+        assert!(!first_handle.alive.load(Ordering::Acquire));
+        for _ in 0..100 {
+            if server.view().state == "stopped" {
+                break;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+        assert_eq!(server.view().state, "stopped");
+        assert!(server.maintenance_proxy_handle().is_none());
+        server.start().await.unwrap();
+        let second_handle = server.maintenance_proxy_handle().unwrap();
+        assert!(!Arc::ptr_eq(&first_handle.alive, &second_handle.alive));
+        assert!(!first_handle.alive.load(Ordering::Acquire));
+        assert!(second_handle.alive.load(Ordering::Acquire));
+        server.stop().await.unwrap();
+        assert!(!second_handle.alive.load(Ordering::Acquire));
         upstream.abort();
         let bodies = captured.lock().unwrap();
-        assert_eq!(bodies.len(), 2);
+        assert_eq!(bodies.len(), 3);
         assert_eq!(
-            bodies[0]["tools"],
+            bodies[1]["tools"],
             json!([{"type":"function","name":"keep"}])
         );
-        assert_eq!(bodies[1]["tools"], request["tools"]);
+        assert_eq!(bodies[0]["tools"], request["tools"]);
+        assert_eq!(bodies[2]["tools"], request["tools"]);
         assert_eq!(bodies[0]["input"], request["input"]);
         assert_eq!(bodies[1]["input"], request["input"]);
+        assert_eq!(bodies[2]["input"], request["input"]);
+        assert!(!root.join("maintenance/utility-settings.json").exists());
     }
 }

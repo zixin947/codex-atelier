@@ -1,0 +1,4 @@
+interface:
+  display_name: '终末地 UI 设计'
+  short_description: '基于官方画面与来源证据，设计和审查终末地风格界面、组件及动效'
+  default_prompt: '使用 $endfield-ui-design，基于实际参考画面为当前项目设计终末地风格界面，并验证关键交互。'

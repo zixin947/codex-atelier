@@ -147,7 +147,11 @@ pub struct Edit {
 pub struct ItemResult {
     pub id: String,
     pub ok: bool,
+    pub partial: bool,
     pub message: String,
+}
+pub struct RefreshOutcome {
+    pub subscription_error: Option<String>,
 }
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -165,6 +169,14 @@ pub struct SwitchPreview {
     pub expires_at: u64,
     pub rollback: bool,
     pub warning: String,
+    pub connection: String,
+    pub changes: Vec<String>,
+}
+#[derive(Clone, Serialize, Deserialize)]
+pub struct SwitchFileBackup {
+    pub path: String,
+    pub before: Option<Vec<u8>>,
+    pub after: Option<Vec<u8>>,
 }
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Backup {
@@ -173,4 +185,10 @@ pub struct Backup {
     pub after_hash: String,
     pub config_hash: String,
     pub selected_before: Option<String>,
+    #[serde(default)]
+    pub version: u8,
+    #[serde(default)]
+    pub completed: bool,
+    #[serde(default)]
+    pub files: Vec<SwitchFileBackup>,
 }

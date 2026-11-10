@@ -21,6 +21,21 @@ pub(crate) fn diagnostic_runtime(app: &tauri::AppHandle) -> Option<RuntimeView> 
     let guard = state.0.lock().ok()?;
     guard.as_ref().map(|gateway| gateway.server.view())
 }
+/// Observes an initialized runtime; never creates a store or starts a listener.
+pub(crate) fn diagnostic_proxy_handle(
+    app: &tauri::AppHandle,
+) -> Option<atelier_maintenance_core::router_verification::ProxyHandle> {
+    let state = app.try_state::<GatewayState>()?;
+    let guard = state.0.lock().ok()?;
+    guard.as_ref()?.server.maintenance_proxy_handle()
+}
+pub(crate) fn diagnostic_official_catalog(
+    app: &tauri::AppHandle,
+) -> Option<Arc<crate::maintenance::diagnostics::official_catalog::OfficialCatalogRuntime>> {
+    let state = app.try_state::<GatewayState>()?;
+    let guard = state.0.lock().ok()?;
+    Some(guard.as_ref()?.server.official_catalog_runtime())
+}
 struct Gateway {
     store: Arc<Store>,
     auth: Arc<AuthManager>,
@@ -38,7 +53,8 @@ impl GatewayState {
             .app_data_dir()
             .map_err(|_| "无法定位 Atelier 数据目录。")?
             .join("gateway");
-        let store = Arc::new(Store::new(root)?);
+        let image_config = crate::maintenance::utilities::native_image_config_path()?;
+        let store = Arc::new(Store::new_with_config(root, image_config)?);
         let client = reqwest::Client::builder()
             .redirect(reqwest::redirect::Policy::none())
             .connect_timeout(Duration::from_secs(10))
@@ -65,6 +81,7 @@ impl GatewayState {
 impl Gateway {
     fn snapshot(&self) -> Result<Snapshot, String> {
         let mut c = self.store.read()?;
+        let _ = self.server.synchronize_official_catalog();
         self.server.overlay_profiles(&mut c.profiles);
         Ok(Snapshot {
             available: true,

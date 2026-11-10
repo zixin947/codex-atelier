@@ -22,7 +22,7 @@ const MAX_RESPONSE: usize = 64 * 1024;
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UtilitySettings {
-    #[serde(default)]
+    #[serde(default, skip_deserializing)]
     pub image_compat: bool,
     #[serde(default)]
     pub diagnostic_endpoint: Option<String>,
@@ -72,55 +72,39 @@ fn update_settings(
     update(&mut settings);
     atomic_private(
         &settings_path(root),
-        &serde_json::to_vec(&settings).map_err(|_| "设置编码失败")?,
+        &serde_json::to_vec(&json!({"diagnosticEndpoint":settings.diagnostic_endpoint}))
+            .map_err(|_| "设置编码失败")?,
     )?;
     Ok(settings)
 }
-pub(super) fn set_image_compat_at(root: &Path, enabled: bool) -> Result<UtilitySettings> {
-    update_settings(root, |s| s.image_compat = enabled)
+/// Explicit injection keeps fixtures and offline tools independent of the real HOME.
+pub(crate) fn read_settings_with_config(
+    root: &Path,
+    config_path: &Path,
+) -> Result<UtilitySettings> {
+    let mut settings = read_settings_at(root)?;
+    settings.image_compat =
+        atelier_maintenance_core::image_compat::get_image_compat(config_path).enabled;
+    Ok(settings)
+}
+pub(crate) fn native_image_config_path() -> Result<PathBuf> {
+    std::env::var_os("CODEX_HOME")
+        .map(PathBuf::from)
+        .or_else(|| std::env::var_os("HOME").map(|p| PathBuf::from(p).join(".codex")))
+        .map(|home| home.join("config.toml"))
+        .ok_or_else(|| "无法定位 Codex 配置目录".into())
 }
 #[tauri::command]
 pub fn maintenance_utility_settings(app: tauri::AppHandle) -> Result<UtilitySettings> {
-    read_settings_at(&root(&app)?)
+    read_settings_with_config(&root(&app)?, &native_image_config_path()?)
 }
-
-/// Mirrors the installed app's declaration filter: top-level tools and additional_tools input
-/// records, including the image_gen namespace. Ordinary input images are left intact.
-fn image_declaration(tool: &Value) -> bool {
-    tool.get("type").and_then(Value::as_str) == Some("image_generation")
-        || (tool.get("type").and_then(Value::as_str) == Some("namespace")
-            && tool.get("name").and_then(Value::as_str) == Some("image_gen"))
-}
-fn filter_tools(tools: &mut Vec<Value>) -> usize {
-    let before = tools.len();
-    tools.retain(|tool| !image_declaration(tool));
-    before - tools.len()
-}
+/// Recovered native filter; image inputs and tool_choice remain intact.
 pub(crate) fn filter_image_declarations(body: &mut Value, enabled: bool) -> usize {
-    if !enabled {
-        return 0;
+    if enabled {
+        atelier_maintenance_core::image_compat::strip_image_generation_tools(body)
+    } else {
+        0
     }
-    let mut removed = 0;
-    if let Some(tools) = body.get_mut("tools").and_then(Value::as_array_mut) {
-        removed += filter_tools(tools);
-    }
-    if let Some(input) = body.get_mut("input").and_then(Value::as_array_mut) {
-        input.retain_mut(|item| {
-            if item.get("type").and_then(Value::as_str) == Some("additional_tools") {
-                if let Some(tools) = item.get_mut("tools").and_then(Value::as_array_mut) {
-                    removed += filter_tools(tools);
-                    return !tools.is_empty();
-                }
-            }
-            true
-        });
-    }
-    if body.get("tool_choice").is_some_and(image_declaration) {
-        if let Some(obj) = body.as_object_mut() {
-            obj.remove("tool_choice");
-        }
-    }
-    removed
 }
 
 const DIAGNOSTIC_IDS: &[&str] = &[
@@ -170,7 +154,7 @@ fn safe_summary(report: &Value) -> Value {
             let id = item.get("id")?.as_str()?;
             let status = item.get("status")?.as_str()?;
             if !DIAGNOSTIC_IDS.contains(&id)
-                || !["ok", "warning", "error", "unknown", "skipped"].contains(&status)
+                || !["ok", "warning", "error"].contains(&status)
             {
                 return None;
             }
@@ -188,7 +172,7 @@ pub(super) fn record_diagnostic_summary(root: &Path, report: &impl Serialize) ->
         &serde_json::to_vec(&safe_summary(&value)).map_err(|_| "诊断摘要编码失败")?,
     )
 }
-fn export_at(root: &Path) -> Result<BundleExport> {
+fn export_at(root: &Path, config_path: Option<&Path>) -> Result<BundleExport> {
     let settings = read_settings_at(root)?;
     let summary_path = root.join("maintenance/last-diagnostic-summary.json");
     let summary = if summary_path.try_exists().map_err(|_| "无法检查诊断摘要")? {
@@ -199,9 +183,11 @@ fn export_at(root: &Path) -> Result<BundleExport> {
     } else {
         json!({"checkedAt": null,"items":[]})
     };
+    let image_compat = config_path
+        .map(|path| atelier_maintenance_core::image_compat::get_image_compat(path).enabled);
     let manifest = json!({"format":"atelier-diagnostics/v1","application":"Codex Atelier","version":env!("CARGO_PKG_VERSION"),
         "platform":std::env::consts::OS,"architecture":std::env::consts::ARCH,"createdAt":now_ms(),
-        "settings":{"imageCompat":settings.image_compat,"diagnosticEndpointConfigured":settings.diagnostic_endpoint.is_some()},
+        "settings":{"imageCompat":image_compat,"imageCompatSource":if config_path.is_some() {"config"} else {"unknown"},"diagnosticEndpointConfigured":settings.diagnostic_endpoint.is_some()},
         "privacy":"No credentials, account identifiers, filesystem paths, conversations, raw logs or environment variables."});
     let manifest = serde_json::to_vec_pretty(&manifest).map_err(|_| "诊断包编码失败")?;
     let summary = serde_json::to_vec_pretty(&summary).map_err(|_| "诊断摘要编码失败")?;
@@ -217,7 +203,12 @@ fn export_at(root: &Path) -> Result<BundleExport> {
         summary: "已生成脱敏诊断包；包含最近一次检查的状态摘要，不会重新扫描。".into(),
         included: vec![
             "应用版本、平台与架构".into(),
-            "Image 声明过滤状态".into(),
+            if config_path.is_some() {
+                "Image 声明过滤状态（配置实时扫描）"
+            } else {
+                "Image 声明过滤状态未知（未提供配置来源）"
+            }
+            .into(),
             "最近检查的项目编号和状态（如有）".into(),
         ],
         excluded: vec![
@@ -230,7 +221,8 @@ fn export_at(root: &Path) -> Result<BundleExport> {
 #[tauri::command]
 pub async fn maintenance_export_bundle(app: tauri::AppHandle) -> Result<BundleExport> {
     let root = root(&app)?;
-    tauri::async_runtime::spawn_blocking(move || export_at(&root))
+    let config = native_image_config_path()?;
+    tauri::async_runtime::spawn_blocking(move || export_at(&root, Some(&config)))
         .await
         .map_err(|_| "诊断包生成任务失败")?
 }
@@ -264,6 +256,7 @@ async fn send_at(
     raw_endpoint: &str,
     note: &str,
     confirmed: bool,
+    config_path: Option<&Path>,
 ) -> Result<SendReceipt> {
     if !confirmed {
         return Err("需要明确确认发送诊断包和问题说明".into());
@@ -276,7 +269,7 @@ async fn send_at(
         return Err("问题说明最多 2000 字，不能包含控制字符".into());
     }
     let url = endpoint(raw_endpoint)?;
-    let bundle = export_at(root)?;
+    let bundle = export_at(root, config_path)?;
     let request_id = Uuid::new_v4().to_string();
     let boundary = format!("atelier-{}", Uuid::new_v4());
     let client = reqwest::Client::builder()
@@ -350,7 +343,14 @@ pub async fn maintenance_send_bundle(
     user_note: String,
     confirmed: bool,
 ) -> Result<SendReceipt> {
-    send_at(&root(&app)?, &endpoint, &user_note, confirmed).await
+    send_at(
+        &root(&app)?,
+        &endpoint,
+        &user_note,
+        confirmed,
+        Some(&native_image_config_path()?),
+    )
+    .await
 }
 
 // A small, uncompressed ZIP with three fixed, allowlisted entries; no archive reading or arbitrary paths.
@@ -434,11 +434,11 @@ pub struct SavedBundle {
     pub path: Option<String>,
     pub summary: String,
 }
-fn save_bundle_at(root: &Path, target: &Path) -> Result<SavedBundle> {
+fn save_bundle_at(root: &Path, target: &Path, config_path: Option<&Path>) -> Result<SavedBundle> {
     if !target.is_absolute() || target.file_name().is_none() {
         return Err("请选择有效的诊断包保存位置".into());
     }
-    let bundle = export_at(root)?;
+    let bundle = export_at(root, config_path)?;
     atomic_private(target, &bundle.bytes).map_err(|_| "诊断包保存失败；请检查目标目录权限")?;
     let actual =
         read_private(target, MAX_BUNDLE as u64).map_err(|_| "文件已写入，但无法校验保存结果")?;
@@ -455,6 +455,7 @@ fn save_bundle_at(root: &Path, target: &Path) -> Result<SavedBundle> {
 pub async fn maintenance_save_bundle(app: tauri::AppHandle) -> Result<SavedBundle> {
     use tauri_plugin_dialog::DialogExt;
     let app_root = root(&app)?;
+    let config_path = native_image_config_path()?;
     tauri::async_runtime::spawn_blocking(move || {
         let selected = app
             .dialog()
@@ -472,7 +473,7 @@ pub async fn maintenance_save_bundle(app: tauri::AppHandle) -> Result<SavedBundl
         let target = selected
             .into_path()
             .map_err(|_| "所选位置不是可写入的本地文件")?;
-        save_bundle_at(&app_root, &target)
+        save_bundle_at(&app_root, &target, Some(&config_path))
     })
     .await
     .map_err(|_| "保存诊断包任务失败")?

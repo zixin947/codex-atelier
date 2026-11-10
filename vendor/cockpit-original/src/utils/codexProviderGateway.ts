@@ -1,0 +1,161 @@
+import type { CodexApiProviderPreset } from "./codexProviderPresets.ts";
+import {
+  DEEPSEEK_API_PROVIDER_ID,
+  OPENCODE_GO_API_PROVIDER_ID,
+  findCodexApiProviderPresetById,
+  resolveCodexApiProviderPresetId,
+} from "./codexProviderPresets.ts";
+
+export type CodexProviderWireApi = "responses" | "chat_completions" | "anthropic";
+export type CodexProviderEnableMode = "direct" | "gateway";
+export type CodexProviderEnableModePreference = "auto" | CodexProviderEnableMode;
+export type CodexProviderAdapterProfile =
+  | "openai_responses_native"
+  | "openai_chat_completions_bridge"
+  | "anthropic_messages_bridge";
+export type CodexProviderGatewayStrategy =
+  | "passthrough"
+  | "responses_to_chat_completions"
+  | "responses_to_anthropic";
+
+export interface CodexProviderCapabilities {
+  responses: boolean;
+  chatCompletions: boolean;
+  tools: boolean;
+  reasoning: boolean;
+  streamUsage: boolean;
+  hotSwitch: boolean;
+  requestLogs: boolean;
+  failover: boolean;
+}
+
+export interface CodexProviderCapabilityProfile {
+  wireApi: CodexProviderWireApi;
+  adapterProfile: CodexProviderAdapterProfile;
+  gatewayStrategy: CodexProviderGatewayStrategy;
+  defaultEnableMode: CodexProviderEnableMode;
+  requiresGateway: boolean;
+  supportsDirect: boolean;
+  capabilities: CodexProviderCapabilities;
+}
+
+/** Whether the editable provider defaults are preserved by the backend. */
+export function canConfigureCodexProviderVision(input: {
+  presetId?: string | null;
+  wireApi: CodexProviderWireApi;
+}): boolean {
+  if (input.wireApi !== "responses") return true;
+  const presetId = input.presetId?.trim() ?? "";
+  if (presetId === DEEPSEEK_API_PROVIDER_ID) return false;
+  return findCodexApiProviderPresetById(presetId)?.isOfficial !== true;
+}
+
+const CHAT_COMPLETIONS_PRESET_IDS = new Set([
+  "moonshot",
+  "siliconflow",
+  "siliconflow_en",
+  "zhipu_glm",
+  "zhipu_glm_en",
+  "volcengine_agentplan",
+  "byteplus",
+  "doubaoseed",
+  "qianfan_coding",
+  "bailian",
+  "stepfun",
+  "stepfun_en",
+  "modelscope",
+  "longcat",
+  "minimax",
+  "minimax_en",
+  "bailing",
+  "xiaomi_mimo",
+  "xiaomi_mimo_token_plan",
+  "novita",
+  "nvidia",
+  "runapi",
+  "relaxycode",
+  "compshare_coding",
+  "eflowcode",
+  "pipellm",
+  "therouter",
+  "openrouter",
+  OPENCODE_GO_API_PROVIDER_ID,
+]);
+
+export function resolveCodexProviderCapabilityProfile(input: {
+  presetId?: string | null;
+  baseUrl: string;
+  wireApi?: CodexProviderWireApi | null;
+}): CodexProviderCapabilityProfile {
+  const presetId =
+    input.presetId?.trim() || resolveCodexApiProviderPresetId(input.baseUrl);
+  const inferredChatCompletions = CHAT_COMPLETIONS_PRESET_IDS.has(presetId);
+  let officialDeepSeek = false;
+  try { officialDeepSeek = new URL(input.baseUrl?.trim() || '').hostname.toLowerCase() === 'api.deepseek.com'; } catch { /* incomplete URL */ }
+  const wireApi =
+    officialDeepSeek ? "responses" :
+    input.wireApi === "responses" || input.wireApi === "chat_completions" || input.wireApi === "anthropic"
+      ? input.wireApi
+      : presetId === DEEPSEEK_API_PROVIDER_ID
+        ? "responses"
+        : inferredChatCompletions
+          ? "chat_completions"
+          : "responses";
+
+  if (wireApi !== "responses") {
+    return {
+      wireApi,
+      adapterProfile: wireApi === "anthropic" ? "anthropic_messages_bridge" : "openai_chat_completions_bridge",
+      gatewayStrategy: wireApi === "anthropic" ? "responses_to_anthropic" : "responses_to_chat_completions",
+      defaultEnableMode: "gateway",
+      requiresGateway: true,
+      supportsDirect: false,
+      capabilities: {
+        responses: false,
+        chatCompletions: wireApi === "chat_completions",
+        tools: true,
+        reasoning: wireApi === "anthropic",
+        streamUsage: true,
+        hotSwitch: true,
+        requestLogs: true,
+        failover: true,
+      },
+    };
+  }
+
+  return {
+    wireApi: "responses",
+    adapterProfile: "openai_responses_native",
+    gatewayStrategy: "passthrough",
+    defaultEnableMode: "direct",
+    requiresGateway: false,
+    supportsDirect: true,
+    capabilities: {
+      responses: true,
+      chatCompletions: false,
+      tools: true,
+      reasoning: true,
+      streamUsage: true,
+      hotSwitch: false,
+      requestLogs: false,
+      failover: false,
+    },
+  };
+}
+
+export function resolveCodexProviderEnableMode(
+  profile: CodexProviderCapabilityProfile,
+  preference: CodexProviderEnableModePreference = "auto",
+): CodexProviderEnableMode {
+  if (preference === "gateway") return "gateway";
+  if (preference === "direct" && profile.supportsDirect) return "direct";
+  return profile.defaultEnableMode;
+}
+
+export function resolveCodexProviderPreset(input: {
+  baseUrl: string;
+}): CodexApiProviderPreset | null {
+  return findCodexApiProviderPresetById(
+    resolveCodexApiProviderPresetId(input.baseUrl),
+  );
+}

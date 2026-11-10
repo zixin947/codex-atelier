@@ -1,0 +1,61 @@
+/* Original example tokens. Values are recommendations, not an official specification. */
+[data-ef-theme='light'] {
+  color-scheme: light;
+  --ef-canvas: #eceee6;
+  --ef-surface: #f7f8f2;
+  --ef-raised: #ffffff;
+  --ef-ink: #20231f;
+  --ef-muted: #575e55;
+  --ef-line: #d0d4ca;
+  --ef-control-line: #72796f;
+  --ef-signal: #fffa00;
+  --ef-on-signal: #20231f;
+  --ef-accent-text: #5c5700;
+  --ef-focus: #5c5700;
+  --ef-positive: #246149;
+  --ef-caution: #775100;
+  --ef-negative: #a8322b;
+  --ef-screen: #171c17;
+  --ef-on-screen: #eaefe4;
+  --ef-track: #75816e;
+  --ef-screen-caution: #f1c76b;
+}
+[data-ef-theme='dark'] {
+  color-scheme: dark;
+  --ef-canvas: #121512;
+  --ef-surface: #1d221c;
+  --ef-raised: #282f26;
+  --ef-ink: #eaefe4;
+  --ef-muted: #aab5a3;
+  --ef-line: #424d3d;
+  --ef-control-line: #7e8c75;
+  --ef-signal: #fffa00;
+  --ef-on-signal: #20231f;
+  --ef-accent-text: #fffa00;
+  --ef-focus: #fffa00;
+  --ef-positive: #8edbb2;
+  --ef-caution: #f1c76b;
+  --ef-negative: #ff9b90;
+  --ef-screen: #10150f;
+  --ef-on-screen: #eaefe4;
+  --ef-track: #75816e;
+  --ef-screen-caution: #f1c76b;
+}
+[data-ef-theme] {
+  --ef-font-body:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --ef-font-mono: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  --ef-space-2: 8px;
+  --ef-space-3: 12px;
+  --ef-space-4: 16px;
+  --ef-space-5: 20px;
+  --ef-space-6: 24px;
+  --ef-radius-control: 4px;
+  --ef-radius-panel: 6px;
+  --ef-radius-card: 14px;
+  --ef-cut: 9px;
+  --ef-duration-fast: 90ms;
+  --ef-duration-normal: 180ms;
+  --ef-duration-reading: 360ms;
+  --ef-shadow: 0 4px 16px #0000000d;
+}

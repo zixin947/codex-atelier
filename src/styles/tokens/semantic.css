@@ -1,0 +1,110 @@
+/* Semantic color contract.
+   Both themes fill in the same names; nothing below is a theme's private palette.
+   Values: millennium keeps its machine-shell paper look, endfield follows
+   skills/endfield-ui-design/assets/palette.json.
+   Surfaces are canvas < surface < elevated < inset. */
+
+:root,
+:root[data-theme='millennium'] {
+  color-scheme: light;
+
+  --canvas: #ddd4bf;
+  --surface: #ebe4d2;
+  --elevated: #f6f1e3;
+  --inset: #fbf9f0;
+
+  --ink: #393b34;
+  --muted: #716d60;
+  --faint: #8a826f;
+
+  --hairline: #b9ae96;
+  --rule: #5a544a;
+  --control-line: #6f6858;
+  --focus: #386b48;
+
+  --signal: #8fd6a0;
+  --signal-hover: #a7e0b1;
+  --signal-wash: #e7efe2;
+  --on-signal: #2e4933;
+  --accent-text: #386b48;
+
+  --positive: #386b48;
+  --positive-wash: #dfe9da;
+  --caution: #9b4c28;
+  --caution-wash: #eed4b7;
+  --negative: #b33e30;
+  --negative-wash: #f0dcd3;
+  --unknown: #716d60;
+
+  --screen: #363d37;
+  --on-screen: #eae9d8;
+  --screen-muted: #a7b49f;
+  --screen-line: #626c5e;
+  --track: #75816e;
+
+  /* Decorative only: never text, never state. */
+  --ornament: #f08a5d;
+
+  /* Icon tones. Used for identifying a work order, not for status. */
+  --tone-blue: #4b708b;
+  --tone-cyan: #3f7980;
+  --tone-violet: #7a6688;
+
+  --shadow-raised:
+    inset 1px 1px var(--elevated), inset -1px -1px var(--hairline), 0 2px 0 var(--hairline);
+  --shadow-sunken: inset 2px 2px 0 #00000016, 0 1px 0 var(--elevated);
+  --shadow-control: inset 1px 1px 0 #fffaf0, inset -1px -2px 0 var(--hairline), 0 1px 0 var(--rule);
+  --shadow-overlay: 7px 8px 0 #292e2840;
+  --scrim: #292e286b;
+}
+
+:root[data-theme='endfield'] {
+  color-scheme: light;
+
+  --canvas: #eceee6;
+  --surface: #f7f8f2;
+  --elevated: #ffffff;
+  --inset: #eff1e7;
+
+  --ink: #20231f;
+  --muted: #575e55;
+  --faint: #72796f;
+
+  --hairline: #d0d4ca;
+  --rule: #20231f;
+  --control-line: #72796f;
+  --focus: #5c5700;
+
+  --signal: #fffa00;
+  --signal-hover: #f2ec00;
+  --signal-wash: #f4f1cf;
+  --on-signal: #20231f;
+  --accent-text: #5c5700;
+
+  --positive: #246149;
+  --positive-wash: #e3eee4;
+  --caution: #775100;
+  --caution-wash: #f2e6cf;
+  --negative: #a8322b;
+  --negative-wash: #f6e5df;
+  --unknown: #575e55;
+
+  --screen: #171c17;
+  --on-screen: #eaefe4;
+  --screen-muted: #b6bcb2;
+  --screen-line: #434942;
+  --track: #75816e;
+
+  --ornament: #e19a43;
+
+  --tone-blue: #456a84;
+  --tone-cyan: #3f7980;
+  --tone-violet: #6f5d84;
+
+  /* The industrial skin is flat: depth comes from rules, not bevels. */
+  --shadow-raised: none;
+  --shadow-sunken: none;
+  --shadow-control: none;
+  --shadow-overlay: 5px 5px 0 var(--ink);
+  --scrim: #171a1870;
+}

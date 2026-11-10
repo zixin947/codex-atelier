@@ -1,0 +1,591 @@
+ 620                    "stop_completereconcilingpostcondition_failedsettle_failedreconcile_retrystop_failedreconciling_threadstogglecodex-reentryreconcile",0xd,
+ 621                    &local_4c0);
+ 622         if (local_7a8 != 0) {
+ 623           __RNvCs1Y7DaGC1cwg_7___rustc14___rust_dealloc(ppppppplVar40,local_7a8,1);
+ 624         }
+ 625         write_journal(param_2,local_86a,"reconcilingpostcondition_failedsettle_failedreconcile_retrystop_failedreconciling_threadstogglecodex-reentryreconcile",
+ 626                       0xb,local_868,uStack_860,pppppplVar19,uVar49);
+ 627         local_5e8 = CONCAT31(local_5e8._1_3_,bVar4) & 0xffffff01;
+ 628         local_5e8._0_2_ = CONCAT11(local_811,(undefined1)local_5e8);
+ 629         local_238 = (long *******)*puVar33;
+ 630         ppppppplVar40 = *(long ********)puVar33[1];
+ 631         ppppppplVar45 = (long *******)((undefined8 *)puVar33[1])[1];
+ 632         if ((ppppppplVar45 == (long *******)0x3) && (*(short *)ppppppplVar40 == 0x6c61 && *(char *)((long)ppppppplVar40 + 2) == 'l')) {
+ 633           plVar44 = (long *)0x0;
+ 634           if (*(long *)puVar33[4] != -0x7fffffffffffffff) {
+ 635             plVar44 = (long *)puVar33[4];
+ 636           }
+ 637           codex_diagnostic::fix_all(&local_220,puVar33[2],puVar33[3],&local_238,&DAT_10181a7f8,bVar4 & 1,plVar44,puVar33[5]);
+ 638           ppppppplStack_3f8 = uStack_1f0;
+ 639           local_400 = (long *******)uStack_1f8;
+ 640           ppppppplStack_3e8 = ppppppplStack_1e0;
+ 641           ppppppplStack_3f0 = (long *******)local_1e8;
+ 642           local_3e0 = local_1d8;
+ 643           ppppppplStack_418 = uStack_210;
+ 644           local_420 = ppppppplStack_218;
+ 645           ppppppplStack_408 = (long *******)uStack_200;
+ 646           local_410 = ppppppplStack_208;
+ 647           if (local_220 == (long *******)&DAT_0000000b) {
+ 648             ppppppplStack_278 = uStack_1f0;
+ 649             local_280 = (long *******)uStack_1f8;
+ 650             local_268 = ppppppplStack_1e0;
+ 651             local_270 = (long *******)local_1e8;
+ 652             local_260 = local_1d8;
+ 653             ppppppplStack_298 = uStack_210;
+ 654             local_2a0 = ppppppplStack_218;
+ 655             local_288 = (long *******)uStack_200;
+ 656             local_290 = ppppppplStack_208;
+ 657             if (*(long *******)puVar33[6] != (long ******)0x8000000000000000) {
+ 658               local_220 = (long *******)&local_420;
+ 659               ppppppplStack_218 = (long *******)<&T_as_core::fmt::Display>::fmt;
+ 660               local_420 = (long *******)puVar33[6];
+ 661               alloc::fmt::format::format_inner(&local_a0,s___10151f356,&local_220);
+ 662               ppppppplVar40 = local_260;
+ 663               auVar60 = local_d0;
+ 664               if (local_260 == local_270) {
+ 665                 alloc::raw_vec::RawVec<T,A>::grow_one(&local_270);
+ 666                 auVar60 = local_d0;
+ 667               }
+ 668               ppppppplVar45 = local_268 + (long)ppppppplVar40 * 3;
+ 669               ppppppplVar45[1] = (long ******)CONCAT71(uStack_97,uStack_98);
+ 670               *ppppppplVar45 = (long ******)CONCAT17(uStack_99,CONCAT43(uStack_9d,CONCAT21(uStack_9f,local_a0)));
+ 671               ppppppplVar45[2] = (long ******)CONCAT71(uStack_8f,uStack_90);
+ 672               local_260 = (long *******)((long)ppppppplVar40 + 1);
+ 673               local_d0 = auVar60;
+ 674             }
+ 675             ppppppplStack_4b0 = ppppppplStack_298;
+ 676             uStack_4b8 = (undefined **)local_2a0;
+ 677             ppppppplStack_4a0 = local_288;
+ 678             ppppppplStack_4a8 = local_290;
+ 679             ppppppplStack_490 = ppppppplStack_278;
+ 680             local_498 = local_280;
+ 681             ppppppplStack_480 = local_268;
+ 682             local_488 = local_270;
+ 683             local_478 = local_260;
+ 684             goto LAB_1003271d0;
+ 685           }
+ 686           local_468 = local_1c8;
+ 687           ppppppplStack_470 = ppppppplStack_1d0;
+ 688           ppppppplStack_4a0 = (long *******)uStack_200;
+ 689           ppppppplStack_4a8 = ppppppplStack_208;
+ 690           ppppppplStack_490 = uStack_1f0;
+ 691           local_498 = (long *******)uStack_1f8;
+ 692           ppppppplStack_480 = ppppppplStack_1e0;
+ 693           local_488 = (long *******)local_1e8;
+ 694           local_478 = local_1d8;
+ 695           ppppppplStack_4b0 = uStack_210;
+ 696           uStack_4b8 = (undefined **)ppppppplStack_218;
+ 697           ppppppplVar40 = local_220;
+ 698 LAB_10032786c:
+ 699           ppppppplStack_2e8 = ppppppplStack_4a0;
+ 700           local_2f0 = ppppppplStack_4a8;
+ 701           ppppppplStack_2d8 = ppppppplStack_490;
+ 702           local_2e0 = local_498;
+ 703           ppppppplStack_2c8 = ppppppplStack_480;
+ 704           local_2d0 = local_488;
+ 705           local_2c0 = local_478;
+ 706           ppppppplStack_2f8 = ppppppplStack_4b0;
+ 707           local_300 = (long *******)uStack_4b8;
+ 708           local_730 = local_468;
+ 709           ppppppplStack_738 = ppppppplStack_470;
+ 710           ppppppplStack_758 = ppppppplStack_490;
+ 711           local_760 = local_498;
+ 712           ppppppplStack_748 = ppppppplStack_480;
+ 713           local_750 = local_488;
+ 714           local_740 = local_478;
+ 715           ppppppplStack_778 = ppppppplStack_4b0;
+ 716           local_780 = (long *******)uStack_4b8;
+ 717           ppppppplStack_768 = ppppppplStack_4a0;
+ 718           local_770 = ppppppplStack_4a8;
+ 719           local_790 = (long *******)0x3;
+ 720           ppppppplStack_788 = ppppppplVar40;
+ 721         }
+ 722         else {
+ 723           local_2a0 = (long *******)0x0;
+ 724           if (*(long *******)puVar33[4] != (long ******)0x8000000000000001) {
+ 725             local_2a0 = (long *******)puVar33[4];
+ 726           }
+ 727           local_220 = (long *******)&local_420;
+ 728           ppppppplStack_218 = (long *******)&local_318;
+ 729           ppppppplStack_208 = (long *******)puVar33[3];
+ 730           uStack_210 = (long *******)puVar33[2];
+ 731           uStack_200 = (undefined **)&local_238;
+ 732           uStack_1f0 = (long *******)&local_2a0;
+ 733           uStack_1f8 = (code *)&DAT_10181a7f8;
+ 734           local_420 = ppppppplVar40;
+ 735           ppppppplStack_418 = ppppppplVar45;
+ 736           local_318 = bVar4 & 1;
+ 737           codex_diagnostic::audit::RepairAudit::fix(&local_4c0,puVar33[5],ppppppplVar40,ppppppplVar45,&local_220);
+ 738           ppppppplVar40 = local_4c0;
+ 739           if (local_4c0 != (long *******)&DAT_0000000b) goto LAB_10032786c;
+ 740 LAB_1003271d0:
+ 741           ppppppplStack_2c8 = ppppppplStack_480;
+ 742           local_2d0 = local_488;
+ 743           local_2c0 = local_478;
+ 744           ppppppplStack_508 = ppppppplStack_4a0;
+ 745           local_510 = SUB81(ppppppplStack_4a8,0);
+ 746           uStack_50f = (undefined7)((ulong)ppppppplStack_4a8 >> 8);
+ 747           ppppppplStack_4f8 = ppppppplStack_490;
+ 748           local_500 = local_498;
+ 749           ppppppplStack_4e8 = ppppppplStack_480;
+ 750           local_4f0 = local_488;
+ 751           local_4e0 = local_478;
+ 752           uStack_518 = SUB81(ppppppplStack_4b0,0);
+ 753           uStack_517 = (undefined7)((ulong)ppppppplStack_4b0 >> 8);
+ 754           local_520._0_1_ = SUB81(uStack_4b8,0);
+ 755           local_520._1_2_ = (undefined2)((ulong)uStack_4b8 >> 8);
+ 756           local_520._3_4_ = (undefined4)((ulong)uStack_4b8 >> 0x18);
+ 757           local_520._7_1_ = (undefined1)((ulong)uStack_4b8 >> 0x38);
+ 758           local_300 = (long *******)0x2;
+ 759           manager::RelayManager::verify_target_state_at_with_depth(&local_4d8,ppppppplVar54[3],ppppppplVar35,*puVar6,0);
+ 760           if (((*pbVar5 & 1) == 0) && (local_4c8 == 0)) {
+ 761             manager::RelayManager::snapshot(&local_220,ppppppplVar54);
+ 762             manager::RelayManager::codex_config_stale_reason_for_snapshot(&local_4c0,ppppppplVar54,&local_220);
+ 763             ::core::ptr::drop_in_place<codexmate_lib::core::relay::models::RelayState>(&local_220);
+ 764             if (local_4c0 != (long *******)&DAT_8000000000000000) {
+ 765               if (local_4c0 != (long *******)0x0) {
+ 766                 __RNvCs1Y7DaGC1cwg_7___rustc14___rust_dealloc(uStack_4b8,local_4c0,1);
+ 767               }
+ 768               goto LAB_100327248;
+ 769             }
+ 770             manager::RelayManager::snapshot(&local_220,ppppppplVar54);
+ 771             manager::RelayManager::codex_config_stale_reason_for_snapshot(&local_420,ppppppplVar54,&local_220);
+ 772             ::core::ptr::drop_in_place<codexmate_lib::core::relay::models::RelayState>(&local_220);
+ 773             if (local_420 == (long *******)&DAT_8000000000000000) {
+ 774               ppppppplStack_748 = (long *******)CONCAT71(uStack_517,uStack_518);
+ 775               local_750 = (long *******)CONCAT17(local_520._7_1_,CONCAT43(local_520._3_4_,CONCAT21(local_520._1_2_,(undefined1)local_520)));
+ 776               local_610 = local_4e0;
+ 777               ppppppplStack_618 = ppppppplStack_4e8;
+ 778               local_620 = local_4f0;
+ 779               ppppppplStack_628 = ppppppplStack_4f8;
+ 780               local_630 = local_500;
+ 781               ppppppplStack_638 = ppppppplStack_508;
+ 782               local_740 = (long *******)CONCAT71(uStack_50f,local_510);
+ 783               ppppppplStack_688 = ppppppplStack_2f8;
+ 784               local_790 = local_300;
+ 785               ppppppplStack_678 = ppppppplStack_2e8;
+ 786               local_680 = local_2f0;
+ 787               local_690 = local_300;
+ 788               ppppppplStack_668 = ppppppplStack_2d8;
+ 789               local_670 = local_2e0;
+ 790               ppppppplStack_658 = ppppppplStack_2c8;
+ 791               local_660 = local_2d0;
+ 792               ppppppplStack_788 = ppppppplStack_2f8;
+ 793               ppppppplStack_778 = ppppppplStack_2e8;
+ 794               local_780 = local_2f0;
+ 795               ppppppplStack_768 = ppppppplStack_2d8;
+ 796               local_770 = local_2e0;
+ 797               ppppppplStack_758 = ppppppplStack_2c8;
+ 798               local_760 = local_2d0;
+ 799               ppppppplStack_738 = ppppppplStack_508;
+ 800               ppppppplStack_728 = ppppppplStack_4f8;
+ 801               local_730 = local_500;
+ 802               ppppppplStack_718 = ppppppplStack_4e8;
+ 803               local_720 = local_4f0;
+ 804               local_710 = local_4e0;
+ 805               ppppppplStack_708 = (long *******)0x0;
+ 806               local_700 = (long *******)&SUB_00000008;
+ 807               ppppppplStack_6f8 = (long *******)0x0;
+ 808               local_650 = local_750;
+ 809               ppppppplStack_648 = ppppppplStack_748;
+ 810               local_640 = local_740;
+ 811               if (local_4d8 != (long ******)0x0) {
+ 812                 __RNvCs1Y7DaGC1cwg_7___rustc14___rust_dealloc(local_4d0,(long)local_4d8 << 5,8);
+ 813               }
+ 814               goto LAB_100327de4;
+ 815             }
+ 816             uStack_4b8 = (undefined **)ppppppplStack_418;
+ 817             local_4c0 = local_420;
+ 818             ppppppplStack_4b0 = local_410;
+ 819             local_2a0 = (long *******)&local_4c0;
+ 820             ppppppplStack_298 = (long *******)<alloc::string::String_as_core::fmt::Display>::fmt;
+ 821             alloc::fmt::format::format_inner(&local_220,s__diagnostic_repair_left_stale_Co_10151f37d,&local_2a0);
+ 822             ppppppplStack_778 = ppppppplStack_218;
+ 823             local_780 = local_220;
+ 824             local_770 = uStack_210;
+ 825             ppppppplStack_788 = (long *******)&DAT_0000000a;
+ 826             local_790 = (long *******)0x3;
+ 827             lVar39 = local_4d0;
+ 828             if (local_4c0 != (long *******)0x0) {
+ 829               __RNvCs1Y7DaGC1cwg_7___rustc14___rust_dealloc(uStack_4b8,local_4c0,1);
+ 830               lVar39 = local_4d0;
+ 831             }
+ 832 LAB_100327dbc:
+ 833             if (local_4d8 != (long ******)0x0) {
+ 834               __RNvCs1Y7DaGC1cwg_7___rustc14___rust_dealloc(lVar39,(long)local_4d8 << 5,8);
+ 835             }
+ 836           }
+ 837           else {
+ 838 LAB_100327248:
+ 839             local_410 = (long *******)&local_5e8;
+ 840             local_420 = ppppppplVar54;
+ 841             ppppppplStack_418 = ppppppplVar35;
+ 842             codex_diagnostic::audit::RepairAudit::step
+ 843                       (&local_220,uVar7,
+ 844                        "router_postconditionNativeOff compensationNativeOff compensation re-entryRouterOn rollbackauth-mode toggle re-entrystruct LogicalSize with 2 elementsstruct PhysicalSize with 2 elementsstruct LogicalPosition with 2 elementsstruct PhysicalPosition with 2 elementsstruct ProgressBarState with 2 elementsstruct NewOptions with 8 elementsstruct WindowConfig with 57 elementsstruct AboutMetadata with 11 elementsstruct TrayIconOptions with 9 elementsstruct WindowEffectsConfig with 4 elements"
+ 845                        ,0x14,"reconcile",9,&local_420);
+ 846             lVar39 = local_4d0;
+ 847             local_498 = uStack_1f0;
+ 848             ppppppplStack_4a0 = (long *******)uStack_1f8;
+ 849             local_488 = ppppppplStack_1e0;
+ 850             ppppppplStack_490 = (long *******)local_1e8;
+ 851             local_478 = ppppppplStack_1d0;
+ 852             ppppppplStack_480 = local_1d8;
+ 853             ppppppplStack_470 = local_1c8;
+ 854             uStack_4b8 = (undefined **)uStack_210;
+ 855             local_4c0 = ppppppplStack_218;
+ 856             ppppppplStack_4a8 = (long *******)uStack_200;
+ 857             ppppppplStack_4b0 = ppppppplStack_208;
+ 858             if (local_220 != (long *******)&DAT_0000000b) {
+ 859               ppppppplStack_758 = uStack_1f0;
+ 860               local_760 = (long *******)uStack_1f8;
+ 861               ppppppplStack_748 = ppppppplStack_1e0;
+ 862               local_750 = (long *******)local_1e8;
+ 863               ppppppplStack_738 = ppppppplStack_1d0;
+ 864               local_740 = local_1d8;
+ 865               local_730 = local_1c8;
+ 866               ppppppplStack_778 = uStack_210;
+ 867               local_780 = ppppppplStack_218;
+ 868               ppppppplStack_768 = (long *******)uStack_200;
+ 869               local_770 = ppppppplStack_208;
+ 870               ppppppplStack_788 = local_220;
+ 871               local_790 = (long *******)0x3;
+ 872               if (local_4c8 != 0) {
+ 873                 puVar58 = (undefined8 *)(local_4d0 + 8);
+ 874                 lVar52 = local_4c8;
+ 875                 do {
+ 876                   if (puVar58[-1] != 0) {
+ 877                     __RNvCs1Y7DaGC1cwg_7___rustc14___rust_dealloc(*puVar58,puVar58[-1],1);
+ 878                   }
+ 879                   puVar58 = puVar58 + 4;
+ 880                   lVar52 = lVar52 + -1;
+ 881                 } while (lVar52 != 0);
+ 882               }
+ 883               goto LAB_100327dbc;
+ 884             }
+ 885             ppppppplStack_278 = uStack_1f0;
+ 886             local_280 = (long *******)uStack_1f8;
+ 887             local_268 = ppppppplStack_1e0;
+ 888             local_270 = (long *******)local_1e8;
+ 889             ppppppplStack_258 = ppppppplStack_1d0;
+ 890             local_260 = local_1d8;
+ 891             local_250 = local_1c8;
+ 892             ppppppplStack_298 = uStack_210;
+ 893             local_2a0 = ppppppplStack_218;
+ 894             local_288 = (long *******)uStack_200;
+ 895             local_290 = ppppppplStack_208;
+ 896             if (CONCAT71(uStack_50f,local_510) != 0) {
+ 897               lVar39 = CONCAT71(uStack_50f,local_510) * 0x18;
+ 898               plVar44 = (long *)(CONCAT71(uStack_517,uStack_518) + 0x10);
+ 899               do {
+ 900                 if ((*plVar44 == 0x14) &&
+ 901                    (plVar48 = (long *)plVar44[-1], (*plVar48 == 0x705f726574756f72 && plVar48[1] == 0x69646e6f6374736f) && (int)plVar48[2] == 0x6e6f6974))
+ 902                 goto LAB_100327558;
+ 903                 plVar44 = plVar44 + 3;
+ 904                 lVar39 = lVar39 + -0x18;
+ 905               } while (lVar39 != 0);
+ 906             }
+ 907             __RNvCs1Y7DaGC1cwg_7___rustc35___rust_no_alloc_shim_is_unstable_v2();
+ 908             pcVar32 = (char *)__RNvCs1Y7DaGC1cwg_7___rustc12___rust_alloc(0x14,1);
+ 909             if (pcVar32 == (char *)0x0) {
+ 910                     /* WARNING: Subroutine does not return */
+ 911               alloc::raw_vec::handle_error(1,0x14);
+ 912             }
+ 913             builtin_strncpy(pcVar32,"router_postcondition",0x14);
+ 914             lVar39 = CONCAT71(uStack_50f,local_510);
+ 915             if (lVar39 == CONCAT17(local_520._7_1_,CONCAT43(local_520._3_4_,CONCAT21(local_520._1_2_,(undefined1)local_520)))) {
+ 916               alloc::raw_vec::RawVec<T,A>::grow_one(&local_520);
+ 917             }
+ 918             puVar58 = (undefined8 *)(CONCAT71(uStack_517,uStack_518) + lVar39 * 0x18);
+ 919             *puVar58 = 0x14;
+ 920             puVar58[1] = pcVar32;
+ 921             puVar58[2] = 0x14;
+ 922             local_510 = (undefined1)(lVar39 + 1);
+ 923             uStack_50f = (undefined7)((ulong)(lVar39 + 1) >> 8);
+ 924 LAB_100327558:
+ 925             ppppppplVar45 = local_288;
+ 926             ppppppplVar40 = local_290;
+ 927             if ((long *******)((long)local_4f0 - (long)local_4e0) < local_288) {
+ 928               alloc::raw_vec::RawVecInner<A>::reserve::do_reserve_and_handle(&local_4f0,local_4e0,local_288,8,0x18);
+ 929 LAB_100327580:
+ 930               ppppppplVar51 = local_4e0;
+ 931               ppppppplVar55 = ppppppplStack_4e8 + (long)local_4e0 * 3;
+ 932               do {
+ 933                 <alloc::string::String_as_core::clone::Clone>::clone(&local_220,ppppppplVar40);
+ 934                 ppppppplVar55[2] = (long ******)uStack_210;
+ 935                 ppppppplVar55[1] = (long ******)ppppppplStack_218;
+ 936                 *ppppppplVar55 = (long ******)local_220;
+ 937                 ppppppplVar51 = (long *******)((long)ppppppplVar51 + 1);
+ 938                 ppppppplVar40 = ppppppplVar40 + 3;
+ 939                 ppppppplVar45 = (long *******)((long)ppppppplVar45 + -1);
+ 940                 ppppppplVar55 = ppppppplVar55 + 3;
+ 941               } while (ppppppplVar45 != (long *******)0x0);
+ 942             }
+ 943             else {
+ 944               ppppppplVar51 = local_4e0;
+ 945               if (local_288 != (long *******)0x0) goto LAB_100327580;
+ 946             }
+ 947             uVar9 = *(undefined4 *)(lVar47 + 0x168);
+ 948             local_4e0 = ppppppplVar51;
+ 949             <alloc::vec::Vec<T,A>as_core::clone::Clone>::clone(&local_398,lVar47);
+ 950             <alloc::vec::Vec<T,A>as_core::clone::Clone>::clone(&local_4c0,lVar47 + 0x18);
+ 951             puVar58 = (undefined8 *)&local_a0;
+ 952             ppppppplStack_378 = (long *******)uStack_4b8;
+ 953             local_380 = local_4c0;
+ 954             local_370 = ppppppplStack_4b0;
+ 955             uVar30 = *(undefined1 *)(lVar47 + 0x7a);
+ 956             uVar13 = *(undefined2 *)(lVar47 + 0x78);
+ 957             <alloc::string::String_as_core::clone::Clone>::clone(&local_318,lVar47 + 0x30);
+ 958             <alloc::string::String_as_core::clone::Clone>::clone(&local_238,lVar47 + 0x48);
+ 959             ppppppplVar40 = (long *******)&DAT_8000000000000000;
+ 960             if (*(long *)(lVar47 + 0x60) != -0x8000000000000000) {
+ 961               <alloc::string::String_as_core::clone::Clone>::clone(&local_a0,lVar47 + 0x60);
+ 962               ppppppplVar40 = (long *******)CONCAT17(uStack_99,CONCAT43(uStack_9d,CONCAT21(uStack_9f,local_a0)));
+ 963               ppppppplStack_358 = (long *******)CONCAT71(uStack_8f,uStack_90);
+ 964               local_360 = (long *******)CONCAT71(uStack_97,uStack_98);
+ 965             }
+ 966             local_478 = (long *******)CONCAT62(CONCAT51(local_478._3_5_,uVar30),uVar13);
+ 967             local_4c0 = (long *******)CONCAT17(uStack_311,CONCAT43(uStack_315,CONCAT21(uStack_317,local_318)));
+ 968             uStack_4b8 = (undefined **)ppppppplStack_310;
+ 969             ppppppplStack_4b0 = local_308;
+ 970             ppppppplStack_4a0 = ppppppplStack_230;
+ 971             ppppppplStack_4a8 = local_238;
+ 972             local_498 = local_228;
+ 973             ppppppplStack_480 = ppppppplStack_358;
+ 974             local_488 = local_360;
+ 975             bVar29 = *(char *)(lVar47 + 0x16d) == '\x01';
+ 976             if (bVar29) {
+ 977               uStack_338 = *(undefined8 *)(lVar47 + 0x176);
+ 978               local_340 = *(long *******)(lVar47 + 0x16e);
+ 979             }
+ 980             uVar30 = *(undefined1 *)(lVar47 + 0x16c);
+ 981             uVar11 = *(undefined1 *)(lVar47 + 0x17e);
+ 982             ppppppplStack_490 = ppppppplVar40;
+ 983             auVar59 = <alloc::vec::Vec<T,A>as_core::clone::Clone>::clone(&local_360,lVar47 + 0x80);
+ 984             uVar12 = *(undefined1 *)(lVar47 + 0x17f);
+ 985             ppppppplVar40 = (long *******)&DAT_8000000000000000;
+ 986             ppppppplVar45 = *(long ********)(lVar47 + 0x98);
+ 987             uVar49 = extraout_x11;
+ 988             uVar13 = extraout_w17;
+ 989             uVar14 = extraout_w16;
+ 990             uVar50 = extraout_w12;
+ 991             if (*(long ********)(lVar47 + 0x98) != (long *******)&DAT_8000000000000000) {
+ 992               local_970 = *(undefined8 *)(lVar47 + 0x128);
+ 993               <alloc::string::String_as_core::clone::Clone>::clone(&local_318,lVar47 + 0x98);
+ 994               <alloc::string::String_as_core::clone::Clone>::clone(&local_238,lVar47 + 0xb0);
+ 995               local_958 = (long *******)&DAT_8000000000000000;
+ 996               local_950 = (long *******)&DAT_8000000000000000;
+ 997               uVar49 = extraout_x11_00;
+ 998               uVar50 = extraout_w12_00;
+ 999               if (*(long *)(lVar47 + 200) != -0x8000000000000000) {
+1000                 <alloc::string::String_as_core::clone::Clone>::clone(&local_a0,lVar47 + 200);
+1001                 local_950 = (long *******)CONCAT17(uStack_99,CONCAT43(uStack_9d,CONCAT21(uStack_9f,local_a0)));
+1002                 local_990 = (long *******)CONCAT71(uStack_97,uStack_98);
+1003                 local_9a0 = (long *******)CONCAT71(uStack_8f,uStack_90);
+1004                 uVar49 = extraout_x11_01;
+1005                 uVar50 = extraout_w12_01;
+1006               }
+1007               if (*(long *)(lVar47 + 0xe0) != -0x8000000000000000) {
+1008                 <alloc::string::String_as_core::clone::Clone>::clone(&local_a0,lVar47 + 0xe0);
+1009                 local_958 = (long *******)CONCAT17(uStack_99,CONCAT43(uStack_9d,CONCAT21(uStack_9f,local_a0)));
+1010                 local_998 = (long *******)CONCAT71(uStack_97,uStack_98);
+1011                 local_9a8 = (long *******)CONCAT71(uStack_8f,uStack_90);
+1012                 uVar49 = extraout_x11_02;
+1013                 uVar50 = extraout_w12_02;
+1014               }
+1015               puVar58 = (undefined8 *)&DAT_8000000000000000;
+1016               local_960 = (long *******)&DAT_8000000000000000;
+1017               if (*(long *)(lVar47 + 0xf8) != -0x8000000000000000) {
+1018                 <alloc::string::String_as_core::clone::Clone>::clone(&local_a0,lVar47 + 0xf8);
+1019                 local_960 = (long *******)CONCAT17(uStack_99,CONCAT43(uStack_9d,CONCAT21(uStack_9f,local_a0)));
+1020                 local_9b0 = CONCAT71(uStack_97,uStack_98);
+1021                 local_9b8 = CONCAT71(uStack_8f,uStack_90);
+1022                 uVar49 = extraout_x11_03;
+1023                 uVar50 = extraout_w12_03;
+1024               }
+1025               uVar13 = *(undefined2 *)(lVar47 + 0x130);
+1026               uVar14 = *(undefined2 *)(lVar47 + 0x132);
+1027               if (*(long *)(lVar47 + 0x110) != -0x8000000000000000) {
+1028                 <alloc::string::String_as_core::clone::Clone>::clone(&local_a0,lVar47 + 0x110);
+1029                 puVar58 = (undefined8 *)CONCAT17(uStack_99,CONCAT43(uStack_9d,CONCAT21(uStack_9f,local_a0)));
+1030                 uStack_328 = CONCAT71(uStack_8f,uStack_90);
+1031                 local_330 = (long ******)CONCAT71(uStack_97,uStack_98);
+1032                 uVar49 = extraout_x11_04;
+1033                 uVar50 = extraout_w12_04;
+1034               }
+1035               auVar59._8_8_ = ppppppplStack_230;
+1036               auVar59._0_8_ = local_238;
+1037               ppppppplVar40 = (long *******)CONCAT17(uStack_311,CONCAT43(uStack_315,CONCAT21(uStack_317,local_318)));
+1038               ppppppplStack_418 = local_308;
+1039               local_420 = ppppppplStack_310;
+1040               ppppppplStack_408 = ppppppplStack_230;
+1041               local_410 = local_238;
+1042               local_400 = local_228;
+1043               ppppppplVar45 = local_228;
+1044             }
+1045             local_be = uVar50;
+1046             local_ee = uVar14;
+1047             local_f0 = uVar13;
+1048             local_bc = SUB81(ppppppplVar45,0);
+1049             local_c0 = *(short *)(lVar47 + 0x160);
+1050             if (local_c0 != 7) {
+1051               local_bc = *(undefined1 *)(lVar47 + 0x164);
+1052               uVar49 = *(undefined8 *)(lVar47 + 0x148);
+1053               auVar59 = *(undefined1 (*) [16])(lVar47 + 0x150);
+1054               if (local_c0 == 1) {
+1055                 local_be = *(undefined2 *)(lVar47 + 0x162);
+1056                 auVar59 = *(undefined1 (*) [16])(lVar47 + 0x150);
+1057               }
+1058             }
+1059             local_e8 = *(undefined8 *)(lVar47 + 0x138);
+1060             uStack_e0 = *(undefined8 *)(lVar47 + 0x140);
+1061             uStack_210 = local_388;
+1062             uStack_1f8 = (code *)local_370;
+1063             local_190 = local_350;
+1064             local_160 = local_400;
+1065             ppppppplStack_158 = local_950;
+1066             local_150 = local_990;
+1067             local_148 = local_9a0;
+1068             local_140 = local_958;
+1069             ppppppplStack_138 = local_998;
+1070             local_130 = local_9a8;
+1071             local_128 = local_960;
+1072             local_120 = local_9b0;
+1073             local_118 = local_9b8;
+1074             local_f8 = local_970;
+1075             local_220 = (long *******)CONCAT44(uStack_394,local_398);
+1076             ppppppplStack_218 = ppppppplStack_390;
+1077             uStack_200 = (undefined **)ppppppplStack_378;
+1078             ppppppplStack_208 = local_380;
+1079             local_1c8 = local_498;
+1080             ppppppplStack_1d0 = ppppppplStack_4a0;
+1081             ppppppplStack_1b8 = local_488;
+1082             local_1c0 = ppppppplStack_490;
+1083             local_1e8 = (code *)uStack_4b8;
+1084             uStack_1f0 = local_4c0;
+1085             local_1d8 = ppppppplStack_4a8;
+1086             ppppppplStack_1e0 = ppppppplStack_4b0;
+1087             uStack_aa = uStack_338;
+1088             local_b2 = local_340;
+1089             ppppppplStack_1a8 = local_478;
+1090             local_1b0 = ppppppplStack_480;
+1091             ppppppplStack_198 = ppppppplStack_358;
+1092             local_1a0 = local_360;
+1093             uStack_178 = ppppppplStack_418;
+1094             local_180 = local_420;
+1095             ppppppplStack_168 = ppppppplStack_408;
+1096             ppppppplStack_170 = local_410;
+1097             uStack_100 = uStack_328;
+1098             local_108 = local_330;
+1099             if (((ulong)local_2a0 & 1) == 0) {
+1100               local_b4 = 1;
+1101               local_a2 = local_268._0_1_;
+1102             }
+1103             else {
+1104               local_b4 = uVar30;
+1105               local_a2 = uVar11;
+1106               if (((ulong)local_268 & 1) != 0) {
+1107                 local_b4 = 0;
+1108               }
+1109             }
+1110             ppppppplStack_2f8 = ppppppplStack_298;
+1111             local_300 = local_2a0;
+1112             ppppppplStack_2e8 = local_288;
+1113             local_2f0 = local_290;
+1114             ppppppplStack_2d8 = ppppppplStack_278;
+1115             local_2e0 = local_280;
+1116             ppppppplStack_2c8 = local_268;
+1117             local_2d0 = local_270;
+1118             local_188 = ppppppplVar40;
+1119             puStack_110 = puVar58;
+1120             local_d8 = uVar49;
+1121             local_b8 = uVar9;
+1122             local_b3 = bVar29;
+1123             local_a1 = uVar12;
+1124             local_d0 = auVar59;
+1125             manager::RelayManager::codex_config_stale_reason_for_snapshot(&local_a0,ppppppplVar54,&local_220);
+1126             lVar39 = CONCAT17(uStack_99,CONCAT43(uStack_9d,CONCAT21(uStack_9f,local_a0)));
+1127             if (lVar39 == -0x8000000000000000) {
+1128               local_740 = (long *******)CONCAT71(uStack_50f,local_510);
+1129               ppppppplStack_3b8 = ppppppplStack_4f8;
+1130               local_3c0 = local_500;
+1131               ppppppplStack_3a8 = ppppppplStack_4e8;
+1132               ppppppplStack_3b0 = local_4f0;
+1133               local_3a0 = local_4e0;
+1134               ppppppplStack_748 = (long *******)CONCAT71(uStack_517,uStack_518);
+1135               local_750 = (long *******)CONCAT17(local_520._7_1_,CONCAT43(local_520._3_4_,CONCAT21(local_520._1_2_,(undefined1)local_520)));
+1136               ppppppplStack_3c8 = ppppppplStack_508;
+1137               ppppppplStack_418 = ppppppplStack_298;
+1138               local_420 = local_2a0;
+1139               ppppppplStack_408 = local_288;
+1140               local_410 = local_290;
+1141               ppppppplStack_3f8 = ppppppplStack_278;
+1142               local_400 = local_280;
+1143               ppppppplStack_3e8 = local_268;
+1144               ppppppplStack_3f0 = local_270;
+1145               local_428 = local_250;
+1146               ppppppplStack_430 = ppppppplStack_258;
+1147               ppppppplStack_438 = local_260;
+1148               local_498 = ppppppplStack_278;
+1149               ppppppplStack_4a0 = local_280;
+1150               local_488 = local_268;
+1151               ppppppplStack_490 = local_270;
+1152               uStack_4b8 = (undefined **)ppppppplStack_298;
+1153               local_4c0 = local_2a0;
+1154               ppppppplStack_4a8 = local_288;
+1155               ppppppplStack_4b0 = local_290;
+1156               ppppppplStack_440 = local_4e0;
+1157               ppppppplStack_458 = ppppppplStack_4f8;
+1158               local_460 = local_500;
+1159               local_448 = ppppppplStack_4e8;
+1160               ppppppplStack_450 = local_4f0;
+1161               local_468 = ppppppplStack_508;
+1162               ppppppplStack_728 = ppppppplStack_4f8;
+1163               local_730 = local_500;
+1164               ppppppplStack_718 = ppppppplStack_4e8;
+1165               local_720 = local_4f0;
+1166               ppppppplStack_708 = local_260;
+1167               local_710 = local_4e0;
+1168               ppppppplStack_6f8 = local_250;
+1169               local_700 = ppppppplStack_258;
+1170               ppppppplStack_768 = ppppppplStack_278;
+1171               local_770 = local_280;
+1172               ppppppplStack_758 = local_268;
+1173               local_760 = local_270;
+1174               ppppppplStack_738 = ppppppplStack_508;
+1175               ppppppplStack_788 = ppppppplStack_298;
+1176               local_790 = local_2a0;
+1177               ppppppplStack_778 = local_288;
+1178               local_780 = local_290;
+1179               ppppppplStack_480 = local_750;
+1180               local_478 = ppppppplStack_748;
+1181               ppppppplStack_470 = local_740;
+1182               local_3e0 = local_750;
+1183               ppppppplStack_3d8 = ppppppplStack_748;
+1184               ppppppplStack_3d0 = local_740;
+1185               ::core::ptr::drop_in_place<codexmate_lib::core::relay::models::RelayState>(&local_220);
+1186             }
+1187             else {
+1188               ppppppplStack_418 = (long *******)CONCAT71(uStack_97,uStack_98);
+1189               local_420 = (long *******)CONCAT17(uStack_99,CONCAT43(uStack_9d,CONCAT21(uStack_9f,local_a0)));
+1190               local_410 = (long *******)CONCAT71(uStack_8f,uStack_90);
+1191               local_238 = (long *******)&local_420;
+1192               ppppppplStack_230 = (long *******)<alloc::string::String_as_core::fmt::Display>::fmt;
+1193               alloc::fmt::format::format_inner(&local_4c0,s__diagnostic_repair_left_stale_Co_10151f37d,&local_238);
+1194               ppppppplStack_778 = (long *******)uStack_4b8;
+1195               local_780 = local_4c0;
+1196               local_770 = ppppppplStack_4b0;
+1197               ppppppplStack_788 = (long *******)&DAT_0000000a;
+1198               local_790 = (long *******)0x3;
+1199               if (local_420 != (long *******)0x0) {
+1200                 __RNvCs1Y7DaGC1cwg_7___rustc14___rust_dealloc(ppppppplStack_418,local_420,1);
+1201               }
+1202               ::core::ptr::drop_in_place<codexmate_lib::core::relay::models::RelayState>(&local_220);
+1203               ppppppplVar40 = ppppppplStack_258;
+1204               if (local_250 != (long *******)0x0) {
+1205                 ppppppplVar45 = ppppppplStack_258 + 1;
+1206                 ppppppplVar51 = local_250;
+1207                 do {
+1208                   if (ppppppplVar45[-1] != (long ******)0x0) {
+1209                     __RNvCs1Y7DaGC1cwg_7___rustc14___rust_dealloc(*ppppppplVar45,ppppppplVar45[-1],1);
+1210                   }

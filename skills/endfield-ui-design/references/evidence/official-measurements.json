@@ -1,0 +1,158 @@
+{
+  "url": "https://endfield.gryphline.com/en-us#operator",
+  "viewport": {
+    "width": 1512,
+    "height": 787
+  },
+  "button": [
+    {
+      "cls": "Button_button__njqVS __04-Information_button__4GEKK",
+      "text": "More Videos",
+      "color": "rgb(238, 238, 238)",
+      "bg": "rgb(56, 56, 56)",
+      "radius": "2px",
+      "font": "SansMedium",
+      "transitionDuration": "0.2s, 0.2s, 0.2s",
+      "transitionTimingFunction": "ease, ease, ease"
+    },
+    {
+      "cls": "Button_button__njqVS __06-Notice_detailButton__1qReQ",
+      "text": "More Intel",
+      "color": "rgb(238, 238, 238)",
+      "bg": "rgb(56, 56, 56)",
+      "radius": "2px",
+      "font": "SansMedium",
+      "transitionDuration": "0.2s, 0.2s, 0.2s",
+      "transitionTimingFunction": "ease, ease, ease"
+    },
+    {
+      "cls": "Button_button__njqVS __06-Notice_detailButton__1qReQ",
+      "text": "More Intel",
+      "color": "rgb(238, 238, 238)",
+      "bg": "rgb(56, 56, 56)",
+      "radius": "2px",
+      "font": "SansMedium",
+      "transitionDuration": "0.2s, 0.2s, 0.2s",
+      "transitionTimingFunction": "ease, ease, ease"
+    },
+    {
+      "cls": "Button_button__njqVS ReserveModal_button__TeBIv Button_disabled__FGmkD",
+      "text": "",
+      "color": "rgb(102, 102, 102)",
+      "bg": "rgb(136, 136, 136)",
+      "radius": "2px",
+      "font": "SansMedium",
+      "transitionDuration": "0.2s, 0.2s, 0.2s",
+      "transitionTimingFunction": "ease, ease, ease"
+    }
+  ],
+  "nav": [
+    {
+      "cls": "Header_navItem__c_fLB Header_detailActive__ngqkN",
+      "text": "Home",
+      "color": "rgb(25, 25, 25)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "radius": "0px",
+      "font": "sans-serif",
+      "transitionDuration": "0.3s, 0.3s",
+      "transitionTimingFunction": "ease, ease"
+    }
+  ],
+  "pagination": [
+    {
+      "cls": "Pagination_pagination__3IDBu GameplayAlbum_pagination__I3EXE Pagination_dark__8bFUA",
+      "text": "",
+      "color": "rgb(0, 0, 0)",
+      "bg": "rgba(30, 30, 30, 0.8)",
+      "radius": "22.9542px",
+      "font": "sans-serif",
+      "transitionDuration": "0s",
+      "transitionTimingFunction": "ease"
+    },
+    {
+      "cls": "Pagination_button__cVH8L",
+      "text": "",
+      "color": "rgb(0, 0, 0)",
+      "bg": "rgb(250, 250, 250)",
+      "radius": "20.2215px",
+      "font": "sans-serif",
+      "transitionDuration": "0.2s",
+      "transitionTimingFunction": "ease"
+    },
+    {
+      "cls": "Pagination_border__Sfc_h",
+      "text": "",
+      "color": "rgb(0, 0, 0)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "radius": "0px",
+      "font": "sans-serif",
+      "transitionDuration": "0s",
+      "transitionTimingFunction": "ease"
+    },
+    {
+      "cls": {},
+      "text": "",
+      "color": "rgb(60, 60, 60)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "radius": "0px",
+      "font": "sans-serif",
+      "transitionDuration": "0.2s",
+      "transitionTimingFunction": "ease"
+    },
+    {
+      "cls": "Pagination_button__cVH8L",
+      "text": "",
+      "color": "rgb(0, 0, 0)",
+      "bg": "rgb(250, 250, 250)",
+      "radius": "20.2215px",
+      "font": "sans-serif",
+      "transitionDuration": "0.2s",
+      "transitionTimingFunction": "ease"
+    }
+  ],
+  "signal": [
+    {
+      "cls": "__02-Operator_decoFlag__xm7_G",
+      "text": "",
+      "color": "rgb(0, 0, 0)",
+      "bg": "rgb(255, 250, 0)",
+      "radius": "0px",
+      "font": "sans-serif",
+      "transitionDuration": "0s",
+      "transitionTimingFunction": "ease"
+    },
+    {
+      "cls": "__02-Operator_label__3koYX __02-Operator_cv__33o4w",
+      "text": "",
+      "color": "rgb(25, 25, 25)",
+      "bg": "rgb(255, 250, 0)",
+      "radius": "0px",
+      "font": "SansMedium",
+      "transitionDuration": "0s",
+      "transitionTimingFunction": "ease"
+    },
+    {
+      "cls": "__02-Operator_label__3koYX __02-Operator_cv__33o4w",
+      "text": "",
+      "color": "rgb(25, 25, 25)",
+      "bg": "rgb(255, 250, 0)",
+      "radius": "0px",
+      "font": "SansMedium",
+      "transitionDuration": "0s",
+      "transitionTimingFunction": "ease"
+    }
+  ],
+  "fonts": [
+    "Gilroy-Light",
+    "Novecentosanswide-Bold",
+    "Novecentosanswide-DemiBold",
+    "Novecentosanswide-Medium",
+    "Gilroy-Medium",
+    "SpaceGrotesk",
+    "SDK-Sans-Regular",
+    "SansMedium",
+    "SansBold",
+    "SansBlack",
+    "SansRegular"
+  ]
+}

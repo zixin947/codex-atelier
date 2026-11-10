@@ -251,7 +251,7 @@ Rust 端提供受限的插件、账号与网关命令，通过固定官方接口
 
 新增终末地风格皮肤参考 [ymh0000123/dsh-theme-endfield](https://github.com/ymh0000123/dsh-theme-endfield) 的公开主题令牌与样式方向，适配 Atelier，并直接移植其原版等高线背景实现。保留上游 MIT 署名，详见 [第三方说明](THIRD_PARTY_NOTICES.md)。没有引入上游的宿主注入逻辑或游戏美术素材。
 
-本项目使用的框架与工具包括 [Tauri](https://v2.tauri.app/)、[Vue](https://vuejs.org/)、[Vite](https://vite.dev/) 与 [Pinia](https://pinia.vuejs.org/)。第三方依赖遵循各自许可证。仓库目前尚未指定项目许可证。
+本项目使用的框架与工具包括 [Tauri](https://v2.tauri.app/)、[Vue](https://vuejs.org/)、[Vite](https://vite.dev/) 与 [Pinia](https://pinia.vuejs.org/)。第三方依赖遵循各自许可证。仓库其余部分目前尚未指定项目许可证。线程修复引入的 Cockpit Tools 原版源码按 CC BY-NC-SA 4.0 使用与分发，署名、非商业及相同共享要求见 [原样移植说明](src-tauri/crates/cockpit-session-compat/NOTICE.md)。
 
 <div align="center">
 

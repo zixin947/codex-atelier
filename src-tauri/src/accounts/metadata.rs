@@ -2,7 +2,6 @@ use super::types::AccountMetadata;
 use crate::gateway::types::now_ms;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
 use serde_json::Value;
-use std::time::Duration;
 
 fn text(value: &Value, max: usize) -> Option<String> {
     value
@@ -111,7 +110,11 @@ pub fn merge(previous: &AccountMetadata, incoming: &AccountMetadata) -> AccountM
     }
     out
 }
-pub async fn subscription(auth: &Value, user_agent: &str) -> Result<AccountMetadata, String> {
+pub async fn subscription(
+    auth: &Value,
+    user_agent: &str,
+    settings: &super::network::Settings,
+) -> Result<AccountMetadata, String> {
     let token = auth["tokens"]["access_token"]
         .as_str()
         .filter(|s| !s.is_empty())
@@ -136,12 +139,7 @@ pub async fn subscription(auth: &Value, user_agent: &str) -> Result<AccountMetad
         .filter(|s| !s.is_empty() && s.len() < 256)
         .ok_or("账号缺少工作区标识。")?;
     // Only ordinary Codex accounts reach this module, never gateway SIWC registrations.
-    let client = reqwest::Client::builder()
-        .redirect(reqwest::redirect::Policy::none())
-        .http1_only()
-        .timeout(Duration::from_secs(15))
-        .build()
-        .map_err(|_| "无法初始化订阅读取。")?;
+    let client = super::network::client(settings).await?;
     let user_agent = if user_agent.is_empty() {
         "CodexAtelier/0.1.0"
     } else {
@@ -158,7 +156,7 @@ pub async fn subscription(auth: &Value, user_agent: &str) -> Result<AccountMetad
         .header("User-Agent", user_agent)
         .send()
         .await
-        .map_err(|_| "订阅信息连接失败，已保留上次数据。")?;
+        .map_err(|e| super::network::transport_error(&e))?;
     if !r.status().is_success() {
         return Err(format!(
             "订阅信息返回 HTTP {}，已保留上次数据。",

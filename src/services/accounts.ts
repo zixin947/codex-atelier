@@ -6,12 +6,22 @@ import type {
   AccountLogin,
   AccountsSnapshot,
   AccountSwitch,
+  ApiNetworkSettings,
+  ApiNetworkView,
+  ApiNetworkDetection,
+  ApiNetworkProbe,
 } from '../types/accounts'
 function native<T>(command: string, args?: Record<string, unknown>): Promise<T> {
   if (!isTauri()) return Promise.reject(new Error('请在 Atelier 桌面应用中操作。'))
   return invoke<T>(command, args)
 }
 export const accountsService = {
+  networkSettings: (): Promise<ApiNetworkView> => native('accounts_network_settings'),
+  saveNetwork: (settings: ApiNetworkSettings, revision: string): Promise<ApiNetworkView> =>
+    native('accounts_network_save', { settings, revision }),
+  detectNetwork: (): Promise<ApiNetworkDetection> => native('accounts_network_detect'),
+  testNetwork: (settings: ApiNetworkSettings): Promise<ApiNetworkProbe> =>
+    native('accounts_network_test', { settings }),
   autoRefreshStatus: (): Promise<AccountAutoRefreshStatus> =>
     native('accounts_auto_refresh_status'),
   setAutoRefreshInterval: (intervalMs: number): Promise<AccountAutoRefreshStatus> =>

@@ -18,16 +18,57 @@ impl Drop for Fixture {
     }
 }
 #[test]
-fn settings_read_is_non_creating_and_toggle_persists_to_next_gateway_request() {
+fn settings_read_is_non_creating_and_config_is_injected_for_each_gateway_request() {
     let f = Fixture::new();
     assert!(!read_settings_at(&f.0).unwrap().image_compat);
     assert!(!f.0.exists());
-    let store = crate::gateway::storage::Store::new(f.0.join("gateway")).unwrap();
+    let config = f.0.join("codex/config.toml");
+    let store =
+        crate::gateway::storage::Store::new_with_config(f.0.join("gateway"), config.clone())
+            .unwrap();
+    let local_only = crate::gateway::storage::Store::new(f.0.join("local-only-gateway")).unwrap();
     assert!(!store.image_compat_enabled().unwrap());
-    set_image_compat_at(&f.0, true).unwrap();
+    atelier_maintenance_core::image_compat::set_image_compat(&config, true).unwrap();
     assert!(store.image_compat_enabled().unwrap());
-    set_image_compat_at(&f.0, false).unwrap();
+    assert!(
+        read_settings_with_config(&f.0, &config)
+            .unwrap()
+            .image_compat
+    );
+    assert!(!local_only.image_compat_enabled().unwrap());
+    assert!(!settings_path(&f.0).exists());
+    atelier_maintenance_core::image_compat::set_image_compat(&config, false).unwrap();
     assert!(!store.image_compat_enabled().unwrap());
+}
+#[test]
+fn legacy_image_preference_is_ignored_and_endpoint_updates_preserve_only_endpoint() {
+    let f = Fixture::new();
+    fs::create_dir_all(f.0.join("maintenance")).unwrap();
+    atomic_private(
+        &settings_path(&f.0),
+        br#"{"imageCompat":true,"diagnosticEndpoint":"https://example.invalid/upload"}"#,
+    )
+    .unwrap();
+    let config = f.0.join("codex/config.toml");
+    let state = read_settings_with_config(&f.0, &config).unwrap();
+    assert!(!state.image_compat);
+    assert_eq!(
+        state.diagnostic_endpoint.as_deref(),
+        Some("https://example.invalid/upload")
+    );
+    atelier_maintenance_core::image_compat::set_image_compat(&config, true).unwrap();
+    assert!(
+        read_settings_with_config(&f.0, &config)
+            .unwrap()
+            .image_compat
+    );
+    update_settings(&f.0, |s| {
+        s.diagnostic_endpoint = Some("https://example.invalid/new".into())
+    })
+    .unwrap();
+    let stored: Value = serde_json::from_slice(&fs::read(settings_path(&f.0)).unwrap()).unwrap();
+    assert!(stored.get("imageCompat").is_none());
+    assert_eq!(stored["diagnosticEndpoint"], "https://example.invalid/new");
 }
 #[test]
 fn image_filter_keeps_input_images_and_function_tools_and_restores_passthrough() {
@@ -38,19 +79,19 @@ fn image_filter_keeps_input_images_and_function_tools_and_restores_passthrough()
     assert_eq!(actual, request);
     assert_eq!(filter_image_declarations(&mut actual, true), 1);
     assert_eq!(actual["tools"].as_array().unwrap().len(), 2);
-    assert!(actual.get("tool_choice").is_none());
+    assert_eq!(actual["tool_choice"], request["tool_choice"]);
     assert_eq!(actual["input"], request["input"]);
 }
 #[test]
 fn bundle_is_valid_zip_and_contains_only_allowlisted_data() {
     let f = Fixture::new();
-    set_image_compat_at(&f.0, true).unwrap();
+    update_settings(&f.0, |s| s.diagnostic_endpoint = None).unwrap();
     record_diagnostic_summary(&f.0,&json!({"checkedAt":1,"root":"/private/user/path","items":[
         {"id":"auth_integrity","status":"warning","label":"user@example.invalid","detail":"sk-SYNTHETIC_SECRET"},
         {"id":"secret-id","status":"ok"},{"id":"config_access","status":"sk-SYNTHETIC_SECRET"}]})).unwrap();
     // A raw credential file must not be read or packaged even if present in app data.
     fs::write(f.0.join("auth.json"), b"SYNTHETIC_DO_NOT_INCLUDE").unwrap();
-    let bundle = export_at(&f.0).unwrap();
+    let bundle = export_at(&f.0, None).unwrap();
     let contents = String::from_utf8_lossy(&bundle.bytes);
     for secret in [
         "SYNTHETIC_DO_NOT_INCLUDE",
@@ -126,13 +167,13 @@ fn receiver(status: &str, body: &str) -> (String, thread::JoinHandle<Vec<u8>>) {
 async fn diagnostic_upload_delivers_multipart_only_after_confirmation() {
     let f = Fixture::new();
     assert!(
-        send_at(&f.0, "https://example.invalid/upload", "note", false)
+        send_at(&f.0, "https://example.invalid/upload", "note", false, None)
             .await
             .is_err()
     );
     assert!(!f.0.exists());
     let (url, worker) = receiver("201 Created", r#"{"reportId":"fixture-123"}"#);
-    let result = send_at(&f.0, &url, "Synthetic test only", true)
+    let result = send_at(&f.0, &url, "Synthetic test only", true, None)
         .await
         .unwrap();
     assert_eq!(result.report_id, "fixture-123");
@@ -154,7 +195,7 @@ async fn diagnostic_upload_delivers_multipart_only_after_confirmation() {
 async fn failed_upload_does_not_claim_success_or_save_receiver() {
     let f = Fixture::new();
     let (url, worker) = receiver("503 Service Unavailable", "{}");
-    assert!(send_at(&f.0, &url, "", true)
+    assert!(send_at(&f.0, &url, "", true, None)
         .await
         .unwrap_err()
         .contains("503"));
@@ -183,10 +224,33 @@ fn native_save_writes_a_valid_archive_and_reports_no_false_success() {
     let f = Fixture::new();
     fs::create_dir_all(&f.0).unwrap();
     let target = f.0.join("saved.zip");
-    let saved = save_bundle_at(&f.0, &target).unwrap();
+    let saved = save_bundle_at(&f.0, &target, None).unwrap();
     assert!(saved.saved);
     assert_eq!(saved.path.as_deref(), target.to_str());
     assert_eq!(&fs::read(&target).unwrap()[..4], b"PK\x03\x04");
-    assert!(save_bundle_at(&f.0, &f.0.join("missing-directory/out.zip")).is_err());
+    assert!(save_bundle_at(&f.0, &f.0.join("missing-directory/out.zip"), None).is_err());
     assert!(!f.0.join("missing-directory").exists());
+}
+
+#[test]
+fn exported_image_state_uses_explicit_config_and_absent_source_is_unknown() {
+    let f = Fixture::new();
+    let config = f.0.join("codex/config.toml");
+    fn manifest(bundle: &BundleExport) -> Value {
+        let bytes = &bundle.bytes;
+        let length = u32::from_le_bytes(bytes[18..22].try_into().unwrap()) as usize;
+        let name = u16::from_le_bytes(bytes[26..28].try_into().unwrap()) as usize;
+        let extra = u16::from_le_bytes(bytes[28..30].try_into().unwrap()) as usize;
+        serde_json::from_slice(&bytes[30 + name + extra..30 + name + extra + length]).unwrap()
+    }
+    let unknown = manifest(&export_at(&f.0, None).unwrap());
+    assert!(unknown["settings"]["imageCompat"].is_null());
+    assert_eq!(unknown["settings"]["imageCompatSource"], "unknown");
+    for enabled in [false, true, false] {
+        atelier_maintenance_core::image_compat::set_image_compat(&config, enabled).unwrap();
+        let data = manifest(&export_at(&f.0, Some(&config)).unwrap());
+        assert_eq!(data["settings"]["imageCompat"], enabled);
+        assert_eq!(data["settings"]["imageCompatSource"], "config");
+    }
+    assert!(!settings_path(&f.0).exists());
 }

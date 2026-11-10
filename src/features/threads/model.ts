@@ -55,3 +55,22 @@ export function exportMarkdown(title: string, messages: { role: string; text: st
     messages.map((m) => `## ${m.role}\n\n${m.text}\n`).join('\n')
   )
 }
+
+export function threadKind(row: ThreadRecord): 'conversation' | 'subtask' | 'unverified' {
+  if (row.kind) return row.kind
+  if (row.source.toLowerCase().includes('subagent')) return 'subtask'
+  return ['cli', 'vscode', 'desktop', 'app-server', 'app_server'].includes(row.source.toLowerCase())
+    ? 'conversation'
+    : 'unverified'
+}
+export function scopeThreads(rows: ThreadRecord[], scope: string) {
+  return rows.filter(
+    (row) =>
+      scope === 'all' ||
+      (scope === 'subtask'
+        ? threadKind(row) === 'subtask'
+        : scope === 'unverified'
+          ? threadKind(row) === 'unverified'
+          : threadKind(row) === 'conversation'),
+  )
+}

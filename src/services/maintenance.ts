@@ -7,6 +7,9 @@ export const maintenanceService: MaintenanceService = isTauri()
       runDiagnostics: () => invoke('maintenance_run_diagnostics'),
       previewRepair: (itemId) => invoke('maintenance_preview_repair', { itemId }),
       applyRepair: (ticket) => invoke('maintenance_apply_repair', { ticket, confirmed: true }),
+      previewDirectoryProbe: () => invoke('maintenance_preview_directory_probe'),
+      applyDirectoryProbe: (ticket) =>
+        invoke('maintenance_apply_directory_probe', { ticket, confirmed: true }),
       utilitySettings: () => invoke('maintenance_utility_settings'),
       previewImageCompat: (enabled) => invoke('maintenance_preview_image_compat', { enabled }),
       applyImageCompat: (ticket) =>

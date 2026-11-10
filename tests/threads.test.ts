@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest'
 import { createThreadDemo } from '../src/services/threadsMock'
-import { filterThreads, usageSegments, exportMarkdown } from '../src/features/threads/model'
+import {
+  filterThreads,
+  usageSegments,
+  exportMarkdown,
+  scopeThreads,
+} from '../src/features/threads/model'
 describe('thread workspace', () => {
   it('combines filters without mutating input', async () => {
     const s = createThreadDemo()
@@ -42,5 +47,21 @@ describe('thread workspace', () => {
     expect(exportMarkdown('test', [{ role: 'user', text: '<script>hello</script>' }])).toContain(
       '<script>hello</script>',
     )
+  })
+})
+
+describe('thread counting scope', () => {
+  it('keeps missing-file conversations while separating subtasks and unverified rows', async () => {
+    const base = (await createThreadDemo().catalog()).threads[0]!
+    const rows = [
+      { ...base, id: 'user', kind: 'conversation' as const, rolloutPath: 'missing.jsonl' },
+      { ...base, id: 'agent', kind: 'subtask' as const },
+      { ...base, id: 'old-index', kind: 'unverified' as const },
+    ]
+    expect(scopeThreads(rows, 'conversation').map((r) => r.id)).toEqual(['user'])
+    expect(scopeThreads(rows, 'subtask').map((r) => r.id)).toEqual(['agent'])
+    expect(scopeThreads(rows, 'unverified').map((r) => r.id)).toEqual(['old-index'])
+    expect(scopeThreads(rows, 'all')).toHaveLength(3)
+    expect(rows).toHaveLength(3)
   })
 })

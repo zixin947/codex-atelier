@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "captured_on": "2026-11-02",
+  "rights": "Reference-only screenshots; underlying game artwork and third-party webpage content remain with their respective rights holders. Not production assets.",
+  "screenshots": [
+    {
+      "path": "references/screenshots/official-home.png",
+      "source_url": "https://endfield.gryphline.com/en-us",
+      "scope": "官方网页首屏，当前版本主视觉；不是全游戏系统色",
+      "sha256": "e5636ba331b4238bf11d7e6eb09d837ff0a1853a5cdf599e14e04f7288172d2c"
+    },
+    {
+      "path": "references/screenshots/official-operators.png",
+      "source_url": "https://endfield.gryphline.com/en-us#operator",
+      "scope": "官方网页干员展示；不是游戏内养成流程",
+      "sha256": "faab01384a26a53d1718f2b28535fcd181170b7a749edbe1b1039ff09c77719e"
+    },
+    {
+      "path": "references/screenshots/official-lore.png",
+      "source_url": "https://endfield.gryphline.com/en-us#lore",
+      "scope": "官方网页世界观章节与分页",
+      "sha256": "6c8817e9531ceb5b8d3c480c7f20d87b22349984091e63bc0b719b320816609d"
+    },
+    {
+      "path": "references/screenshots/official-gameplay.png",
+      "source_url": "https://endfield.gryphline.com/en-us#gameplay",
+      "scope": "官方网页玩法结构；视频区域未显示内容",
+      "sha256": "275dd729609ba6c0c0310ac4455fae571f1ef10b12d5e8d602e711d3ae66c16c"
+    },
+    {
+      "path": "references/screenshots/game-hud-zcool.png",
+      "source_url": "https://www.zcool.com.cn/work/ZNzM0MTgxMzI%3D.html",
+      "scope": "第三方文章所嵌游戏 GIF 的一帧；具体构建和平台未独立确认",
+      "sha256": "4a26ce1ecba691b80dd301b8ca750aad505bfb06b6b690a202d622b5e1933b7b"
+    },
+    {
+      "path": "references/screenshots/game-panels-zcool.png",
+      "source_url": "https://www.zcool.com.cn/work/ZNzM0MTgxMzI%3D.html",
+      "scope": "第三方文章中装备/活动的动画中间帧；不能用于判定终态对比度",
+      "sha256": "6dbff89250d247b281850fe07d766596a71878e49d39a1e98a3d1845f7af7a28"
+    },
+    {
+      "path": "references/screenshots/game-activity-zcool.png",
+      "source_url": "https://www.zcool.com.cn/work/ZNzM0MTgxMzI%3D.html",
+      "scope": "第三方文章中活动画面、奖励和胶囊按钮",
+      "sha256": "6aaf64660d237e9c9d92cdf3762129478db7ce541568a53fb80f01f7e7797a0b"
+    },
+    {
+      "path": "references/screenshots/community-reend.png",
+      "source_url": "https://reend-components.pages.dev/en/docs",
+      "scope": "非官方 ReEnd 文档站，不是官方游戏标准",
+      "sha256": "eb82cc952a00fb42e54092856a51ccfbe17872c7001fff441206e26b090f76df"
+    }
+  ]
+}

@@ -6,7 +6,7 @@ use std::{
     path::{Path, PathBuf},
     time::SystemTime,
 };
-#[derive(PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 struct Stamp {
     len: u64,
     modified: Option<SystemTime>,
@@ -47,6 +47,115 @@ impl Drop for Scratch {
         let _ = fs::remove_dir_all(&self.0);
     }
 }
+struct ObservedCopy {
+    _scratch: Scratch,
+    path: PathBuf,
+    source_stamp: (Option<Stamp>, Option<Stamp>),
+}
+thread_local! {
+    static OBSERVED: std::cell::RefCell<Option<std::collections::BTreeMap<PathBuf, ObservedCopy>>> = const { std::cell::RefCell::new(None) };
+}
+/// Read-only phase only. Mutable planning projections still use independent copies.
+pub(super) fn with_observation<T>(read: impl FnOnce() -> Result<T>) -> Result<T> {
+    let owner = OBSERVED.with(|s| {
+        let mut s = s.borrow_mut();
+        if s.is_some() {
+            false
+        } else {
+            *s = Some(Default::default());
+            true
+        }
+    });
+    struct Guard(bool);
+    impl Drop for Guard {
+        fn drop(&mut self) {
+            if self.0 {
+                OBSERVED.with(|s| *s.borrow_mut() = None);
+            }
+        }
+    }
+    let _guard = Guard(owner);
+    atelier_maintenance_core::threads::observation::with_scope(|| {
+        let result = read()?;
+        atelier_maintenance_core::threads::observation::validate()?;
+        OBSERVED.with(|s| -> Result<()> {
+            if let Some(copies) = s.borrow().as_ref() {
+                for (source, copy) in copies {
+                    if copy.source_stamp
+                        != (
+                            stamp(source)?,
+                            stamp(&PathBuf::from(format!("{}-wal", source.display())))?,
+                        )
+                    {
+                        return Err("会话索引在本轮观察期间变化；请重新检测".into());
+                    }
+                }
+            }
+            Ok(())
+        })?;
+        Ok(result)
+    })
+}
+pub(super) fn with_observed_path<T>(
+    path: &Path,
+    mut read: impl FnMut(&Path, &rusqlite::Connection) -> Result<T>,
+) -> Result<T> {
+    if !OBSERVED.with(|s| s.borrow().is_some()) {
+        return with_snapshot_path(path, read);
+    }
+    let before = (
+        stamp(path)?,
+        stamp(&PathBuf::from(format!("{}-wal", path.display())))?,
+    );
+    let existing = OBSERVED.with(|s| {
+        s.borrow()
+            .as_ref()
+            .unwrap()
+            .get(path)
+            .map(|c| (c.path.clone(), c.source_stamp.clone()))
+    });
+    let copy = match existing {
+        Some((copy, expected)) => {
+            if before != expected {
+                return Err("会话索引在本轮观察期间变化；请重新检测".into());
+            }
+            copy
+        }
+        None => {
+            let (scratch, copy) = with_snapshot_path(path, |_, connection| {
+                // Each retry owns a fresh destination. VACUUM includes committed WAL pages.
+                let scratch = Scratch::new()?;
+                let copy = scratch.0.join("observed.sqlite");
+                connection
+                    .execute("VACUUM INTO ?1", [copy.to_string_lossy().as_ref()])
+                    .map_err(|_| "无法建立本轮会话观察快照")?;
+                Ok((scratch, copy))
+            })?;
+            OBSERVED.with(|s| {
+                s.borrow_mut().as_mut().unwrap().insert(
+                    path.into(),
+                    ObservedCopy {
+                        _scratch: scratch,
+                        path: copy.clone(),
+                        source_stamp: before.clone(),
+                    },
+                )
+            });
+            copy
+        }
+    };
+    let connection = inspect::open_db(&copy, false)?;
+    let result = read(&copy, &connection);
+    if before
+        != (
+            stamp(path)?,
+            stamp(&PathBuf::from(format!("{}-wal", path.display())))?,
+        )
+    {
+        return Err("会话索引在本轮观察期间变化；请重新检测".into());
+    }
+    result
+}
 pub(super) fn read_rows(path: &Path) -> Result<Vec<inspect::Row>> {
     with_connection(path, inspect::rows)
 }
@@ -54,16 +163,89 @@ pub(super) fn with_connection<T>(
     path: &Path,
     read: impl FnMut(&rusqlite::Connection) -> Result<T>,
 ) -> Result<T> {
-    read_with_hook(path, read, || {})
+    let mut read = read;
+    with_snapshot_hook(path, |_, connection| read(connection), || {})
 }
 #[cfg(test)]
 fn read_rows_with_hook(path: &Path, after_copy: impl FnMut()) -> Result<Vec<inspect::Row>> {
     read_with_hook(path, inspect::rows, after_copy)
 }
-// Hook is internal and no-op in production; tests exercise repeated external writes deterministically.
+/// The private path remains valid only during this callback. Source SQLite is never opened.
+pub(super) fn with_snapshot_path<T>(
+    path: &Path,
+    read: impl FnMut(&Path, &rusqlite::Connection) -> Result<T>,
+) -> Result<T> {
+    with_snapshot_hook(path, read, || {})
+}
+/// Keep all copies alive for one verification, including committed WAL data.
+/// Core verification may open SQLite connections; none of them receive source paths.
+pub(super) fn with_verification_paths<T>(
+    paths: &atelier_maintenance_core::router_verification::VerificationPaths,
+    mut read: impl FnMut(&atelier_maintenance_core::router_verification::VerificationPaths) -> Result<T>,
+) -> Result<T> {
+    with_observation(|| with_verification_paths_observed(paths, &mut read))
+}
+fn with_verification_paths_observed<T>(
+    paths: &atelier_maintenance_core::router_verification::VerificationPaths,
+    read: &mut impl FnMut(
+        &atelier_maintenance_core::router_verification::VerificationPaths,
+    ) -> Result<T>,
+) -> Result<T> {
+    fn next<T>(
+        paths: &atelier_maintenance_core::router_verification::VerificationPaths,
+        copies: &mut Vec<PathBuf>,
+        read: &mut impl FnMut(
+            &atelier_maintenance_core::router_verification::VerificationPaths,
+        ) -> Result<T>,
+    ) -> Result<T> {
+        let n = copies.len();
+        if n == paths.databases.len() {
+            let mut projected = paths.clone();
+            projected.databases = copies.clone();
+            return read(&projected);
+        }
+        with_observed_path(&paths.databases[n], |copy, _| {
+            copies.push(copy.to_path_buf());
+            let result = next(paths, copies, read);
+            copies.pop();
+            result
+        })
+    }
+    next(paths, &mut Vec::new(), &mut |projected| {
+        let result = read(projected);
+        // Replace private paths in errors at the wrapper boundary, not in data.
+        result.map_err(|mut error| {
+            for (copy, source) in projected.databases.iter().zip(&paths.databases) {
+                error = error.replace(
+                    copy.to_string_lossy().as_ref(),
+                    source.to_string_lossy().as_ref(),
+                );
+            }
+            error
+        })
+    })
+}
+
+#[cfg(test)]
 fn read_with_hook<T>(
     path: &Path,
     mut read: impl FnMut(&rusqlite::Connection) -> Result<T>,
+    after_copy: impl FnMut(),
+) -> Result<T> {
+    with_snapshot_hook(path, |_, connection| read(connection), after_copy)
+}
+#[cfg(test)]
+thread_local! {
+    static SNAPSHOT_COUNT: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+#[cfg(test)]
+pub(super) fn take_snapshot_count() -> usize {
+    SNAPSHOT_COUNT.with(|count| count.replace(0))
+}
+// Hook is internal and no-op in production; tests exercise repeated external writes deterministically.
+fn with_snapshot_hook<T>(
+    path: &Path,
+    mut read: impl FnMut(&Path, &rusqlite::Connection) -> Result<T>,
     mut after_copy: impl FnMut(),
 ) -> Result<T> {
     let wal = PathBuf::from(format!("{}-wal", path.display()));
@@ -73,13 +255,18 @@ fn read_with_hook<T>(
             return Err("会话索引不存在".into());
         }
         let scratch = Scratch::new()?;
+        #[cfg(test)]
+        SNAPSHOT_COUNT.with(|count| count.set(count.get() + 1));
         let db = scratch.0.join("snapshot.sqlite");
         let copy = (|| -> Result<()> {
             atomic_private(&db, &read_bounded(path, 128 * 1024 * 1024)?)?;
             if before.1.as_ref().is_some_and(|s| s.len > 0) {
                 let bytes = read_bounded(&wal, 64 * 1024 * 1024)?;
-                super::wal::validate(&bytes)?;
-                atomic_private(&scratch.0.join("snapshot.sqlite-wal"), &bytes)?;
+                // 运行中的 Codex 会让 WAL 代次重置或尾部未提交。此时丢弃 WAL 副本、
+                // 仅读主库即可，不把这种正常竞争报成故障。
+                if super::wal::validate_relaxed(&bytes)? == super::wal::WalStatus::Usable {
+                    atomic_private(&scratch.0.join("snapshot.sqlite-wal"), &bytes)?;
+                }
             }
             Ok(())
         })();
@@ -96,7 +283,7 @@ fn read_with_hook<T>(
             if health != "ok" {
                 return Err("会话索引快照结构无效；未返回不完整统计".into());
             }
-            read(&connection)
+            read(&db, &connection)
         })();
         if before != (stamp(path)?, stamp(&wal)?) {
             continue;
@@ -144,6 +331,32 @@ mod tests {
         });
         assert_eq!(calls, 2);
         assert!(result.unwrap_err().contains("持续被外部更新"));
+    }
+    #[test]
+    fn observation_rejects_late_wal_changes_and_new_round_reads_commits() {
+        let temp = Scratch::new().unwrap();
+        let path = temp.0.join("source.sqlite");
+        let writer = Connection::open(&path).unwrap();
+        writer.execute_batch("PRAGMA journal_mode=WAL; PRAGMA wal_autocheckpoint=0; CREATE TABLE sample(value INTEGER); INSERT INTO sample VALUES(1);").unwrap();
+        let count = |_: &Path, connection: &Connection| -> Result<i64> {
+            connection
+                .query_row("SELECT COUNT(*) FROM sample", [], |r| r.get(0))
+                .map_err(|e| e.to_string())
+        };
+        take_snapshot_count();
+        let result = with_observation(|| {
+            assert_eq!(with_observed_path(&path, count)?, 1);
+            assert_eq!(with_observed_path(&path, count)?, 1);
+            writer.execute("INSERT INTO sample VALUES(2)", []).unwrap();
+            Ok(())
+        });
+        assert!(result.unwrap_err().contains("观察期间变化"));
+        assert_eq!(take_snapshot_count(), 1);
+        assert_eq!(
+            with_observation(|| with_observed_path(&path, count)).unwrap(),
+            2
+        );
+        assert_eq!(take_snapshot_count(), 1);
     }
     #[test]
     fn invalid_wal_is_not_silently_ignored() {

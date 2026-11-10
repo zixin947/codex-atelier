@@ -25,6 +25,35 @@ fn checksum(bytes: &[u8], big_endian: bool, mut state: (u32, u32)) -> (u32, u32)
     }
     state
 }
+/// WAL 校验结论。
+/// `Rejected` 表示这份 WAL 不可信，调用方必须丢弃副本、只读主库；
+/// `Stale` 表示 WAL 属于运行中的数据库（代次重置/尾部未提交），同样丢弃副本但不算故障。
+#[derive(Debug, PartialEq, Eq)]
+pub(super) enum WalStatus {
+    Usable,
+    /// 运行中数据库的正常表现：副本不可用，但主库仍可读。
+    Stale(&'static str),
+}
+
+/// 只读主库即可继续：返回 Stale 而不是 Err，避免把“Codex 正在运行”报成故障。
+pub(super) fn validate_relaxed(bytes: &[u8]) -> Result<WalStatus> {
+    match validate(bytes) {
+        Ok(()) => Ok(WalStatus::Usable),
+        Err(e)
+            if e.contains("帧代次不一致")
+                || e.contains("尚未提交")
+                || e.contains("不完整帧") =>
+        {
+            Ok(WalStatus::Stale(match () {
+                _ if e.contains("帧代次不一致") => "WAL 已重置，存在上轮遗留帧；仅读取主库",
+                _ if e.contains("尚未提交") => "WAL 尾部事务尚未提交；仅读取主库",
+                _ => "WAL 正在写入，帧不完整；仅读取主库",
+            }))
+        }
+        Err(e) => Err(e),
+    }
+}
+
 pub(super) fn validate(bytes: &[u8]) -> Result<()> {
     if bytes.is_empty() {
         return Ok(());

@@ -6,7 +6,14 @@ use crate::accounts::{
 use crate::gateway::storage::{atomic_private, open_private, private_dir, read_private};
 use fs2::FileExt;
 use serde_json::Value;
-use std::{collections::BTreeSet, fs, path::Path, time::UNIX_EPOCH};
+use sha2::{Digest, Sha256};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fs,
+    io::Read,
+    path::Path,
+    time::UNIX_EPOCH,
+};
 #[derive(Clone)]
 struct Inspection {
     raw: Option<Vec<u8>>,
@@ -15,6 +22,8 @@ struct Inspection {
     profiles: Vec<String>,
     stale: Vec<String>,
     backups: Vec<PathBuf>,
+    backup_stamps: BTreeMap<PathBuf, String>,
+    backup_directory_identity: Option<String>,
     fingerprint: String,
 }
 fn present_dir(path: &Path) -> Result<bool> {
@@ -24,6 +33,83 @@ fn present_dir(path: &Path) -> Result<bool> {
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(false),
         Err(_) => Err(format!("无法读取目录：{}", path.display())),
     }
+}
+fn object_identity(m: &fs::Metadata) -> Result<String> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        Ok(format!("{}:{}", m.dev(), m.ino()))
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = m;
+        Err("当前平台无法确认清理对象身份，未执行".into())
+    }
+}
+fn backup_stamp(path: &Path) -> Result<String> {
+    let before = fs::symlink_metadata(path).map_err(|_| "备份对象已变化，未继续")?;
+    let identity = object_identity(&before)?;
+    let kind = if before.file_type().is_symlink() {
+        "symlink"
+    } else if before.is_dir() {
+        "directory"
+    } else if before.is_file() {
+        "file"
+    } else {
+        "special"
+    };
+    let content = if before.is_file() {
+        // Open without following a last-component symlink, then bind the bytes to that inode.
+        let mut options = fs::OpenOptions::new();
+        options.read(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK);
+        }
+        let mut file = options.open(path).map_err(|_| "无法读取备份内容，未继续")?;
+        if object_identity(&file.metadata().map_err(|_| "无法核对备份对象")?)? != identity {
+            return Err("备份对象在读取期间变化，未继续".into());
+        }
+        let mut hasher = Sha256::new();
+        let mut buffer = [0u8; 64 * 1024];
+        loop {
+            let n = file
+                .read(&mut buffer)
+                .map_err(|_| "无法读取备份内容，未继续")?;
+            if n == 0 {
+                break;
+            }
+            hasher.update(&buffer[..n]);
+        }
+        format!("{:x}", hasher.finalize())
+    } else if before.file_type().is_symlink() {
+        let target = fs::read_link(path).map_err(|_| "无法核对备份链接，未继续")?;
+        // Bind the link itself; never read its target.
+        format!("{:?}", target.as_os_str())
+    } else {
+        String::new()
+    };
+    let after = fs::symlink_metadata(path).map_err(|_| "备份对象已变化，未继续")?;
+    if object_identity(&after)? != identity
+        || before.len() != after.len()
+        || before.modified().ok() != after.modified().ok()
+    {
+        return Err("备份对象在读取期间变化，未继续".into());
+    }
+    Ok(format!(
+        "{identity}:{kind}:{}:{:?}:{content}",
+        before.len(),
+        before.modified().ok()
+    ))
+}
+fn backup_directory_identity(path: &Path) -> Result<Option<String>> {
+    if !present_dir(path)? {
+        return Ok(None);
+    }
+    Ok(Some(object_identity(
+        &fs::symlink_metadata(path).map_err(|_| "无法核对备份目录")?,
+    )?))
 }
 fn stamp(path: &Path) -> Result<String> {
     match fs::symlink_metadata(path) {
@@ -43,7 +129,7 @@ fn stamp(path: &Path) -> Result<String> {
         Err(_) => Err("无法检查档案文件；未当作缺失清理".into()),
     }
 }
-fn inspect(root: &Path) -> Result<Inspection> {
+fn inspect(root: &Path, check_oauth_snapshots: bool) -> Result<Inspection> {
     present_dir(root)?;
     let catalog_path = root.join("catalog.json");
     let exists = stamp(&catalog_path)? != "absent";
@@ -97,12 +183,25 @@ fn inspect(root: &Path) -> Result<Inspection> {
         let home = profiles_dir.join(&id);
         present_dir(&home)?;
         let auth = stamp(&home.join("auth.json"))?;
-        if auth == "absent"
-            && catalog
-                .as_ref()
-                .is_some_and(|c| c.accounts.iter().any(|a| a.id == id))
-        {
-            stale.push(id.clone())
+        let indexed = catalog
+            .as_ref()
+            .is_some_and(|c| c.accounts.iter().any(|a| a.id == id));
+        let eligible = if check_oauth_snapshots && auth != "absent" {
+            match read_private(&home.join("auth.json"), 256 * 1024) {
+                Ok(bytes) => {
+                    // Native snapshot eligibility is local structure, not online authentication.
+                    // The source bytes never leave the plan/fingerprint boundary.
+                    fingerprints.push(format!("{id}:auth-content:{}", hash(&bytes)));
+                    serde_json::from_slice::<atelier_maintenance_core::auth::AuthFile>(&bytes)
+                        .is_ok_and(|a| atelier_maintenance_core::auth::is_switchable_oauth_auth(&a))
+                }
+                Err(_) => false,
+            }
+        } else {
+            auth != "absent"
+        };
+        if indexed && !eligible {
+            stale.push(id.clone());
         }
         fingerprints.push(format!("{id}:{auth}"));
     }
@@ -110,20 +209,21 @@ fn inspect(root: &Path) -> Result<Inspection> {
     let maintenance = root.join("maintenance");
     present_dir(&maintenance)?;
     let backup_dir = maintenance.join("backups");
-    if present_dir(&backup_dir)? {
+    let backup_directory_identity = backup_directory_identity(&backup_dir)?;
+    let mut backup_stamps = BTreeMap::new();
+    fingerprints.push(format!("backup-directory:{backup_directory_identity:?}"));
+    if backup_directory_identity.is_some() {
         for entry in fs::read_dir(&backup_dir).map_err(|_| "无法枚举维护备份")? {
             let entry = entry.map_err(|_| "无法读取备份条目")?;
-            let n = entry.file_name().to_string_lossy().into_owned();
-            if n.strip_suffix(".json")
-                .is_some_and(|id| uuid::Uuid::parse_str(id).is_ok())
-            {
-                let p = entry.path();
-                fingerprints.push(format!("{n}:{}", stamp(&p)?));
-                backups.push(p);
-                if backups.len() > 256 {
-                    return Err("维护备份超过 256 份，请分批整理后重试".into());
-                }
-            }
+            let p = entry.path();
+            let stamp = backup_stamp(&p)?;
+            fingerprints.push(format!("backup:{:?}:{stamp}", entry.file_name()));
+            backup_stamps.insert(p.clone(), stamp);
+            // Only approved direct entries; directories remain failures, never recurse.
+            backups.push(p);
+        }
+        if self::backup_directory_identity(&backup_dir)? != backup_directory_identity {
+            return Err("备份目录在检查期间变化，未继续".into());
         }
     }
     fingerprints.sort();
@@ -135,6 +235,8 @@ fn inspect(root: &Path) -> Result<Inspection> {
         profiles,
         stale,
         backups,
+        backup_stamps,
+        backup_directory_identity,
         fingerprint: hash(fingerprints.join("\n").as_bytes()),
     })
 }
@@ -161,7 +263,7 @@ pub(super) fn snapshot(root: &Path) -> Result<Snapshot> {
         ),
     ];
     let mut count = 0;
-    match inspect(root) {
+    match inspect(root, false) {
         Ok(i) => {
             count = i.catalog.as_ref().map(|c| c.accounts.len()).unwrap_or(0);
             checks.push(Check::new(
@@ -222,33 +324,17 @@ pub(super) fn preview(root: &Path, action: &str) -> Result<Ticket> {
     let mut warnings = vec![];
     let count;
     let fingerprint;
-    let desktop;
+    let native_process;
     if matches!(action, "restart" | "forceKill") {
-        desktop = process::discover();
-        let target = desktop
-            .as_ref()
-            .ok_or("未发现支持的 Codex/ChatGPT Desktop 安装；此平台或路径暂不支持进程管理")?;
-        if action == "forceKill" {
-            changes.push(format!(
-                "强制结束 {} 内的客户端与辅助进程",
-                target.display()
-            ));
-            changes.push("不会自动重新启动客户端；只匹配已识别应用包中的可执行路径".into());
-            warnings.push(
-                "正在生成的任务会中断，未保存内容可能丢失。只有客户端无法正常退出时才使用此操作。"
-                    .into(),
-            );
-        } else {
-            changes.push(format!("退出并重新启动 {}", target.display()));
-            warnings.push(
-                "请保存工作并结束生成；这会中断当前客户端任务。退出超时将停止，不自动强杀。".into(),
-            );
-        }
-        count = 1;
+        let plan = process::prepare_native(action)?;
+        changes.extend(plan.preview_lines());
+        warnings.extend(plan.warnings());
+        count = plan.preview().targets.len() + usize::from(action == "restart");
         fingerprint = String::new();
+        native_process = Some(plan);
     } else {
-        desktop = None;
-        let i = inspect(root)?;
+        native_process = None;
+        let i = inspect(root, action == "clean")?;
         fingerprint = i.fingerprint.clone();
         if action == "clean" {
             if let Some(e) = i.catalog_error {
@@ -256,11 +342,14 @@ pub(super) fn preview(root: &Path, action: &str) -> Result<Ticket> {
             }
             count = i.stale.len() + i.backups.len();
             changes.push(format!(
-                "移除 {} 条缺少档案凭据副本的账号索引",
+                "移除 {} 条缺少可切换 OAuth 登录快照的账号索引",
                 i.stale.len()
             ));
-            changes.push(format!("删除 {} 份 Atelier 历史维护备份", i.backups.len()));
-            warnings.push("只清理 Atelier 账号目录；保留凭据档案、当前切号回退和线程备份。删除的历史维护备份不可从本栏目恢复。".into());
+            changes.push(format!(
+                "删除 {} 个 Atelier 历史维护备份直接条目（失败项保留并报告）",
+                i.backups.len()
+            ));
+            warnings.push("仅按本地 OAuth 结构检查清理 Atelier 账号索引与历史备份，不联网验证；保留凭据档案、当前切号回退和线程备份。删除的历史维护备份不可从本栏目恢复。".into());
         } else {
             count = i
                 .profiles
@@ -287,11 +376,12 @@ pub(super) fn preview(root: &Path, action: &str) -> Result<Ticket> {
     Ok(Ticket {
         view: Plan {
             ticket: uuid::Uuid::new_v4().to_string(),
+            process: native_process.as_ref().map(|p| p.preview().clone()),
             action: action.into(),
             title: match action {
                 "clean" => "清理 Atelier 数据",
                 "rebuild" => "重建账号注册表",
-                "forceKill" => "强制结束 Codex Desktop",
+                "forceKill" => "强制结束全部 Codex 相关进程",
                 _ => "重启 Codex Desktop",
             }
             .into(),
@@ -302,7 +392,7 @@ pub(super) fn preview(root: &Path, action: &str) -> Result<Ticket> {
         created_at: now_ms(),
         root: root.to_path_buf(),
         fingerprint,
-        desktop,
+        native_process,
     })
 }
 fn lock(root: &Path, id: &str) -> Result<fs::File> {
@@ -400,11 +490,18 @@ fn rebuild(root: &Path, i: &Inspection) -> Result<(Catalog, Vec<String>)> {
     Ok((old, warnings))
 }
 pub(super) fn apply(t: &Ticket) -> Result<ActionResult> {
+    apply_with_delete_hook(t, |_| {})
+}
+// Hook permits deterministic replacement-race tests without touching real user data.
+pub(super) fn apply_with_delete_hook(
+    t: &Ticket,
+    mut before_delete: impl FnMut(usize),
+) -> Result<ActionResult> {
     if !matches!(t.view.action.as_str(), "clean" | "rebuild") {
         return Err("维护操作无效".into());
     }
     let root = &t.root;
-    let initial = inspect(root)?;
+    let initial = inspect(root, t.view.action == "clean")?;
     if initial.fingerprint != t.fingerprint {
         return Err("预览后账号或备份发生变化，请重新预览".into());
     }
@@ -431,7 +528,7 @@ pub(super) fn apply(t: &Ticket) -> Result<ActionResult> {
         .map(|id| lock(root, id))
         .collect::<Result<Vec<_>>>()?;
     let _catalog = lock(root, "catalog")?;
-    let i = inspect(root)?;
+    let i = inspect(root, t.view.action == "clean")?;
     if i.fingerprint != t.fingerprint {
         return Err("锁定前账号发生变化，请重新预览".into());
     }
@@ -475,7 +572,25 @@ pub(super) fn apply(t: &Ticket) -> Result<ActionResult> {
         catalog.accounts.len()
     };
     if t.view.action == "clean" {
-        for path in &i.backups {
+        let approved_directory = i
+            .backup_directory_identity
+            .clone()
+            .or(backup_directory_identity(&backup_dir)?);
+        for (index, path) in i.backups.iter().enumerate() {
+            before_delete(index);
+            // Refuse replacement objects, including byte-identical inode swaps, immediately
+            // before each unlink. Never enumerate a fresh, expanded deletion set after writes.
+            let unchanged = backup_directory_identity(&backup_dir)
+                .is_ok_and(|actual| actual == approved_directory)
+                && backup_stamp(path)
+                    .is_ok_and(|actual| i.backup_stamps.get(path) == Some(&actual));
+            if !unchanged {
+                warnings.push(
+                    "执行中备份对象发生变化，已停止后续删除；已保存注册表备份，未删除替换对象"
+                        .into(),
+                );
+                break;
+            }
             match fs::remove_file(path) {
                 Ok(()) => changed += 1,
                 Err(_) => warnings.push(format!(

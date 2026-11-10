@@ -1,5 +1,4 @@
 use super::*;
-use base64::Engine;
 use rusqlite::{Connection, OpenFlags};
 use serde_json::Value;
 use std::{
@@ -80,18 +79,26 @@ fn json_file(p: &Path) -> Result<Value> {
 fn presence(p: &Path) -> bool {
     fs::symlink_metadata(p).is_ok()
 }
+pub(super) fn transition_in_flight(ctx: &Context) -> bool {
+    atelier_maintenance_core::transition_journal::JournalStore::new(
+        &ctx.home.join("codexmate/relay"),
+    )
+    .in_flight()
+    .is_some()
+        || presence(&ctx.app_root.join("gateway/transition.json"))
+        || ctx
+            .runtime
+            .as_ref()
+            .is_some_and(|r| matches!(r.state.as_str(), "starting" | "stopping"))
+}
 pub(super) fn db_dir(ctx: &Context, c: &toml::Value) -> PathBuf {
-    c.get("sqlite_home")
-        .and_then(|v| v.as_str())
-        .map(|v| {
-            let p = PathBuf::from(v);
-            if p.is_absolute() {
-                p
-            } else {
-                ctx.home.join(p)
-            }
-        })
-        .unwrap_or_else(|| ctx.home.clone())
+    let text = toml::to_string(c).ok();
+    atelier_maintenance_core::state_db::configured_sqlite_home(
+        text.as_deref(),
+        ctx.sqlite_home_env.as_deref(),
+        ctx.working_directory.as_deref(),
+    )
+    .unwrap_or_else(|| ctx.home.clone())
 }
 pub(super) fn databases(dir: &Path) -> Vec<PathBuf> {
     let mut found = fs::read_dir(dir)
@@ -238,37 +245,6 @@ fn known_providers(c: &toml::Value) -> BTreeSet<String> {
 fn owned_provider(p: &str) -> bool {
     p == "atelier" || p == "codex_atelier" || p.starts_with("atelier_")
 }
-/// Identify known structural ownership markers, not arbitrary custom provider names or URLs.
-fn third_party_markers(config: &toml::Value) -> BTreeSet<String> {
-    let mut found = BTreeSet::new();
-    let mut pending = vec![config];
-    while let Some(value) = pending.pop() {
-        match value {
-            toml::Value::Table(table) => {
-                for (key, value) in table {
-                    let marker = key.to_ascii_lowercase();
-                    if matches!(
-                        marker.as_str(),
-                        "cc-switch"
-                            | "cc_switch"
-                            | "ccswitch"
-                            | "codex-switch"
-                            | "codex_switch"
-                            | "circuit_breaker"
-                            | "provider_router"
-                            | "deecodex"
-                    ) {
-                        found.insert(marker);
-                    }
-                    pending.push(value);
-                }
-            }
-            toml::Value::Array(values) => pending.extend(values),
-            _ => {}
-        }
-    }
-    found
-}
 /// Locate an existing identity-matched rollout; never synthesize history or pick an ambiguous match.
 pub(super) fn recover_path(ctx: &Context, id: &str) -> Option<PathBuf> {
     if id.is_empty() {
@@ -391,10 +367,18 @@ pub(super) fn scan_threads(ctx: &Context, c: &toml::Value) -> Threads {
         if owned_provider(rp) && !providers.contains(rp) {
             t.orphan_rollout += 1
         }
-        if m.get("base_instructions").is_some_and(|v| {
-            !v.is_null() && !v.is_string() && !(v.is_object() && v["text"].is_string())
-        }) {
-            t.instruction_issues += 1
+        // AiMaMi 1.2.7 session_meta_instruction_issue @ 0x100393c6c:
+        // inspect /payload/base_instructions/text; empty and approval-judge prefix are issues.
+        let instructions = m
+            .pointer("/base_instructions/text")
+            .and_then(Value::as_str)
+            .unwrap_or("");
+        if instructions.trim().is_empty()
+            || instructions
+                .trim_start()
+                .starts_with("You are judging one planned coding-agent action")
+        {
+            t.instruction_issues += 1;
         }
         let compat_count = super::record_compat::inspect(&bytes);
         match compat_count {
@@ -435,132 +419,160 @@ pub(super) fn scan_threads(ctx: &Context, c: &toml::Value) -> Threads {
     }
     t
 }
+#[cfg(test)]
+thread_local! {
+    static SCAN_COUNT: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+#[cfg(test)]
+pub(super) fn take_scan_count() -> usize {
+    SCAN_COUNT.with(|count| count.replace(0))
+}
 pub(super) fn run(ctx: &Context) -> Result<DiagnosticReport> {
+    super::snapshot::with_observation(|| run_observed(ctx))
+}
+fn run_observed(ctx: &Context) -> Result<DiagnosticReport> {
+    #[cfg(test)]
+    SCAN_COUNT.with(|count| count.set(count.get() + 1));
     let mut items = vec![];
     let config_result = config(ctx);
     let c = config_result
         .clone()
         .unwrap_or(toml::Value::Table(Default::default()));
     let config_ok = config_result.is_ok();
-    let cm = fs::symlink_metadata(ctx.config());
-    let writable = cm
+    let config_access = super::access_checks::observe_config(&ctx.config());
+    let writable = config_access
         .as_ref()
-        .is_ok_and(|m| m.is_file() && !m.file_type().is_symlink() && !m.permissions().readonly());
+        .is_ok_and(|o| o.exists && o.is_regular_file && !o.is_symlink && !o.readonly);
+    let (access_status, access_label, access_detail) = if !ctx.config().exists() {
+        (
+            "ok",
+            "config.toml 尚不存在（正常）",
+            "配置文件尚不存在，Codex 可使用默认配置；不创建文件",
+        )
+    } else if read_bounded(&ctx.config(), 1024 * 1024).is_ok() {
+        ("ok", "config.toml 可正常读取", "读取现有配置，不创建文件")
+    } else {
+        (
+            "error",
+            "config.toml 无法读取",
+            "路由不探测或刷新 OpenAI Token，登录交给 ChatGPT",
+        )
+    };
     add(
         &mut items,
         "config_access",
         "config",
-        "config.toml 读取",
-        if !ctx.config().exists() {
-            "skipped"
-        } else if read_bounded(&ctx.config(), 1024 * 1024).is_ok() {
-            "ok"
-        } else {
-            "error"
-        },
-        if ctx.config().exists() {
-            "读取现有配置，不创建文件"
-        } else {
-            "配置文件尚不存在，Codex 可使用默认配置"
-        },
+        access_label,
+        access_status,
+        access_detail,
         false,
     );
+    let (replace_status, replace_detail) = match config_access {
+        Ok(o) if !o.exists => ("ok", "配置文件不存在，未创建文件".into()),
+        Ok(o) if !o.is_regular_file || o.is_symlink => {
+            ("error", "配置不是普通文件或为符号链接，不能安全替换".into())
+        }
+        Ok(o) if o.readonly => ("warning", "配置权限位标记为只读，未修改权限".into()),
+        Ok(_) => (
+            "ok",
+            "元数据与类型检查通过；与原版一致未执行配置试写，ACL、实际替换及沙盒权限仍需写入时确认"
+                .into(),
+        ),
+        Err(e) => (
+            "warning",
+            format!("无法核对配置元数据：{e}；未执行写入或权限变更"),
+        ),
+    };
     add(
         &mut items,
         "config_replace_readiness",
         "config",
-        "配置文件替换条件",
-        if !ctx.config().exists() {
-            "skipped"
-        } else if writable {
-            "ok"
-        } else {
-            "warning"
-        },
-        "根据文件元数据检查普通文件和只读标记；未执行写入探针，ACL / 沙盒权限需实际写入时确认",
+        "config.toml 权限未显示只读",
+        replace_status,
+        replace_detail,
         false,
     );
+    // AiMaMi 1.2.7 decomp-check_config_toml_syntax.c：
+    // label 承载状态文案（空文件/不存在/错误/正常），status = ok|error，error 可抢救修复。
+    let syntax_present = ctx.config().exists();
+    let blank_file = syntax_present
+        && read_bounded(&ctx.config(), 1024 * 1024)
+            .ok()
+            .and_then(|b| std::str::from_utf8(&b).ok().map(|s| s.trim().is_empty()))
+            .unwrap_or(false);
+    let syntax_label = if !syntax_present {
+        "TOML 语法（文件不存在，跳过）"
+    } else if blank_file {
+        "TOML 语法正常（空文件）"
+    } else if config_ok {
+        "TOML 语法正常"
+    } else {
+        "config.toml TOML 语法错误"
+    };
     add(
         &mut items,
         "config_toml_syntax",
         "config",
-        "TOML 语法",
+        syntax_label,
         if config_ok { "ok" } else { "error" },
-        config_result
-            .as_ref()
-            .err()
-            .cloned()
-            .unwrap_or("TOML 可以解析".into()),
-        false,
+        // 原版 ok 分支 detail 为空（ok_item 只写 id/label）；错误分支带解析器原文。
+        if config_ok {
+            String::new()
+        } else {
+            super::config_syntax::check_config_toml_syntax(
+                &read_bounded(&ctx.config(), 1024 * 1024)
+                    .ok()
+                    .and_then(|v| String::from_utf8(v).ok())
+                    .unwrap_or_default(),
+                ctx.config().exists(),
+            )
+            .2
+        },
+        !config_ok,
     );
     let p = provider(&c);
-    let providers = known_providers(&c);
-    let markers = third_party_markers(&c);
-    add(
-        &mut items,
-        "config_third_party",
-        "config",
-        "第三方管理残留标记",
-        if !config_ok {
-            "unknown"
-        } else if markers.is_empty() {
-            "ok"
-        } else {
-            "warning"
-        },
-        if markers.is_empty() {
-            "未发现已识别的第三方管理残留；合法自定义 Provider 不作为异常".into()
-        } else {
-            format!(
-                "发现已识别的配置结构标记：{}。请核对归属，保留原配置，不自动删除自定义连接。",
-                markers.into_iter().collect::<Vec<_>>().join("、")
-            )
-        },
-        false,
-    );
-    let invalid_profile = c
-        .get("profile")
-        .and_then(|v| v.as_str())
-        .is_some_and(|v| c.get("profiles").and_then(|t| t.get(v)).is_none());
-    add(
-        &mut items,
-        "config_profile_conflict",
-        "config",
-        "顶层 profile 引用",
-        if !config_ok {
-            "unknown"
-        } else if invalid_profile {
-            "warning"
-        } else {
-            "ok"
-        },
-        if invalid_profile {
-            "顶层 profile 指向不存在的配置档；可移除失效选择，保留 profiles 内容"
-        } else {
-            "没有失效的顶层 profile 引用；有效 profile 不作为残留删除"
-        },
-        invalid_profile && writable,
-    );
-    let invalid_provider = !providers.contains(&p);
-    add(
-        &mut items,
-        "config_global_validity",
-        "config",
-        "配置引用一致性",
-        if !config_ok {
-            "unknown"
-        } else if invalid_provider {
-            "error"
-        } else {
-            "ok"
-        },
-        if invalid_provider {
-            "当前 model_provider 没有对应定义；可移除失效选择，回到内置 openai（不删除其他 Provider）"
-        } else {
-            "当前 Provider 引用有本地定义或属于内置 Provider"
-        },
-        invalid_provider && writable,
-    );
+    let native_config_text = read_bounded(&ctx.config(), 1024 * 1024)
+        .ok()
+        .and_then(|v| String::from_utf8(v).ok());
+    match super::native_config::third_party(ctx, native_config_text.as_deref(), writable) {
+        Ok(item) => items.push(item),
+        Err(_) => add(
+            &mut items,
+            "config_third_party",
+            "config",
+            "第三方注入残留",
+            "warning",
+            "实际配置或已保存的 Provider 来源无法完整核对；未使用空集合推断为健康",
+            false,
+        ),
+    }
+    if config_ok {
+        items.push(super::native_config::profile(
+            native_config_text.as_deref(),
+            owned_provider(&p),
+            writable,
+        )?);
+        items.push(super::native_config::global(
+            native_config_text.as_deref(),
+            &ctx.home.join("codexmate/relay"),
+            writable,
+        )?);
+    } else {
+        for (id, label) in [
+            ("config_profile_conflict", "顶层 profile 配置"),
+            ("config_global_validity", "本地配置引用"),
+        ] {
+            add(
+                &mut items,
+                id,
+                "config",
+                label,
+                "warning",
+                "先修复 TOML 语法，再检查配置引用",
+                false,
+            );
+        }
+    }
     let gateway = ctx.app_root.join("gateway/catalog.json");
     let g = json_file(&gateway).ok();
     let managed = owned_provider(&p);
@@ -595,9 +607,9 @@ pub(super) fn run(ctx: &Context) -> Result<DiagnosticReport> {
         &mut items,
         "config_stale",
         "config",
-        "受管连接配置一致性",
+        "Codex 配置一致性正常",
         if !managed {
-            "skipped"
+            "ok"
         } else if route_valid {
             "ok"
         } else {
@@ -618,9 +630,9 @@ pub(super) fn run(ctx: &Context) -> Result<DiagnosticReport> {
         &mut items,
         "router_http_contract",
         "config",
-        "本地路由 HTTP 契约",
+        "aimai1 HTTP-only 路由契约正常",
         if !managed {
-            "skipped"
+            "ok"
         } else if route_valid {
             "ok"
         } else {
@@ -636,22 +648,22 @@ pub(super) fn run(ctx: &Context) -> Result<DiagnosticReport> {
     for (id, label, path) in [
         (
             "router_recovery_record",
-            "路由恢复记录",
+            "路由恢复记录可正常读取",
             "gateway/recovery.json",
         ),
         (
             "router_postcondition",
-            "路由转换完成状态",
+            "目标态非配置维度稳定（配置偏差由 config_stale 报告）",
             "gateway/transition.json",
         ),
         (
             "takeover_backup_orphan",
-            "接管备份残留",
+            "无 takeover 备份残留",
             "gateway/takeover-backup.json",
         ),
         (
             "router_unlock_auth_residue",
-            "路由认证接管残留",
+            "无虚拟账号残留",
             "gateway/auth-takeover.json",
         ),
     ] {
@@ -659,35 +671,46 @@ pub(super) fn run(ctx: &Context) -> Result<DiagnosticReport> {
         add(
             &mut items,
             id,
+            // 原版分组表：router_unlock_auth_residue 属 auth；
+            // router_recovery_record / router_postcondition 未在表内具名，回退 runtime。
             if id == "router_unlock_auth_residue" {
                 "auth"
-            } else {
+            } else if id == "takeover_backup_orphan" {
                 "config"
+            } else {
+                "runtime"
             },
             label,
-            if exists { "warning" } else { "skipped" },
+            if exists { "warning" } else { "ok" },
             if exists {
                 "发现相关状态文件，需要通过创建它的路由版本恢复；诊断不会提交或删除恢复记录"
             } else {
-                "Atelier 当前没有此类接管记录；不读取 AiMaMi 的私有状态"
+                "Atelier 当前没有此类接管记录；不读取旧版工具的私有状态"
             },
             false,
         );
     }
     let proxy_status = if !managed {
-        "skipped"
+        "ok"
     } else {
         match ctx.runtime.as_ref().map(|r| r.state.as_str()) {
             Some("running") => "ok",
             Some("error" | "stopped") => "warning",
-            _ => "unknown",
+            _ => "warning",
         }
+    };
+    let proxy_label = if !managed {
+        "本地代理（智能路由未启用，跳过检测）"
+    } else if proxy_status == "ok" {
+        "本地代理运行中"
+    } else {
+        "本地代理未运行"
     };
     add(
         &mut items,
         "proxy_running",
         "runtime",
-        "本地代理运行状态",
+        proxy_label,
         proxy_status,
         if !managed {
             "当前没有使用 Atelier 受管路由".into()
@@ -714,9 +737,15 @@ pub(super) fn run(ctx: &Context) -> Result<DiagnosticReport> {
         &mut items,
         "catalog_path_validity",
         "config",
-        "模型目录路径",
         if catalog.is_none() {
-            "skipped"
+            "Catalog 路径（路由未启用，跳过）"
+        } else if catalog.as_ref().is_some_and(|p| p.is_file()) {
+            "Catalog 路径有效"
+        } else {
+            "model_catalog_json 指向的文件不存在"
+        },
+        if catalog.is_none() {
+            "ok"
         } else if catalog.as_ref().is_some_and(|p| p.is_file()) {
             "ok"
         } else {
@@ -733,9 +762,15 @@ pub(super) fn run(ctx: &Context) -> Result<DiagnosticReport> {
         &mut items,
         "catalog_integrity",
         "config",
-        "模型目录完整性",
         if catalog.is_none() {
-            "skipped"
+            "Catalog 完整性（路由未启用，跳过）"
+        } else if catalog_valid {
+            "Catalog 完整"
+        } else {
+            "Catalog 文件 JSON 格式损坏"
+        },
+        if catalog.is_none() {
+            "ok"
         } else if catalog_valid {
             "ok"
         } else {
@@ -748,102 +783,66 @@ pub(super) fn run(ctx: &Context) -> Result<DiagnosticReport> {
         &mut items,
         "official_catalog_freshness",
         "config",
-        "官方模型目录新鲜度",
-        "unknown",
+        "尚未观测到目录请求，不能据此确认官方目录可用",
+        "warning",
         "未联网获取官方目录，也没有可验证的最近请求记录",
         false,
     );
     let auth = ctx.home.join("auth.json");
-    let a = if presence(&auth) {
+    let non_file_auth = matches!(
+        c.get("cli_auth_credentials_store").and_then(|v| v.as_str()),
+        Some("keyring" | "ephemeral")
+    );
+    let a = if !non_file_auth && presence(&auth) {
         Some(json_file(&auth))
     } else {
         None
     };
     let av = a.as_ref().and_then(|v| v.as_ref().ok());
-    let token = av.and_then(|v| v["tokens"]["access_token"].as_str());
-    let api = av
-        .and_then(|v| v["OPENAI_API_KEY"].as_str())
-        .is_some_and(|v| !v.trim().is_empty());
-    let auth_valid = api || token.is_some_and(|v| !v.trim().is_empty());
-    add(
-        &mut items,
-        "auth_integrity",
-        "auth",
-        "文件认证完整性",
-        if a.is_none() {
-            "unknown"
-        } else if auth_valid {
-            "ok"
-        } else {
-            "error"
-        },
-        if a.is_none() {
-            "没有文件型认证；不据此判断 Desktop 是否登录，也不读取系统钥匙串"
-        } else {
-            "仅检查本地文件结构和必要字段，不验证令牌有效性、不返回令牌内容"
-        },
-        false,
-    );
-    let profiles = g.as_ref().and_then(|v| v["profiles"].as_array());
-    let mut api_total = 0;
-    let mut api_bad = 0;
-    if let Some(profiles) = profiles {
-        for profile in profiles {
-            if profile["kind"] == "apiKey" && profile["enabled"] == true {
-                api_total += 1;
-                let id = profile["id"].as_str().unwrap_or("");
-                let valid = uuid::Uuid::parse_str(id).is_ok()
-                    && json_file(
-                        &ctx.app_root
-                            .join("gateway/credentials")
-                            .join(format!("{id}.json")),
-                    )
-                    .ok()
-                    .is_some_and(|v| v["apiKey"].as_str().is_some_and(|s| !s.trim().is_empty()));
-                if !valid {
-                    api_bad += 1
-                }
-            }
-        }
+    if non_file_auth {
+        add(
+            &mut items,
+            "auth_integrity",
+            "auth",
+            "文件认证完整性",
+            "ok",
+            "当前认证存储不是文件模式；不读取或恢复 auth.json，不访问钥匙串",
+            false,
+        );
+    } else {
+        let check = atelier_maintenance_core::auth::check_auth_integrity(
+            &atelier_maintenance_core::auth::AuthContext::new(
+                &ctx.home,
+                atelier_maintenance_core::auth::RouterMode::Off,
+            ),
+        );
+        use atelier_maintenance_core::auth::Level;
+        let status = match check.level {
+            Level::Ok => "ok",
+            Level::Warning => "warning",
+            Level::Error => "error",
+        };
+        add(&mut items,"auth_integrity","auth",check.label(),status,
+            "本地文件检查，不验证在线登录状态、签名或额度；恢复候选来自 accounts/backups 并按修改时间选择，不显示凭据",
+            config_ok && check.fixable);
     }
-    add(&mut items,"api_key_integrity","auth","中转密钥完整性",if api_total==0{"skipped"}else if api_bad==0{"ok"}else{"error"},format!("检查 {api_total} 个启用的 Atelier 中转档案，{api_bad} 个缺少本地密钥；未联网验证、未显示密钥"),false);
-    let expiry = token
-        .and_then(|s| s.split('.').nth(1))
-        .and_then(|s| {
-            base64::engine::general_purpose::URL_SAFE_NO_PAD
-                .decode(s)
-                .ok()
-        })
-        .and_then(|b| serde_json::from_slice::<Value>(&b).ok())
-        .and_then(|v| v["exp"].as_u64());
-    add(
-        &mut items,
-        "auth_token_expiry",
-        "auth",
-        "登录令牌到期",
-        if api {
-            "skipped"
-        } else if expiry.is_some_and(|e| e < now_ms() / 1000) {
-            "warning"
-        } else if expiry.is_some() {
-            "ok"
-        } else {
-            "unknown"
-        },
-        match expiry {
-            Some(e) => {
-                format!("本地令牌声明的到期时间戳 {e}；未校验签名或在线会话，刷新由账号流程处理")
-            }
-            None => "没有可读取的令牌到期声明".into(),
-        },
-        false,
-    );
+    items.extend(super::credential_checks::inspect(
+        ctx,
+        &c,
+        av,
+        (now_ms() / 1000) as i64,
+    ));
     add(
         &mut items,
         "codex_process_state",
         "runtime",
-        "Desktop 进程状态",
-        if ctx.desktop_running { "ok" } else { "skipped" },
+        if ctx.desktop_running {
+            "Codex 运行中"
+        } else {
+            "Codex 未运行"
+        },
+        // 原版 codex_process_state 的两个分支都走 ok_item：未运行不是故障。
+        "ok",
         if ctx.desktop_running {
             "检测到 Desktop 进程；文件修复需要先退出客户端"
         } else {
@@ -851,138 +850,32 @@ pub(super) fn run(ctx: &Context) -> Result<DiagnosticReport> {
         },
         false,
     );
-    let t = scan_threads(ctx, &c);
-    let thread_status = |count: usize| {
-        if !config_ok || t.error.is_some() || t.incomplete {
-            "unknown"
-        } else if t.db.is_none() {
-            "skipped"
-        } else if count > 0 {
-            "warning"
-        } else {
-            "ok"
-        }
-    };
-    let summary = |count: usize| {
-        format!(
-            "检查 {} 条稳定快照索引，发现 {count} 项。{}",
-            t.rows.len(),
-            t.error.clone().unwrap_or_else(|| if t.incomplete {
-                "覆盖不完整（数量或文件大小限制），不能当作全量检查".into()
-            } else {
-                if t.protected_ids + t.protected_provider > 0 {
-                    "部分记录有原生分页位置锚点；不允许改变其字节布局的自动修复".into()
-                } else {
-                    "未读取会话正文到界面；保留历史记录".into()
-                }
-            })
-        )
-    };
-    let reparable =
-        t.db.is_some() && t.error.is_none() && !t.incomplete && config_ok && !invalid_provider;
-    for (id, label, count, fix) in [
-        (
-            "db_orphan_providers",
-            "失效的受管线程 Provider",
-            t.orphan_db,
-            reparable && t.protected_provider == 0,
-        ),
-        (
-            "rollout_orphan_providers",
-            "会话文件的失效受管 Provider",
-            t.orphan_rollout,
-            reparable && t.protected_provider == 0,
-        ),
-        (
-            "thread_missing_rollouts",
-            "会话记录文件存在性",
-            t.missing,
-            reparable && t.recoverable_missing == t.missing,
-        ),
-        ("thread_history_integrity", "会话历史结构", t.bad, false),
-        (
-            "thread_provider_consistency",
-            "索引与会话 Provider 一致性",
-            t.mismatch,
-            reparable && t.protected_provider == 0,
-        ),
-        (
-            "thread_poisoned_instructions",
-            "会话基础指令结构",
-            t.instruction_issues,
-            false,
-        ),
-        (
-            "thread_response_item_ids",
-            "历史响应项 ID",
-            t.bad_ids,
-            reparable && t.unsupported_ids == 0 && t.protected_ids == 0,
-        ),
-        (
-            "native_off_invalid_openai_thread_models",
-            "原生线程模型字段",
-            t.invalid_models,
-            false,
-        ),
+    // Native observers below replace these slots. Never run the discarded legacy scan.
+    for (id, label) in [
+        ("db_orphan_providers", "失效的受管线程 Provider"),
+        ("rollout_orphan_providers", "会话文件的失效受管 Provider"),
+        ("thread_missing_rollouts", "会话记录文件存在性"),
+        ("thread_provider_consistency", "索引与会话 Provider 一致性"),
+        ("thread_poisoned_instructions", "会话基础指令结构"),
+        ("thread_response_item_ids", "历史响应项 ID"),
+        ("thread_model_catalog_consistency", "线程模型与目录一致性"),
     ] {
         add(
             &mut items,
             id,
             "runtime",
             label,
-            thread_status(count),
-            summary(count),
-            count > 0 && fix && t.bad == 0 && (t.missing == 0 || id == "thread_missing_rollouts"),
+            "warning",
+            "需有效配置及稳定线程观察后确认",
+            false,
         );
     }
-    let model_ids = catalog_data
-        .as_ref()
-        .and_then(|v| v.as_ref().ok())
-        .and_then(|v| v["models"].as_array())
-        .map(|a| {
-            a.iter()
-                .filter_map(|v| v["slug"].as_str().or_else(|| v["id"].as_str()))
-                .collect::<BTreeSet<_>>()
-        });
-    let unmatched = model_ids
-        .as_ref()
-        .map(|ids| {
-            t.rows
-                .iter()
-                .filter(|r| !r.model.is_empty() && !ids.contains(r.model.as_str()))
-                .count()
-        })
-        .unwrap_or(0);
-    add(
-        &mut items,
-        "thread_model_catalog_consistency",
-        "runtime",
-        "线程模型与目录一致性",
-        if model_ids.is_none() {
-            "unknown"
-        } else {
-            thread_status(unmatched)
-        },
-        if model_ids.is_none() {
-            "未提供可验证的自定义模型目录；不猜测模型是否受账号支持".into()
-        } else {
-            summary(unmatched)
-        },
-        false,
-    );
-    for (id, label, name) in [
-        (
-            "legacy_migrated_threads",
-            "旧版线程迁移记录",
-            "legacy-thread-migration.json",
-        ),
-        (
-            "residual_manifest",
-            "迁移清单残留",
-            "migration-manifest.json",
-        ),
-        ("residual_cache", "路由缓存引用", "relay-state-cache.json"),
-    ] {
+    items.extend(super::thread_observation::inspect(ctx));
+    for (id, label, name) in [(
+        "legacy_migrated_threads",
+        "旧版线程迁移记录",
+        "legacy-thread-migration.json",
+    )] {
         let file = ctx.app_root.join("gateway").join(name);
         let exists = presence(&file);
         add(
@@ -990,103 +883,214 @@ pub(super) fn run(ctx: &Context) -> Result<DiagnosticReport> {
             id,
             "runtime",
             label,
-            if exists { "warning" } else { "skipped" },
+            if exists { "warning" } else { "ok" },
             if exists {
                 "发现遗留文件；归属和恢复语义尚未确认，不自动删除"
             } else {
-                "当前 Atelier 未生成此类 AiMaMi 迁移产物"
+                "当前 Atelier 未生成此类旧版工具迁移产物"
             },
             false,
         );
     }
-    let dirs = [
-        ctx.home.clone(),
-        ctx.home.join("sessions"),
-        ctx.app_root.clone(),
-    ];
-    let readonly = dirs
-        .iter()
-        .filter_map(|p| fs::metadata(p).ok())
-        .any(|m| m.permissions().readonly());
+    for kind in super::residual_cleanup::Kind::ALL {
+        let state = if config_ok {
+            kind.existing(ctx)
+                .and_then(|files| Ok((files, kind.repairable(ctx, &c)?)))
+        } else {
+            Err("配置无法解析，尚不能确认路由状态".into())
+        };
+        let (status, detail, fixable) = match state {
+            Ok((files, _)) if files.is_empty() => ("ok", "无路由残留文件".into(), false),
+            Ok((_, inactive)) if inactive.is_empty() => (
+                "ok",
+                "文件存在，所属路由启用中正常使用；不会删除".into(),
+                false,
+            ),
+            Ok((_, files)) => (
+                "warning",
+                format!(
+                    "路由已关闭，发现 {} 个残留文件；修复将先备份再删除",
+                    files.len()
+                ),
+                true,
+            ),
+            Err(e) => ("warning", e, false),
+        };
+        add(
+            &mut items,
+            kind.id(),
+            "runtime",
+            kind.label(),
+            status,
+            detail,
+            fixable,
+        );
+    }
+    let dirs = super::access_checks::native_directories(&ctx.home);
+    let (mut directory_status, mut directory_detail) =
+        match super::access_checks::observe_directories(&dirs) {
+            Ok(observations) => {
+                let invalid = observations
+                    .iter()
+                    .filter(|d| d.exists && (!d.is_directory || d.is_symlink || d.readonly))
+                    .count();
+                let missing = observations.iter().filter(|d| !d.exists).count();
+                let home_exists = observations
+                    .first()
+                    .is_some_and(|d| d.exists && d.is_directory && !d.is_symlink);
+                (
+                    // 原版只有元数据确实异常才报 error；「未验证写入」本身不构成问题。
+                    if invalid > 0 { "error" } else { "ok" },
+                    format!("检查原版四目录 home、sessions、codexmate、codexmate/relay：{invalid} 项元数据异常，{missing} 个缺失；home存在且为目录：{home_exists}。"),
+                )
+            }
+            Err(e) => (
+                "warning",
+                format!("目录元数据检查失败：{e}；未将读取错误当作健康结果"),
+            ),
+        };
+    let mut space_bytes = None;
+    match super::access_checks::observe_available_space(&ctx.home) {
+        Ok(space) => {
+            space_bytes = Some(space.available_bytes);
+            if space.level == "error" {
+                directory_status = "error";
+            } else if space.level == "warning" && directory_status != "error" {
+                directory_status = "warning";
+            }
+            directory_detail.push_str(&format!(
+                " 可用空间 {} MiB（{}）；源数据库读写能力未验证。",
+                space.available_bytes / (1024 * 1024),
+                space.level
+            ));
+        }
+        Err(e) => {
+            directory_detail.push_str(&format!(" 空间查询未完成：{e}；源数据库读写能力未验证。"))
+        }
+    }
+    // label 与 status 必须同源：都从同一个磁盘读数推导，避免出现
+    // 「文件系统正常」却标 warning 这种自相矛盾。
+    let (directory_label, directory_status) = match space_bytes {
+        Some(bytes) => (
+            super::access_checks::space_label(bytes),
+            super::access_checks::space_level(bytes).to_string(),
+        ),
+        None => (
+            "文件系统正常（空间检测不可用）".to_string(),
+            "ok".to_string(),
+        ),
+    };
     add(
         &mut items,
         "codex_home_writable",
         "env",
-        "目录权限",
-        if !ctx.home.is_dir() {
-            "unknown"
-        } else if readonly {
-            "warning"
-        } else {
-            "ok"
-        },
-        "检查已有目录只读标记；不创建探针文件，ACL、磁盘配额和剩余空间未验证",
+        directory_label.as_str(),
+        directory_status.as_str(),
+        directory_detail,
         false,
     );
-    let project = ctx.home.join(".codex-global-state.json");
-    let project_result = if !presence(&project) {
-        None
+    let project = super::project_state::inspect(ctx);
+    items.push(project);
+    if config_ok {
+        items.push(super::state_db_relocation::inspect(ctx, &c)?);
     } else {
-        Some(
-            t.db.as_ref()
-                .ok_or_else(|| "没有会话索引，无法验证项目入口完整性".to_string())
-                .and_then(|db| super::project_state::inspect_existing(ctx, db)),
-        )
-    };
-    let (status, detail, fixable) = match project_result {
-        None => (
-            "skipped",
-            "项目状态文件尚不存在；诊断不会创建空文件".into(),
+        add(
+            &mut items,
+            "state_db_relocation",
+            "env",
+            "线程数据库位置正常",
+            "warning",
+            "先修复配置语法，再确认数据库布局",
             false,
-        ),
-        Some(Err(e)) => ("unknown", e, false),
-        Some(Ok(p)) => (
-            if p.issues > 0 { "warning" } else { "ok" },
-            p.detail,
-            p.issues > 0,
-        ),
-    };
-    add(
-        &mut items,
-        "project_state_integrity",
-        "env",
-        "项目状态完整性",
-        status,
-        detail,
-        fixable,
-    );
-    let relocated = db_dir(ctx, &c) != ctx.home;
-    let double = relocated && !databases(&ctx.home).is_empty();
-    add(
-        &mut items,
-        "state_db_relocation",
-        "env",
-        "会话索引存储布局",
-        if !config_ok {
-            "unknown"
-        } else if double {
-            "warning"
-        } else {
-            "ok"
-        },
-        if double {
-            "sqlite_home 与默认目录同时存在数据库；未自动合并或删除旧库"
-        } else {
-            "按 sqlite_home 查找当前索引，未发现双目录残留"
-        },
-        false,
-    );
+        );
+    }
+    // Replace the old approximations with the evidence-backed checks. The adapter
+    // copies DB/WAL into private snapshots, and never opens a source DB for diagnosis.
+    if config_ok {
+        for native in super::native_threads::inspect(ctx) {
+            if let Some(item) = items.iter_mut().find(|i| i.id == native.id) {
+                *item = native;
+            }
+        }
+        for native in super::native_orphans::inspect(ctx) {
+            if let Some(item) = items.iter_mut().find(|i| i.id == native.id) {
+                *item = native;
+            }
+        }
+    }
+    if config_ok {
+        match super::native_auth::resolve_mode(ctx) {
+            Ok(mode) => {
+                for native in super::native_auth::inspect(ctx, mode) {
+                    if let Some(item) = items.iter_mut().find(|i| i.id == native.id) {
+                        *item = native;
+                    }
+                }
+            }
+            Err(_) => {
+                for item in items
+                    .iter_mut()
+                    .filter(|i| super::native_auth::handles(&i.id))
+                {
+                    item.status = "warning".into();
+                    item.detail =
+                        "路由模式状态无法核对，未推断为关闭；请检查状态文件后重新检测".into();
+                    item.fixable = false;
+                }
+            }
+        }
+    }
+    if config_ok {
+        match super::native_catalog::context_source(ctx) {
+            Ok(source) => {
+                let raw = fs::read_to_string(ctx.config()).ok();
+                match super::native_catalog::inspect(&source, raw.as_deref(), true) {
+                    Ok(native) => {
+                        for mut native in native {
+                            native.fixable &= super::native_catalog::prepare_item(
+                                &source,
+                                &ctx.config(),
+                                &native.id,
+                            )
+                            .is_ok();
+                            if let Some(item) = items.iter_mut().find(|i| i.id == native.id) {
+                                *item = native;
+                            }
+                        }
+                    }
+                    Err(_) => {
+                        for item in items
+                            .iter_mut()
+                            .filter(|i| super::native_catalog::handles(&i.id))
+                        {
+                            item.status = "warning".into();
+                            item.fixable = false;
+                            item.detail = "模型目录来源无法完整核对；未使用空目录替代".into();
+                        }
+                    }
+                }
+            }
+            Err(_) => {
+                for item in items
+                    .iter_mut()
+                    .filter(|i| super::native_catalog::handles(&i.id))
+                {
+                    item.status = "warning".into();
+                    item.fixable = false;
+                    item.detail =
+                        "模型目录来源选择失败，无法完整核对；未沿用旧近似结果或使用空目录替代"
+                            .into();
+                }
+            }
+        }
+    }
     debug_assert_eq!(items.len(), 35);
     Ok(DiagnosticReport {
         mode: "native".into(),
         has_issues: items
             .iter()
             .any(|i| matches!(i.status.as_str(), "warning" | "error")),
-        transition_in_flight: presence(&ctx.app_root.join("gateway/transition.json"))
-            || ctx
-                .runtime
-                .as_ref()
-                .is_some_and(|r| matches!(r.state.as_str(), "starting" | "stopping")),
+        transition_in_flight: transition_in_flight(ctx),
         items,
         checked_at: now_ms(),
         root: ctx.home.display().to_string(),

@@ -6,6 +6,8 @@ edition = "2021"
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 [dependencies]
+semver = "1"
+atelier-maintenance-core = { path = "crates/maintenance-core" }
 tauri = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
 
@@ -16,7 +18,7 @@ signal-hook = "0.4"
 tungstenite = { version = "0.30", default-features = false, features = ["handshake"] }
 tokio = { version = "1", features = ["rt-multi-thread", "net", "sync", "time", "macros", "io-util", "process"] }
 axum = "0.8"
-reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "rustls-tls", "socks"] }
 futures-util = "0.3"
 async-stream = "0.3"
 bytes = "1"
@@ -32,5 +34,6 @@ toml_edit = "0.25.17"
 time = { version = "0.3", features = ["parsing"] }
 rusqlite = { version = "0.41.1", features = ["bundled"] }
 zstd = "0.14.3"
+cockpit-session-compat = { path = "crates/cockpit-session-compat" }
 [dev-dependencies]
 tokio = { version = "1", features = ["test-util"] }

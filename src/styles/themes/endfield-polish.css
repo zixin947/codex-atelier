@@ -201,9 +201,6 @@
 [data-theme='endfield'] .account-list .account-card .account-quota-caption b {
   display: block;
 }
-[data-theme='endfield'] .field-background-wordmark {
-  opacity: var(--field-wordmark-opacity);
-}
 @media (max-width: 1050px) {
   [data-theme='endfield'] .account-toolbar .search {
     max-width: none;

@@ -17,6 +17,8 @@ type Operation =
   | 'runDiagnostics'
   | 'previewRepair'
   | 'applyRepair'
+  | 'previewDirectoryProbe'
+  | 'applyDirectoryProbe'
   | 'utilitySettings'
   | 'previewImageCompat'
   | 'applyImageCompat'
@@ -40,6 +42,7 @@ export function createMaintenanceMock(options: MaintenanceMockOptions = {}): Mai
   let diagnosticRevision = 0
   let diagnosticItems = createDiagnosticDemo()
   const repairTickets = new Map<string, { plan: DiagnosticRepairPlan; revision: number }>()
+  const probeTickets = new Set<string>()
   let imageCompat = false
   const imageTickets = new Map<string, { enabled: boolean; previous: boolean }>()
   let diagnosticEndpoint: string | null = null
@@ -47,7 +50,7 @@ export function createMaintenanceMock(options: MaintenanceMockOptions = {}): Mai
     mode: 'demo',
     items: structuredClone(diagnosticItems),
     hasIssues: diagnosticItems.some(
-      (i) => i.status === 'warning' || i.status === 'error' || i.status === 'unknown',
+      (i) => i.status === 'warning' || i.status === 'error',
     ),
     transitionInFlight: false,
     checkedAt: Date.now(),
@@ -127,6 +130,30 @@ export function createMaintenanceMock(options: MaintenanceMockOptions = {}): Mai
         failedIds: [],
         details: pending.plan.itemIds.map((id) => `演示修复完成：${id}`),
         backupPath: '/demo/maintenance/diagnostic-backup',
+        report: report(),
+      }
+    },
+    async previewDirectoryProbe() {
+      fail('previewDirectoryProbe')
+      const ticket = crypto.randomUUID()
+      probeTickets.add(ticket)
+      return {
+        ticket,
+        itemIds: ['codex_home_writable'],
+        title: '目录写入检查预览',
+        changes: ['演示：在已存在的 Codex 目录中独占创建小型临时文件，写入后删除'],
+        warnings: ['仅演示，不创建真实文件；不修改配置、凭据或数据库，不创建缺失目录。'],
+        requiresDesktopClosed: false,
+      }
+    },
+    async applyDirectoryProbe(ticket) {
+      fail('applyDirectoryProbe')
+      if (!probeTickets.delete(ticket)) throw new Error('检查预览不存在或已执行，请重新预览。')
+      return {
+        fixedIds: [],
+        failedIds: [],
+        details: ['演示目录写入与清理检查完成，未访问本机文件。'],
+        backupPath: null,
         report: report(),
       }
     },

@@ -52,23 +52,10 @@ fn config(home: &Path) -> Result<Option<Vec<u8>>> {
 }
 fn compose(before: &[u8], enabled: bool) -> Result<Vec<u8>> {
     let source = std::str::from_utf8(before).map_err(|_| "配置不是 UTF-8，未修改")?;
-    let mut doc = source
-        .parse::<toml_edit::DocumentMut>()
-        .map_err(|_| "配置 TOML 语法异常，请先修复语法")?;
-    if enabled && !doc.contains_key("features") {
-        doc["features"] = toml_edit::Item::Table(toml_edit::Table::new());
-    }
-    if let Some(item) = doc.get_mut("features") {
-        let table = item.as_table_like_mut().ok_or("features 不是表，未修改")?;
-        if enabled {
-            table.insert("image_generation", toml_edit::value(false));
-        } else {
-            table.remove("image_generation");
-        }
-    }
-    let output = doc.to_string();
-    let _: toml::Value = toml::from_str(&output).map_err(|_| "更新后的配置无法校验，未写入")?;
-    Ok(output.into_bytes())
+    Ok(
+        atelier_maintenance_core::image_compat::compose_image_compat_flag(source, enabled)
+            .into_bytes(),
+    )
 }
 fn prepare(app_data: PathBuf, home: PathBuf, enabled: bool) -> Result<Ticket> {
     let before = config(&home)?;
@@ -81,7 +68,7 @@ fn prepare(app_data: PathBuf, home: PathBuf, enabled: bool) -> Result<Ticket> {
             if enabled { "Atelier 网关从下一次请求开始过滤生图工具声明" } else { "Atelier 网关从下一次请求开始恢复生图工具透传" }.into(),
             format!("修改前备份到 {}", app_data.join("maintenance/image-compat").join(&ticket).display()),
         ],
-        warnings: vec!["不改变图片输入，也不新增生图能力；Desktop 何时重新读取声明由客户端决定。保留其他配置及注释。".into()],
+        warnings: vec!["不改变图片输入，也不新增生图能力；Desktop 何时重新读取声明由客户端决定。未选中行保持文本；按原生流程统一为 LF 换行，空 features 段可能移除。".into()],
     };
     Ok(Ticket {
         view,
@@ -198,8 +185,14 @@ pub async fn maintenance_apply_image_compat(
         {
             return Err("维护目标发生变化，请重新预览".into());
         }
-        commit(&t, |enabled| {
-            utilities::set_image_compat_at(&t.app_data, enabled)
+        commit(&t, |_| {
+            // Native image state is the config getter, never the old utility JSON preference.
+            let mut receipt = utilities::read_settings_at(&t.app_data).unwrap_or_default();
+            receipt.image_compat = atelier_maintenance_core::image_compat::get_image_compat(
+                &t.codex_home.join("config.toml"),
+            )
+            .enabled;
+            Ok(receipt)
         })
     })
     .await
@@ -266,7 +259,7 @@ mod tests {
             .is_file());
     }
     #[test]
-    fn rejects_external_change_and_rolls_back_failed_preference() {
+    fn rejects_external_change_and_rolls_back_failed_completion() {
         let f = Fixture::new();
         fs::write(f.path(), "model='original'\n").unwrap();
         let t = f.ticket(true);
@@ -279,13 +272,27 @@ mod tests {
         assert_eq!(fs::read_to_string(f.path()).unwrap(), "model='external'\n");
     }
     #[test]
-    fn malformed_input_untouched_and_no_file_created_for_disable() {
+    fn native_lexical_update_preserves_malformed_unrelated_bytes_and_disable_is_non_creating() {
         let f = Fixture::new();
         commit(&f.ticket(false), |_| Ok(())).unwrap();
         assert!(!f.path().exists());
         fs::write(f.path(), "features = [").unwrap();
-        assert!(prepare(f.0.join("app"), f.0.join("codex"), true).is_err());
-        assert_eq!(fs::read_to_string(f.path()).unwrap(), "features = [");
+        let t = f.ticket(true);
+        commit(&t, |_| Ok(())).unwrap();
+        assert_eq!(
+            fs::read_to_string(f.path()).unwrap(),
+            "features = [\n\n[features]\nimage_generation = false\n"
+        );
+        assert_eq!(
+            fs::read(
+                t.app_data
+                    .join("maintenance/image-compat")
+                    .join(&t.view.ticket)
+                    .join("config.toml")
+            )
+            .unwrap(),
+            b"features = ["
+        );
     }
     #[test]
     fn rollback_removes_only_config_created_by_the_operation() {

@@ -1,39 +1,23 @@
 # 第三方说明
 
-## dsh-theme-endfield
+## 终末地风格的视觉参考
 
-来源：[ymh0000123/dsh-theme-endfield](https://github.com/ymh0000123/dsh-theme-endfield)。
+“终末地 · 野外终端”皮肤参考了公开的终末地风格界面的视觉语言（纸墨表面、信号色、测绘网格、深色仪表），并由本项目独立实现：语义词令牌、组件样式、原创背景渲染器和原创开屏动画均为本项目自行编写，不包含任何上游代码、游戏素材、官方 Logo 或字标。
 
-“终末地 · 野外终端”参考其纸墨/信号色设计与公开令牌，适配为 Atelier 自己的主题。没有引入其宿主运行时或游戏素材。上游许可仅覆盖其原创代码；游戏名称、商标及上游截图等不因该许可获得授权。本项目直接移植了上游 `src/client/20-contour.js` 及其生成的 Worker 源片段，保留原始算法和注释，固定于提交 `359bfad889b4f3d2e79515c4145f624f34ba84f1`。修改包括 Vue 宿主挂载、本地背景选项及生命周期清理。生成源中 higekibaka 的 WebGL 绘制器署名完整保留；默认采用原版 Canvas2D 路径。ENDFIELD 字标样式参照上游 `16-watermark.js` 和主题 CSS；皮肤选择缩略图仍为本项目绘制。
+设计规范的整理与色板建议来自仓库内的 `skills/endfield-ui-design/`，该目录下的说明与示例为独立编写的设计参考，不是官方 UI 规范；其中的研究截图仅作研究用途，不进入构建产物。
 
-启动开屏另参考同一提交的 `src/client/30-boot-loader.js`：以 TypeScript 重写生命周期与本地初始化衔接，保留 100% 停留、黄色扫屏与淡出节奏。当前横版视觉以用户截图为构图参考，由本项目独立编写 CSS/SVG；圆环与三角铭记自行绘制，没有复制截图里的品牌图像或游戏素材。中央像素铭牌的图案参考单列于下文。没有引入上游的音频、设置服务或宿主通信。
+本项目早先版本曾移植 `ymh0000123/dsh-theme-endfield`（MIT）的等高线运行时、开屏时序与 ENDFIELD 字标样式，并引用由 OpenAI Blossom 标志演绎的像素铭牌。这些内容已在本次前端重写中全部移除：
 
-保留上游许可全文：
+- `src/shared/background/vendor/` 下的等高线运行时及其 Worker 源片段已删除，替换为原创测绘网格渲染器 `src/shared/background/atelier-background.ts`。
+- 开屏动画重写为原创实现，保留原有的本地初始化衔接与可跳过行为，不再使用上游时序或字标。
+- `src/assets/branding/codex-pixel-nameplate.png` 已删除，开屏改用本项目绘制的 SVG 标记。
 
-```text
-MIT License
+上游许可仅覆盖其原创代码；游戏名称、商标及截图等不因该许可获得授权。若后续重新引入任何第三方代码，应在此处恢复相应许可全文。
 
-Copyright (c) 2026 ymh0000123
+## 字体
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+界面使用系统字体栈（`PingFang SC`、`Microsoft YaHei`、`system-ui` 与平台等宽字体），不嵌入或分发第三方字体文件。
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+## cockpit-session-compat
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
-## 像素铭牌的标志参考
-
-`src/assets/branding/codex-pixel-nameplate.png` 由内置图片生成工具制作，右侧按用户指定的结形标志演绎为像素风，并非官方发布的图像。参考来源为 [OpenAI 品牌页](https://openai.com/brand/) 与其 [Blossom_Light.svg](https://images.ctfassets.net/kftzwdyauwt9/3hUGLn3ypllZ0oa01qOYVq/28e8188e6f11b84c3e876569d492734f/Blossom_Light.svg)。原始矢量参考存于 `docs/assets/openai-blossom-reference.svg`，单独标志版本仅调整画布并去掉辅助绘图。OpenAI / ChatGPT 标志的权利归 OpenAI，不因本项目或上游 MIT 许可转让；此图不表示官方合作或背书。完整提示词见 `docs/codex-pixel-nameplate.md`。
+`src-tauri/src/` 下的 cockpit 兼容层来自 cockpit-session-compat crate，采用 CC BY-NC-SA 4.0 许可，仅用于本地线程工作区的兼容处理。该部分不随本次前端重写变动；使用与分发须遵守其非商业与相同方式共享条款。

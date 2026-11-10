@@ -2,9 +2,9 @@
   --thread-radius: 8px;
   --thread-border: color-mix(in srgb, var(--ink) 13%, transparent);
   --thread-wash: color-mix(in srgb, var(--panel) 95%, transparent);
-  --thread-blue: #5999b0;
-  --thread-teal: #3b957e;
-  --thread-purple: #9481b4;
+  --thread-blue: var(--tone-blue);
+  --thread-teal: var(--tone-cyan);
+  --thread-purple: var(--tone-violet);
   --thread-row-height: 70px;
   min-width: 0;
 }
@@ -192,7 +192,7 @@
   font-size: 11px;
   color: var(--muted);
 }
-.thread-subtoolbar button,
+.thread-subtoolbar button:not(.thread-sync-button),
 .thread-detail-top button,
 .thread-pagination button,
 .thread-notice button {
@@ -204,7 +204,7 @@
   display: inline-flex;
   align-items: center;
 }
-.thread-subtoolbar button:hover,
+.thread-subtoolbar button:not(.thread-sync-button):hover,
 .thread-pagination button:hover {
   color: var(--ink);
   background: var(--panel);
@@ -212,6 +212,10 @@
 .thread-subtoolbar button[aria-pressed='true'] {
   color: var(--ink);
   background: var(--mint);
+}
+.thread-sync-button {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .thread-toolbar-spacer {
   flex: 1;
@@ -306,10 +310,12 @@
   align-items: center;
 }
 .thread-list-head {
-  height: 44px;
-  font-size: 10px;
-  color: var(--muted);
-  border-bottom: 1px solid var(--thread-border);
+  height: 40px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--faint);
+  border-bottom: 1px solid var(--rule);
 }
 .thread-list-head > span:nth-last-child(-n + 2) {
   text-align: right;
@@ -337,15 +343,15 @@
   border-top: 1px solid var(--thread-border);
   padding: 0 4px;
   transition:
-    background 150ms,
-    box-shadow 150ms;
+    background-color var(--motion) var(--ease),
+    box-shadow var(--motion) var(--ease);
 }
 .thread-row:hover {
-  background: var(--panel);
+  background: var(--surface);
 }
 .thread-row.selected {
-  background: color-mix(in srgb, var(--mint) 10%, var(--paper));
-  box-shadow: inset 3px 0 var(--mint);
+  background: var(--signal-wash);
+  box-shadow: inset 3px 0 0 var(--signal);
 }
 .thread-row-main {
   background: none;
@@ -660,6 +666,31 @@
   max-height: 300px;
   overflow: auto;
   margin: 18px 0;
+  border: 1px solid var(--edge);
+}
+.thread-repair-field {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0;
+}
+.thread-repair-list {
+  max-height: min(140px, 14vh);
+}
+.thread-upstream-report {
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 11px var(--font-mono);
+}
+.thread-repair-field select {
+  min-width: 0;
+  width: 100%;
+  font: inherit;
+  height: 40px;
+  padding: 0 10px;
+  color: var(--ink);
+  background: var(--panel);
   border: 1px solid var(--edge);
 }
 .thread-diff > div {

@@ -4,6 +4,7 @@ import Icon from '../../shared/components/Icon.vue'
 import Modal from '../../shared/components/Modal.vue'
 import QuotaMeter from './QuotaMeter.vue'
 import ResetCreditsPreview from './ResetCreditsPreview.vue'
+import ApiNetworkDialog from './ApiNetworkDialog.vue'
 import { accountPlanBadge } from './plan'
 import { useAtelier } from '../../app/store'
 import { useAccountRefresh } from '../../app/accountRefresh'
@@ -13,6 +14,7 @@ import type {
   AccountResult,
   AccountsSnapshot,
   AccountSwitch,
+  ApiNetworkView,
   CodexAccount,
   QuotaWindow,
 } from '../../types/accounts'
@@ -73,6 +75,42 @@ async function refreshResetCredits() {
     }
   })
 }
+const network = ref<ApiNetworkView | null>(null)
+const networkOpen = ref(false)
+const networkError = ref('')
+async function readNetwork() {
+  if (!data.value?.available) return
+  try {
+    const value = await service.networkSettings()
+    if (alive) {
+      network.value = value
+      networkError.value = ''
+    }
+  } catch (e) {
+    if (alive) networkError.value = String(e)
+  }
+}
+async function openNetwork() {
+  await readNetwork()
+  if (network.value) networkOpen.value = true
+}
+function savedNetwork(value: ApiNetworkView) {
+  network.value = value
+  networkOpen.value = false
+  store.notify('订阅 API 网络设置已保存；不会修改聊天或系统代理')
+}
+const apiStatusLabel = computed(() =>
+  networkError.value
+    ? '订阅 API 状态未确认'
+    : !network.value?.subscription
+      ? '订阅 API 尚未验证'
+      : network.value.subscription.state === 'ok'
+        ? '订阅 API 最近正常'
+        : '订阅 API 查询失败',
+)
+const latestQuota = computed(() =>
+  Math.max(0, ...accounts.value.map((a) => a.quota?.checkedAt ?? 0)),
+)
 const detectingCurrent = ref(false)
 const detectionError = ref('')
 let detectionTimer: ReturnType<typeof setInterval> | undefined
@@ -226,6 +264,7 @@ function dialogOpen() {
     exportOpen.value ||
     groupOpen.value ||
     reportOpen.value ||
+    networkOpen.value ||
     resetPreviewId.value ||
     pending.value
   )
@@ -332,6 +371,7 @@ async function action(key: string, fn: () => Promise<void>) {
 async function read() {
   await action('read', async () => {
     apply(await service.snapshot())
+    await readNetwork()
   })
   await detectCurrent()
 }
@@ -346,7 +386,9 @@ async function refresh(ids: string[], quiet = false) {
     try {
       const result = await service.refresh(ids, !quiet)
       apply(result.snapshot)
-      if (!quiet && result.results.some((item) => !item.ok)) showReport(result.results)
+      await readNetwork()
+      if (!quiet && result.results.some((item) => !item.ok || item.partial))
+        showReport(result.results)
       else if (!quiet) store.notify('账号信息与额度已刷新')
     } finally {
       refreshingIds.value = []
@@ -518,8 +560,8 @@ async function applySwitch() {
     switching.value = null
     store.notify(
       rollback
-        ? '文件凭据已回退；请重新打开使用该目录的客户端'
-        : '文件凭据已切换；请重新打开使用该目录的客户端',
+        ? '账号与连接配置已按备份回退；请重新打开客户端'
+        : '官方账号与直连配置已切换；请重新打开客户端或新建对话',
     )
   })
 }
@@ -720,6 +762,28 @@ onUnmounted(() => {
             </select></label
           >
         </div>
+      </div>
+      <div class="account-api-status" aria-label="账号分链路通信状态">
+        <span>{{
+          latestQuota
+            ? `额度最近更新 ${new Date(latestQuota).toLocaleTimeString('zh-CN', { hour12: false })}`
+            : '额度尚未刷新'
+        }}</span>
+        <button
+          class="button"
+          :disabled="!!busy || !data?.available"
+          :data-state="network?.subscription?.state ?? 'unknown'"
+          :title="
+            networkError || network?.subscription?.message || '仅订阅元数据HTTP请求的网络配置'
+          "
+          @click="openNetwork"
+        >
+          <i class="dot" />{{ apiStatusLabel }}<Icon name="settings" :size="13" />
+        </button>
+        <small v-if="network?.subscription">{{
+          new Date(network.subscription.checkedAt).toLocaleTimeString('zh-CN', { hour12: false })
+        }}</small>
+        <span v-if="networkError" class="tiny">{{ networkError }}</span>
       </div>
       <p
         v-if="autoRefreshInterval || accountRefresh.error || accountRefresh.status?.error"
@@ -1106,25 +1170,31 @@ onUnmounted(() => {
       @close="!busy && (switching = null)"
       ><p class="muted">{{ switching.warning }}</p>
       <dl class="account-switch-diff inset">
-        <dt>目标文件</dt>
+        <dt>目标凭据</dt>
         <dd>{{ switching.target }}</dd>
+        <dt>连接方式</dt>
+        <dd>{{ switching.connection }}</dd>
         <dt>当前</dt>
         <dd>{{ switching.before }}</dd>
         <dt>切换后</dt>
         <dd>{{ switching.after }}</dd>
       </dl>
+      <ul class="muted" aria-label="账号连接变更">
+        <li v-for="change in switching.changes" :key="change">{{ change }}</li>
+      </ul>
       <p class="tiny muted">
         预览有效至
         {{
           date(switching.expiresAt)
-        }}。确认时检查外部变更，备份原文件并读回验证；不改模型路由和会话数据库。
+        }}。确认时检查外部变更，备份凭据与所列连接配置并读回验证。不修改会话数据库；请重新打开客户端或新建对话，旧会话不会热切换。官方直连不代表绕过系统代理或
+        VPN。
       </p>
       <label class="account-check"
         ><input
           v-model="switchAcknowledged"
           type="checkbox"
           :disabled="!!busy"
-        />我已保存工作并退出使用此目录的客户端，确认修改上述文件</label
+        />我已保存工作并退出使用此目录的客户端，确认切换上述凭据与连接配置</label
       >
       <p v-if="error" class="error-state" role="alert">{{ error }}</p>
       <div class="modal-actions">
@@ -1151,14 +1221,22 @@ onUnmounted(() => {
         </button>
       </div></Modal
     >
+    <ApiNetworkDialog
+      v-if="networkOpen && network"
+      :value="network"
+      @close="networkOpen = false"
+      @saved="savedNetwork"
+    />
     <Modal v-if="reportOpen" title="操作结果" @close="reportOpen = false"
       ><p>
-        {{ reports.filter((r) => r.ok).length }} 项成功，{{ reports.filter((r) => !r.ok).length }}
-        项失败。未列出的项目未执行。
+        {{ reports.filter((r) => r.ok && !r.partial).length }} 项成功，{{
+          reports.filter((r) => r.partial).length
+        }}
+        项部分成功，{{ reports.filter((r) => !r.ok).length }} 项失败。未列出的项目未执行。
       </p>
       <ul class="account-results">
         <li v-for="(r, i) in reports" :key="i">
-          <Icon :name="r.ok ? 'check' : 'alert'" :size="16" /><span
+          <Icon :name="r.ok && !r.partial ? 'check' : 'alert'" :size="16" /><span
             ><b>{{ accounts.find((a) => a.id === r.id)?.name ?? `项目 ${i + 1}` }}</b
             >{{ r.message }}</span
           >
