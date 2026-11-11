@@ -116,6 +116,41 @@ func protocolPath(p string) bool {
 	return true
 }
 
+func inferenceAccess(c config, address string, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/health" {
+			w.Header().Set("Content-Type", "application/json")
+			io.WriteString(w, `{"status":"ok","service":"codex-atelier"}`)
+			return
+		}
+		key := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
+		if key == "" {
+			key = r.Header.Get("x-api-key")
+		}
+		if key == "" {
+			key = r.Header.Get("x-goog-api-key")
+		}
+		if key == "" {
+			key = r.URL.Query().Get("key")
+		}
+		// Native agents use upstream's loopback tokens and caller-key rules.
+		// The legacy Atelier connection still requires its private process key.
+		if r.Header.Get("Origin") != "" || !c.OriginalUI && subtle.ConstantTimeCompare([]byte(key), []byte(c.Key)) != 1 {
+			http.Error(w, "Atelier gateway authentication required", http.StatusUnauthorized)
+			return
+		}
+		if r.Host != address && r.Host != strings.Replace(address, "127.0.0.1", "localhost", 1) {
+			http.Error(w, "invalid gateway host", http.StatusForbidden)
+			return
+		}
+		if !protocolPath(r.URL.Path) {
+			http.NotFound(w, r)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func run() error {
 	decoder := json.NewDecoder(bufio.NewReader(io.LimitReader(os.Stdin, 16<<20)))
 	var c config
@@ -137,34 +172,10 @@ func run() error {
 	}
 	address := "http://" + listener.Addr().String()
 	handler := core.Handler()
-	srv := &http.Server{ReadHeaderTimeout: 30 * time.Second, Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/health" {
-			w.Header().Set("Content-Type", "application/json")
-			io.WriteString(w, `{"status":"ok","service":"codex-atelier"}`)
-			return
-		}
-		key := strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer ")
-		if key == "" {
-			key = r.Header.Get("x-api-key")
-		}
-		if key == "" {
-			key = r.Header.Get("x-goog-api-key")
-		}
-		if key == "" {
-			key = r.URL.Query().Get("key")
-		}
-		if r.Header.Get("Origin") != "" || subtle.ConstantTimeCompare([]byte(key), []byte(c.Key)) != 1 {
-			http.Error(w, "Atelier gateway authentication required", http.StatusUnauthorized)
-			return
-		}
-		if r.Host != listener.Addr().String() && r.Host != strings.Replace(listener.Addr().String(), "127.0.0.1", "localhost", 1) {
-			http.Error(w, "invalid gateway host", http.StatusForbidden)
-			return
-		}
-		if !protocolPath(r.URL.Path) {
-			http.NotFound(w, r)
-			return
-		}
+	if c.OriginalUI {
+		handler = core.AtelierHandler()
+	}
+	srv := &http.Server{ReadHeaderTimeout: 30 * time.Second, Handler: inferenceAccess(c, listener.Addr().String(), http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Preserve Atelier's selected route for unqualified JSON model names.
 		if strings.Contains(r.Header.Get("Content-Type"), "application/json") && r.Body != nil && r.Method == http.MethodPost {
 			body, readErr := io.ReadAll(io.LimitReader(r.Body, 16<<20+1))
@@ -211,7 +222,7 @@ func run() error {
 			r.ContentLength = int64(len(body))
 		}
 		handler.ServeHTTP(w, r)
-	})}
+	}))}
 	var output sync.Mutex
 	send := func(v any) { output.Lock(); defer output.Unlock(); json.NewEncoder(os.Stdout).Encode(v) }
 	ui, closeUI, uiErr := gui.AtelierUI(core, c.Key)
