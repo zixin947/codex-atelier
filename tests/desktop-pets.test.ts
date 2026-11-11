@@ -23,14 +23,17 @@ it('queries status and uses the upstream desktop action', async () => {
     .trigger('click')
   await flushPromises()
   expect(invoke).toHaveBeenCalledWith('desktop_pet_action', { action: 'desktop' })
-  expect(page.text()).toContain('服务运行中')
+  expect(page.text()).toContain('运行中')
 })
 it('requires installation acknowledgement and exposes failures', async () => {
   const page = mount(DesktopPets)
   await flushPromises()
-  const install = page.findAll('button').find((b) => b.text() === '重新安装组件')!
-  expect(install.attributes('disabled')).toBeDefined()
-  await page.find('input[type="checkbox"]').setValue(true)
+  expect(page.findAll('button').some((b) => b.text() === '确认安装')).toBe(false)
+  await page
+    .findAll('button')
+    .find((b) => b.text() === '重新安装')!
+    .trigger('click')
+  const install = page.findAll('button').find((b) => b.text() === '确认安装')!
   invoke.mockRejectedValueOnce('安装失败')
   await install.trigger('click')
   await flushPromises()
@@ -43,7 +46,7 @@ it('refreshes quota through Atelier Accounts', async () => {
   await flushPromises()
   await page
     .findAll('button')
-    .find((b) => b.text().includes('刷新状态与额度'))!
+    .find((b) => b.attributes('aria-label') === '刷新状态与额度')!
     .trigger('click')
   await flushPromises()
   expect(invoke).toHaveBeenCalledWith('desktop_pet_action', { action: 'refresh-quota' })
