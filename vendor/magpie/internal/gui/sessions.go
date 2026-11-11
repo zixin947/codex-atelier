@@ -523,7 +523,7 @@ func sessionMarkdown(agentID, id string) (stem string, md []byte, err error) {
 		}
 		return '-'
 	}, s.Agent+"-"+string(short))
-	return "magpie-session-" + safe, b.Bytes(), nil
+	return "atelier-session-" + safe, b.Bytes(), nil
 }
 
 // wslName is an agent's name for a session it ran in a WSL distro, as the
@@ -1222,7 +1222,7 @@ func openMacTerminal(command, label, choice string) error {
 	if err != nil {
 		return err
 	}
-	f, err := os.CreateTemp("", "magpie-resume-*.command")
+	f, err := os.CreateTemp("", "atelier-resume-*.command")
 	if err != nil {
 		return err
 	}

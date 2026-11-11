@@ -26,6 +26,7 @@ func TestInferenceAccessUsesNativeLoopbackCredentials(t *testing.T) {
 		handler                                  http.Handler
 		want                                     int
 	}{
+		{name: "atelier placeholder", key: "atelier", handler: native, want: 200},
 		{name: "native default", key: gateway.Token, handler: native, want: 200},
 		{name: "native agent", key: gateway.TokenFor("claude"), handler: native, want: 200},
 		{name: "native keyless loopback", handler: native, want: 200},

@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import Maintenance from '../features/maintenance/Maintenance.vue'
 import Threads from '../features/threads/Threads.vue'
-import Dashboard from '../features/Dashboard.vue'
+import Workbench from '../features/workbench/Workbench.vue'
 import Extensions from '../features/Extensions.vue'
 import Diagnostics from '../features/Diagnostics.vue'
 import DesktopPets from '../features/desktop-pets/DesktopPets.vue'
@@ -13,7 +13,10 @@ import NativeModels from '../features/connections/NativeModels.vue'
 export const router = createRouter({
   history: createWebHashHistory(),
   routes: [
-    { path: '/', component: Dashboard },
+    { path: '/', component: Workbench, props: { tab: 'usage' } },
+    { path: '/workbench/requests', component: Workbench, props: { tab: 'requests' } },
+    { path: '/workbench/sessions', component: Workbench, props: { tab: 'sessions' } },
+    { path: '/workbench/context', component: Workbench, props: { tab: 'context' } },
     { path: '/threads', component: Threads },
     { path: '/planned/history', redirect: '/threads' },
     { path: '/extensions', component: Extensions },

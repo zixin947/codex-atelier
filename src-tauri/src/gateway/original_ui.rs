@@ -78,7 +78,12 @@ async fn forward(
     let content_only = request.uri().path() == "/"
         && url::form_urlencoded::parse(request.uri().query().unwrap_or("").as_bytes())
             .any(|(key, value)| key == "atelierContent" && value == "1");
-    let decorated = styled || content_only;
+    let branded = request.uri().path() == "/";
+    let branded_asset = request.uri().path() == "/plugins/gateway/client.js";
+    let decorated = styled || content_only || branded || branded_asset;
+    let chatgpt_usage = request.uri().path() == "/"
+        && url::form_urlencoded::parse(request.uri().query().unwrap_or("").as_bytes())
+            .any(|(key, value)| key == "atelierUsage" && value == "chatgpt");
     let mut target = url::Url::parse(address).map_err(|_| "原版管理页地址无效。")?;
     if target.scheme() != "http"
         || target.host_str() != Some("127.0.0.1")
@@ -142,6 +147,7 @@ async fn forward(
         "content-security-policy",
         "x-content-type-options",
         "referrer-policy",
+        "content-disposition",
     ] {
         if decorated && matches!(name, "etag" | "last-modified" | "cache-control") {
             continue;
@@ -157,6 +163,14 @@ async fn forward(
                         .replace(&origin, native_origin)
                         .replace(&secure_origin, native_origin),
                 );
+            } else if name == "content-disposition" {
+                response = response.header(
+                    name,
+                    value
+                        .to_str()
+                        .map_err(|_| "导出文件名无效。")?
+                        .replace("magpie-", "atelier-"),
+                );
             } else {
                 response = response.header(name, value);
             }
@@ -167,8 +181,28 @@ async fn forward(
         .await
         .map_err(|_| "原版管理页响应中断。")?
         .to_vec();
-    if decorated && html {
-        let page = String::from_utf8(bytes).map_err(|_| "原版页面不是 UTF-8。")?;
+    // The gateway's documented local placeholder key accepts any token on loopback.
+    if branded_asset {
+        response = response.header("Cache-Control", "no-store");
+        bytes = String::from_utf8(bytes)
+            .map_err(|_| "网关页面不是 UTF-8。")?
+            .replace("\"magpie\"", "\"atelier\"")
+            .into_bytes();
+    }
+    if (decorated || chatgpt_usage) && html {
+        let mut page = String::from_utf8(bytes).map_err(|_| "原版页面不是 UTF-8。")?;
+        if branded {
+            page = page
+                .replace("<title>magpie</title>", "<title>Atelier</title>")
+                .replacen(
+                    "<script src=\"start.js",
+                    &format!(
+                        "<script>{}</script><script src=\"start.js",
+                        include_str!("../../../src/features/connections/native-branding.js")
+                    ),
+                    1,
+                );
+        }
         let mut css = String::new();
         if styled {
             css.push_str(include_str!(
@@ -187,6 +221,19 @@ async fn forward(
                 1,
             )
             .into_bytes();
+        if chatgpt_usage {
+            bytes = String::from_utf8(bytes)
+                .map_err(|_| "原版页面不是 UTF-8。")?
+                .replacen(
+                    "<head>",
+                    &format!(
+                        "<head><script>{}</script>",
+                        include_str!("../../../src/features/workbench/native-usage.js")
+                    ),
+                    1,
+                )
+                .into_bytes();
+        }
         response = response.header("Cache-Control", "no-store");
     }
     if opaque_plugin_asset {
@@ -214,11 +261,12 @@ mod tests {
                 "/",
                 get(|| async {
                     axum::response::Html(
-                        "<html><head></head><body><main>original-layout</main></body></html>",
+                        "<html><head><title>magpie</title></head><body><main>original-layout</main></body><script src=\"start.js?v=fixture\"></script></html>",
                     )
                 }),
             )
             .route("/app.js", get(|| async { "unchanged-script" }))
+            .route("/plugins/gateway/client.js", get(|| async { "const key = \"magpie\"; const storage = \"magpie.gw\";" }))
             .route(
                 "/api/agents/test",
                 post(move |headers: HeaderMap, body: String| async move {
@@ -270,8 +318,24 @@ mod tests {
         .unwrap();
         let html = String::from_utf8(response.body().clone()).unwrap();
         assert!(html.contains("<style id=\"atelier-skin\">"));
+        assert!(html.contains("<title>Atelier</title>"));
+        assert!(html.find("const brand =").unwrap() < html.find("<script src=\"start.js").unwrap());
         assert!(html.contains("<body><main>original-layout</main></body>"));
         assert_eq!(response.headers()["cache-control"], "no-store");
+        let response = forward(
+            &client,
+            &address,
+            Request::builder()
+                .uri("magpie://localhost/?view=usage&tab=context&atelierUsage=chatgpt")
+                .body(vec![])
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+        let html = String::from_utf8(response.body().clone()).unwrap();
+        assert!(html.contains("/api/atelier-chatgpt/"));
+        assert!(html.find("<script>").unwrap() < html.find("<body>").unwrap());
+        assert!(html.contains("<body><main>original-layout</main></body>"));
         task.abort();
     }
 

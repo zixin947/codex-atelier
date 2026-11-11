@@ -63,7 +63,7 @@ func TestUsageLedgerDayRoutes(t *testing.T) {
 	if w.Code != 200 || err != nil || len(rows) != 3 {
 		t.Fatalf("day's CSV: %d %s (%v)", w.Code, w.Body, err)
 	}
-	want := "magpie-requests-day-" + l.Day
+	want := "atelier-requests-day-" + l.Day
 	if got := w.Header().Get("Content-Disposition"); got != `attachment; filename="`+want+`.csv"` {
 		t.Fatalf("day's CSV filename: %s", got)
 	}
@@ -197,10 +197,10 @@ func TestUsageLedgerRoutes(t *testing.T) {
 	p1, n := export()
 	p2, _ := export()
 	day := now.Format("2006-01-02")
-	if n != 2 || p1 != filepath.Join("~", "Downloads", "magpie-requests-today-"+day+".csv") || p2 != filepath.Join("~", "Downloads", "magpie-requests-today-"+day+"-2.csv") {
+	if n != 2 || p1 != filepath.Join("~", "Downloads", "atelier-requests-today-"+day+".csv") || p2 != filepath.Join("~", "Downloads", "atelier-requests-today-"+day+"-2.csv") {
 		t.Fatalf("export: %s %s %d", p1, p2, n)
 	}
-	b, err := os.ReadFile(filepath.Join(home, "Downloads", "magpie-requests-today-"+day+".csv"))
+	b, err := os.ReadFile(filepath.Join(home, "Downloads", "atelier-requests-today-"+day+".csv"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -321,7 +321,7 @@ func TestLedgerNamesModelAtProvider(t *testing.T) {
 func TestCSVStamp(t *testing.T) {
 	now := time.Date(2026, 9, 30, 12, 0, 0, 0, time.Local)
 	for _, day := range []string{"", "2026-02-30", "../../other", "2026-09-30\""} {
-		want := "magpie-requests-7d-2026-09-30"
+		want := "atelier-requests-7d-2026-09-30"
 		if got := csvStamp(usage.Period("7d"), day, now); got != want {
 			t.Fatalf("%q: %s", day, got)
 		}
@@ -333,7 +333,7 @@ func TestCSVStamp(t *testing.T) {
 	}
 	// nor has a range whose ends name their minutes
 	r, _ := usage.RangeOf("2026-09-29T09:30", "2026-09-30T18:00")
-	if got := csvStamp(r, "", now); got != "magpie-requests-2026-09-29T0930-to-2026-09-30T1800" {
+	if got := csvStamp(r, "", now); got != "atelier-requests-2026-09-29T0930-to-2026-09-30T1800" {
 		t.Errorf("range of minutes: %s", got)
 	}
 }
@@ -367,7 +367,7 @@ func TestUsageCSVAtMidnight(t *testing.T) {
 	usage.Append(usage.Record{Time: midnight.Add(-time.Minute), Agent: "codex", Provider: "relay", Model: "m", Input: 10, Output: 1, Status: 200})
 	mux := http.NewServeMux()
 	usageRoutes(mux, folderOnly{})
-	want := "magpie-requests-today-2026-09-30.csv"
+	want := "atelier-requests-today-2026-09-30.csv"
 
 	midnightUsageClock(t, midnight)
 	w := httptest.NewRecorder()

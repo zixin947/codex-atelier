@@ -53,12 +53,12 @@ func backupRoutes(mux *http.ServeMux, w Windows) {
 			return
 		}
 		dir := downloads()
-		name := filepath.Join(dir, "magpie-"+time.Now().Format("2006-01-02")+backup.Ext)
+		name := filepath.Join(dir, "atelier-"+time.Now().Format("2006-01-02")+backup.Ext)
 		for i := 2; ; i++ { // never over an earlier one
 			if _, err := os.Stat(name); err != nil {
 				break
 			}
-			name = filepath.Join(dir, fmt.Sprintf("magpie-%s-%d%s", time.Now().Format("2006-01-02"), i, backup.Ext))
+			name = filepath.Join(dir, fmt.Sprintf("atelier-%s-%d%s", time.Now().Format("2006-01-02"), i, backup.Ext))
 		}
 		if err := edit.WriteAtomic(name, data); err != nil {
 			fail(rw, err)
@@ -268,7 +268,7 @@ func autoView() backup.AutoView {
 
 // writable says whether a file can be made in dir.
 func writable(dir string) error {
-	f, err := os.CreateTemp(dir, ".magpie-backup-*.tmp")
+	f, err := os.CreateTemp(dir, ".atelier-backup-*.tmp")
 	if err != nil {
 		return err
 	}

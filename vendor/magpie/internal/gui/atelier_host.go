@@ -16,7 +16,7 @@ func AtelierUI(gw *gateway.Server, key string) (string, func(), error) {
 		return "", nil, err
 	}
 	_, port, _ := net.SplitHostPort(listener.Addr().String())
-	server := &http.Server{Handler: webServed(port, key, 0, Handler(webHost{quit: func() {}}, gw)), ReadHeaderTimeout: 30 * time.Second}
+	server := &http.Server{Handler: webServed(port, key, 0, noFramedAPI(atelierChatGPT(Handler(webHost{quit: func() {}}, gw)))), ReadHeaderTimeout: 30 * time.Second}
 	go server.Serve(listener)
 	return "http://" + listener.Addr().String() + "/?view=agents&k=" + url.QueryEscape(key), func() { server.Close() }, nil
 }
