@@ -49,7 +49,7 @@ onMounted(load)
 <template>
   <Modal title="协议与路由策略 / ROUTING CORE" :close-disabled="busy" @close="emit('close')">
     <h2>完整协议与路由策略</h2>
-    <p>内置源自 magpie 的协议与路由核心，由 Atelier 管理。停止网关后修改，重新启动生效。</p>
+    <p>内置 Atelier 协议与路由引擎。停止网关后修改，重新启动生效。</p>
     <p class="muted">
       支持 Chat Completions、Responses /
       WebSocket、Anthropic、Gemini、Ollama、图像、音视频、嵌入、重排、Decisions 与原生透传。

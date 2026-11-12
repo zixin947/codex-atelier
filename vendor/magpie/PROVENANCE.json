@@ -3,20 +3,46 @@
   "commit": "e6f151507f3c70f483d4bd476fa69faef155fe8c",
   "archiveSha256": "14eedf306c87d9a3fa4c89a92c4649ad56b364acefcea5db3dd312e035630e20",
   "sourcePackages": 92,
-  "unmodifiedFiles": 7879,
-  "changedOriginalFiles": [],
+  "unmodifiedFiles": 7870,
+  "changedOriginalFiles": [
+    "internal/gui/archive.go",
+    "internal/gui/archive_test.go",
+    "internal/gui/backup.go",
+    "internal/gui/sessions.go",
+    "internal/gui/sessions_gateway_markdown_test.go",
+    "internal/gui/sessions_markdown_test.go",
+    "internal/gui/usage.go",
+    "internal/gui/usage_test.go",
+    "internal/usageapi/usageapi.go"
+  ],
   "hostAdditions": [
     "cmd/atelier-router/main.go",
     "cmd/atelier-router/main_test.go",
     "internal/gateway/atelier_host.go",
-    "internal/gui/atelier_host.go"
+    "internal/gui/atelier_host.go",
+    "internal/gui/atelier_chatgpt.go",
+    "internal/gui/atelier_chatgpt_sessions.go",
+    "internal/gui/atelier_chatgpt_test.go",
+    "internal/sessions/atelier_chatgpt.go",
+    "internal/usage/atelier_chatgpt.go",
+    "internal/usage/atelier_chatgpt_test.go",
+    "internal/usageapi/atelier_chatgpt.go"
   ],
-  "scope": "protocol and routing core plus complete upstream Agent GUI/API and its internal dependencies",
-  "deliveryStatus": "integrated and installed; local host and application acceptance passed; real providers and Desktop unverified",
-  "localChanges": "Owned host entrypoints provide lifecycle and native rendering transport. Original GUI, provider, account and routing files are unmodified; native UI startup preserves upstream storage and does not translate Atelier providers or requests.",
+  "scope": "protocol and routing core plus complete upstream Agent GUI/API and its internal dependencies; ChatGPT-only workbench Usage adapter",
+  "deliveryStatus": "branded debug app built and installed; frontend, targeted backend and native transport checks passed; isolated browser pages and scoped CSV verified; real provider/Desktop acceptance unverified",
+  "localChanges": "Owned host entrypoints provide lifecycle and native rendering transport. ChatGPT workbench adapters filter records before upstream aggregation and gate detail/write operations. Two upstream files extract their existing CSV-save and ledger-formatting bodies for direct reuse; original page assets, provider/account implementations and routing algorithms remain unmodified. Atelier-owned rendering scripts apply product branding to translated UI templates, icons and product links. Native transport substitutes the local placeholder credential in the gateway sample script. Export filename literals and corresponding upstream expectations use atelier; protocol IDs, storage keys, file formats and license notices retain their upstream meanings.",
   "originalGUI": {
     "files": 2324,
-    "changedFiles": [],
+    "changedFiles": [
+      "internal/gui/archive.go",
+      "internal/gui/archive_test.go",
+      "internal/gui/backup.go",
+      "internal/gui/sessions.go",
+      "internal/gui/sessions_gateway_markdown_test.go",
+      "internal/gui/sessions_markdown_test.go",
+      "internal/gui/usage.go",
+      "internal/gui/usage_test.go"
+    ],
     "entryAdapter": "internal/gui/atelier_host.go"
   }
 }

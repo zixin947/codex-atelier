@@ -332,7 +332,10 @@ type Merged struct {
 // LedgerPage is one page of the ledger: limit rows (100 when none is
 // given, 500 at most) from offset.
 func LedgerPage(p usage.Period, f usage.Filter, offset, limit int) Ledger {
-	l := usage.QueryPage(p, f, offset, limit)
+	return ledgerPageOf(p, f, offset, usage.QueryPage(p, f, offset, limit))
+}
+
+func ledgerPageOf(p usage.Period, f usage.Filter, offset int, l usage.RequestPage) Ledger {
 	offset = max(0, min(offset, l.Total))
 	page := l.Rows
 	agents := clients()

@@ -17,9 +17,17 @@ import {
 } from './app/startup'
 const workstation = ref<HTMLElement | null>(null)
 const route = useRoute()
+const workbenchActive = computed(() => route.path === '/' || route.path.startsWith('/workbench/'))
+const workbenchNav = [
+  { path: '/', label: '概览' },
+  { path: '/workbench/requests', label: '请求' },
+  { path: '/workbench/sessions', label: '会话' },
+  { path: '/workbench/context', label: '上下文' },
+]
 const realPlugins = computed(() => route.path === '/plugins')
 const realManagement = computed(
   () =>
+    workbenchActive.value ||
     [
       '/plugins',
       '/connections',
@@ -102,34 +110,38 @@ async function previewStartup() {
       </div>
       <div v-else class="top-context mono tiny">
         {{
-          realPlugins
-            ? 'CODEX / USER PLUGINS'
-            : route.path === '/desktop-pets'
-              ? 'ATELIER / DESKTOP PETS'
-              : route.path === '/threads'
-                ? 'ATELIER / THREAD ARCHIVE'
-                : route.path === '/maintenance'
-                  ? 'ATELIER / MAINTENANCE'
-                  : route.path === '/routing'
-                    ? 'ATELIER / LIVE ROUTING'
-                    : 'ATELIER / LOCAL GATEWAY'
+          workbenchActive
+            ? 'ATELIER / CHATGPT USAGE'
+            : realPlugins
+              ? 'CODEX / USER PLUGINS'
+              : route.path === '/desktop-pets'
+                ? 'ATELIER / DESKTOP PETS'
+                : route.path === '/threads'
+                  ? 'ATELIER / THREAD ARCHIVE'
+                  : route.path === '/maintenance'
+                    ? 'ATELIER / MAINTENANCE'
+                    : route.path === '/routing'
+                      ? 'ATELIER / LIVE ROUTING'
+                      : 'ATELIER / LOCAL GATEWAY'
         }}
       </div>
       <div class="top-actions">
         <span class="badge orange"
           ><i class="dot" />{{
             realManagement
-              ? realPlugins
-                ? '本机插件管理'
-                : route.path === '/desktop-pets'
-                  ? '本机桌宠管理'
-                  : route.path === '/threads'
-                    ? '本机线程管理'
-                    : route.path === '/maintenance'
-                      ? '维护工具'
-                      : route.path === '/routing'
-                        ? '本机路由观测'
-                        : '本地账号与网关'
+              ? workbenchActive
+                ? 'ChatGPT 用量'
+                : realPlugins
+                  ? '本机插件管理'
+                  : route.path === '/desktop-pets'
+                    ? '本机桌宠管理'
+                    : route.path === '/threads'
+                      ? '本机线程管理'
+                      : route.path === '/maintenance'
+                        ? '维护工具'
+                        : route.path === '/routing'
+                          ? '本机路由观测'
+                          : '本地账号与网关'
               : '演示数据'
           }}</span
         >
@@ -147,32 +159,48 @@ async function previewStartup() {
       <aside class="sidebar">
         <div class="sidebar-label">工作空间 <span>WORKSPACE</span></div>
         <nav aria-label="主导航">
-          <RouterLink
-            v-for="(item, i) in nav"
-            :key="item.path"
-            :to="item.path"
-            @click="navClicks[item.path] = (navClicks[item.path] ?? 0) + 1"
-            :class="{
-              active:
-                $route.path === item.path ||
-                (item.path === '/accounts' && $route.path.startsWith('/accounts/')),
-            }"
-            ><span class="nav-plate" aria-hidden="true" />
-            <span
-              v-if="navClicks[item.path]"
-              :key="navClicks[item.path]"
-              class="nav-impact"
-              aria-hidden="true"
-            />
-            <Icon :name="item.icon" /><span class="nav-label">{{ item.label }}</span
-            ><small>{{ String(i + 1).padStart(2, '0') }}</small></RouterLink
-          >
+          <template v-for="(item, i) in nav" :key="item.path">
+            <RouterLink
+              :to="item.path"
+              @click="navClicks[item.path] = (navClicks[item.path] ?? 0) + 1"
+              :class="{
+                active:
+                  (item.path === '/' && workbenchActive) ||
+                  $route.path === item.path ||
+                  (item.path === '/accounts' && $route.path.startsWith('/accounts/')),
+              }"
+              ><span class="nav-plate" aria-hidden="true" />
+              <span
+                v-if="navClicks[item.path]"
+                :key="navClicks[item.path]"
+                class="nav-impact"
+                aria-hidden="true"
+              />
+              <Icon :name="item.icon" /><span class="nav-label">{{ item.label }}</span
+              ><small>{{ String(i + 1).padStart(2, '0') }}</small></RouterLink
+            >
+            <div
+              v-if="item.path === '/' && workbenchActive"
+              class="workbench-subnav"
+              aria-label="ChatGPT 用量目录"
+            >
+              <RouterLink
+                v-for="child in workbenchNav"
+                :key="child.path"
+                :to="child.path"
+                :class="{ selected: route.path === child.path }"
+                :aria-current="route.path === child.path ? 'page' : undefined"
+                >{{ child.label }}</RouterLink
+              >
+            </div>
+          </template>
         </nav>
         <div class="sidebar-bottom">
           <div class="vent" />
           <div class="sandbox-stamp">
             <Icon name="shield" /><b>{{ realManagement ? '受限本机管理' : '安全沙盒' }}</b>
-            <p v-if="realPlugins">仅管理两个指定插件<br />账号与代理不受影响</p>
+            <p v-if="workbenchActive">ChatGPT 账号记录<br />用量与上下文观测</p>
+            <p v-else-if="realPlugins">仅管理两个指定插件<br />账号与代理不受影响</p>
             <p v-else-if="route.path === '/desktop-pets'">
               独立浮窗 · 手动管理<br />设置与账本由桌宠保存
             </p>
@@ -250,3 +278,22 @@ async function previewStartup() {
     <button class="button primary" @click="settings = false">完成</button></Modal
   >
 </template>
+
+<style scoped>
+.workbench-subnav {
+  margin: 0 12px 8px 25px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+}
+.sidebar nav .workbench-subnav a {
+  min-height: 30px;
+  padding: 5px 14px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.sidebar nav .workbench-subnav a.selected {
+  background: var(--surface-alt, #e2e5d9);
+  color: var(--text);
+  font-weight: 600;
+}
+</style>

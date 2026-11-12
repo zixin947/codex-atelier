@@ -54,7 +54,7 @@ func TestGatewaySessionExportsMarkdown(t *testing.T) {
 	q := "?agent=pi&id=" + id
 	w = httptest.NewRecorder()
 	mux.ServeHTTP(w, httptest.NewRequest("GET", "/api/sessions/markdown"+q, nil))
-	if w.Code != 200 || !strings.Contains(w.Header().Get("Content-Disposition"), `filename="magpie-session-pi-019a2b3c-pi-.md"`) {
+	if w.Code != 200 || !strings.Contains(w.Header().Get("Content-Disposition"), `filename="atelier-session-pi-019a2b3c-pi-.md"`) {
 		t.Fatalf("download: %d %v %s", w.Code, w.Header(), w.Body)
 	}
 	check(w.Body.String())

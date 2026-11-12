@@ -6,6 +6,11 @@ import (
 	"net/http"
 )
 
+// AtelierHandler keeps the original listener's access checks in the embedded host.
+func (s *Server) AtelierHandler() http.Handler {
+	return lanGuard(s.Handler())
+}
+
 // AtelierShutdown exposes the core's existing drain sequence to its embedding
 // host, which owns the HTTP listener instead of ListenAndServe's background jobs.
 func (s *Server) AtelierShutdown(ctx context.Context, server *http.Server) error {

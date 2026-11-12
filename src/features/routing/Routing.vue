@@ -293,10 +293,10 @@ onUnmounted(() => {
       </div>
     </section>
     <details class="routing-license">
-      <summary>来源与许可 · magpie</summary>
+      <summary>第三方来源与许可</summary>
       <p>
-        路由展示结构与样式移植自 yetone/magpie，候选决策、请求转发和事件记录由 Atelier
-        执行。路由设置在「模型与连接」中管理。
+        Atelier
+        负责候选决策、请求转发和事件记录。第三方来源：yetone/magpie（MIT）。路由设置在「模型与连接」中管理。
       </p>
       <pre>{{ license }}</pre>
     </details>

@@ -2,7 +2,11 @@
 import { onMounted, ref } from 'vue'
 import { gatewayService } from '../../services/gateway'
 import OriginalAgents from './OriginalAgents.vue'
-defineProps<{ view: 'agents' | 'providers' | 'routing' | 'groups' | 'gateway'; title: string }>()
+defineProps<{
+  view: 'agents' | 'providers' | 'routing' | 'groups' | 'gateway' | 'usage'
+  title: string
+  usageTab?: 'usage' | 'requests' | 'sessions' | 'context'
+}>()
 const running = ref(false),
   error = ref('')
 async function refresh() {
@@ -18,6 +22,12 @@ onMounted(refresh)
 <template>
   <div class="page native-models-page">
     <p v-if="error" role="alert">{{ error }}</p>
-    <OriginalAgents :running="running" :view="view" :title="title" @changed="refresh" />
+    <OriginalAgents
+      :running="running"
+      :view="view"
+      :title="title"
+      :usage-tab="usageTab"
+      @changed="refresh"
+    />
   </div>
 </template>

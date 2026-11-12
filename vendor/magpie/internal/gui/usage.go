@@ -53,16 +53,32 @@ func init() {
 // and the day of now, the moment its rows were read at.
 func csvStamp(p usage.Period, day string, now time.Time) string {
 	if _, err := time.Parse(time.DateOnly, day); err == nil {
-		return "magpie-requests-day-" + day
+		return "atelier-requests-day-" + day
 	}
 	if p.IsRange() { // the days picked, which already say when
 		// a minute an end names ("T09:30") without the colon Windows
 		// doesn't take in a file name
-		return "magpie-requests-" + strings.ReplaceAll(strings.Replace(string(p), "..", "-to-", 1), ":", "")
+		return "atelier-requests-" + strings.ReplaceAll(strings.Replace(string(p), "..", "-to-", 1), ":", "")
 	}
 	// a rolling window ("last:24h0m0s") without the colon, which Windows
 	// doesn't take in a file name (#2075)
-	return "magpie-requests-" + strings.ReplaceAll(string(p), ":", "-") + "-" + now.Format(time.DateOnly)
+	return "atelier-requests-" + strings.ReplaceAll(string(p), ":", "-") + "-" + now.Format(time.DateOnly)
+}
+
+func saveRequestsCSV(rows []usage.Row, stamp string) (string, error) {
+	var b bytes.Buffer
+	if err := usage.WriteCSV(&b, rows); err != nil {
+		return "", err
+	}
+	dir := downloads()
+	name := filepath.Join(dir, stamp+".csv")
+	for i := 2; ; i++ {
+		if _, err := os.Stat(name); err != nil {
+			break
+		}
+		name = filepath.Join(dir, fmt.Sprintf("%s-%d.csv", stamp, i))
+	}
+	return name, edit.WriteAtomic(name, b.Bytes())
 }
 
 // contentJSON is what was said in a request, or why it can't be told.
@@ -235,25 +251,12 @@ func usageRoutes(mux *http.ServeMux, w Windows) {
 		f := ledgerFilter(r)
 		now := usage.Clock().In(f.Zone)
 		rows := usage.LedgerOfAt(p, f, now).Rows
-		var b bytes.Buffer
-		if err := usage.WriteCSV(&b, rows); err != nil {
+		name, err := saveRequestsCSV(rows, csvStamp(p, q.Get("day"), now))
+		if err != nil {
 			fail(rw, err)
 			return
 		}
-		dir := downloads()
-		stamp := csvStamp(p, q.Get("day"), now)
-		name := filepath.Join(dir, stamp+".csv")
-		for i := 2; ; i++ { // never over an earlier one
-			if _, err := os.Stat(name); err != nil {
-				break
-			}
-			name = filepath.Join(dir, fmt.Sprintf("%s-%d.csv", stamp, i))
-		}
-		if err := edit.WriteAtomic(name, b.Bytes()); err != nil {
-			fail(rw, err)
-			return
-		}
-		_ = w.OpenFolder(dir) // saved either way; the path is in the answer
+		_ = w.OpenFolder(filepath.Dir(name)) // saved either way; the path is in the answer
 		writeJSON(rw, map[string]any{"path": tilde(name), "rows": len(rows)})
 	})
 	// The subscriptions' quotas, the plans' bought with a key, and the
