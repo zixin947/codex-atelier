@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { theme, setTheme, type ThemeId } from '../../app/theme'
 import Icon from './Icon.vue'
-const emit = defineEmits<{ change: [label: string, saved: boolean] }>()
+const emit = defineEmits<{ change: [label: string, saved: boolean]; openChange: [open: boolean] }>()
 const details = ref<HTMLDetailsElement>()
 const trigger = ref<HTMLElement>()
 const label = computed(() => choices.find((choice) => choice.id === theme.value)!.label)
@@ -55,7 +55,7 @@ onUnmounted(() => {
 })
 </script>
 <template>
-  <details ref="details" class="theme-switcher" @keydown="focusChoice">
+  <details ref="details" class="theme-switcher" @keydown="focusChoice" @toggle="emit('openChange', !!details?.open)">
     <summary
       ref="trigger"
       class="theme-trigger"

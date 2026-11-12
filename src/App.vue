@@ -21,6 +21,7 @@ import {
 const workstation = ref<HTMLElement | null>(null)
 const hudSurface = ref<HTMLElement | null>(null)
 const hudExpanded = ref(false)
+const themeMenuOpen = ref(false)
 const route = useRoute()
 const router = useRouter()
 const hudOverview = computed(
@@ -77,7 +78,7 @@ const nav = [
 ]
 const nativeHud = useNativeHud(
   hudSurface,
-  () => hudOverview.value,
+  () => hudOverview.value && !settings.value && !themeMenuOpen.value && !startupAnimationActive.value,
   () => nav.map((item) => item.label),
   (index) => {
     hudExpanded.value = true
@@ -181,6 +182,7 @@ async function previewStartup() {
           }}</span
         >
         <ThemeSwitcher
+          @open-change="themeMenuOpen = $event"
           @change="
             (label, saved) => store.notify('已切换 ' + label + (saved ? '' : ' · 当前无法保存偏好'))
           "
