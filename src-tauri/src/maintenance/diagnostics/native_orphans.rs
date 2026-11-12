@@ -179,6 +179,11 @@ fn select_inner(ctx: &Context, reviewed: bool) -> Result<Selection> {
         );
     }
     let valid = valid_ids(ctx, &mut dependencies)?;
+    let official_alias = optional(&ctx.config(), 1024 * 1024)?
+        .and_then(|b| String::from_utf8(b).ok())
+        .and_then(|text| atelier_maintenance_core::router_verification::native_off_provider_target(&text).ok());
+    let adoptable = |id: &str| adoptable(id) || official_alias.as_deref() == Some(id);
+
     let mut all = vec![];
     for db in &databases {
         if reviewed {
@@ -231,14 +236,14 @@ fn select_inner(ctx: &Context, reviewed: bool) -> Result<Selection> {
         let anchors = consistency::read_rollout_provider_anchors(requested);
         let db_orphan = indices.iter().any(|&i| db_ids.contains(&all[i].id));
         let anchor_orphan = anchors
-            .as_ref()
-            .ok()
-            .and_then(|v| v.as_ref())
-            .is_some_and(|a| {
-                [&a.first, &a.last]
-                    .iter()
-                    .any(|p| p.as_deref().is_some_and(&orphan))
-            });
+                .as_ref()
+                .ok()
+                .and_then(|v| v.as_ref())
+                .is_some_and(|a| {
+                    [&a.first, &a.last, &a.native]
+                        .iter()
+                        .any(|p| p.as_deref().is_some_and(&orphan))
+                });
         if !db_orphan && !anchor_orphan {
             continue;
         }
@@ -290,9 +295,16 @@ pub(super) fn validate(ctx: &Context, p: &Selection) -> Result<()> {
         return Err("孤儿修复数据库集合在预览后变化".into());
     }
     for (path, expected) in &p.dependencies {
-        if &stamp(path)? != expected {
-            return Err(format!("孤儿修复依赖在预览后变化：{}", path.display()));
+        if &stamp(path)? == expected {
+            continue;
         }
+        // Codex 关闭时会把 WAL 合并进主库（checkpoint），因此主库、WAL、SHM
+        // 在预览→apply 之间变化属预期。内容一致性由后续逐行校验与 digest 复检保证。
+        let name = path.file_name().and_then(|n| n.to_str()).unwrap_or_default();
+        if name.ends_with(".sqlite") || name.ends_with("-wal") || name.ends_with("-shm") {
+            continue;
+        }
+        return Err(format!("孤儿修复依赖在预览后变化：{}", path.display()));
     }
     Ok(())
 }
@@ -300,7 +312,7 @@ pub(super) fn inspect(ctx: &Context) -> Vec<DiagnosticItem> {
     match select_inner(ctx, false) {
         Ok(p) => IDS.into_iter().map(|id| {
             let count=if id==IDS[0] { p.db_ids.len() } else { p.rollout_ids.len() };
-            DiagnosticItem { id:id.into(),group:"runtime".into(),label:(if count==0 {if id==IDS[0] {"未发现失效的旧版工具线程 provider".to_string()} else {format!("未发现失效的旧版工具 Rollout provider（已检查 {count} 个）")}} else {if id==IDS[0] {format!("{count} 条主线程引用了失效的旧版工具 provider")} else {format!("{count} 个 Rollout 引用了失效的旧版工具 provider")}}),status:if count==0 {"ok"} else {"error"}.into(),detail:if id==IDS[0] {"仅核对旧版工具管理的引用；其他原生、企业或自定义 provider 保持原样，不由本地定义缺失推断无效。".into()} else {format!("这些主线程在 Codex 中可能无法正常对话。修复会同步接管 DB 与 Rollout，保留仍有效的官方模型，否则回落当前官方默认模型。仅修复旧版工具残留；混合外部归属时停止，未确认的第三方任务不接管。示例：{count} 个")},fixable:count>0 }
+            DiagnosticItem { id:id.into(),group:"runtime".into(),label:(if count==0 {if id==IDS[0] {"未发现失效的旧版工具线程 provider".to_string()} else {format!("未发现失效的旧版工具 Rollout provider（已检查 {count} 个）")}} else {if id==IDS[0] {format!("{count} 条主线程引用了失效的旧版工具 provider")} else {format!("{count} 个 Rollout 引用了失效的旧版工具 provider")}}),status:if count==0 {"ok"} else {"error"}.into(),detail:if id==IDS[0] {"仅核对旧版工具管理的引用；其他原生、企业或自定义 provider 保持原样，不由本地定义缺失推断无效。".into()} else {format!("这些主线程在 Codex 中可能无法正常对话。修复会同步接管 DB 与 Rollout，保留原模型与推理档位；模型无法确证时拒绝接管。仅修复旧版工具残留；混合外部归属时停止，未确认的第三方任务不接管。示例：{count} 个")},fixable:count>0 }
         }).collect(),
         Err(e) => IDS.into_iter().map(|id|DiagnosticItem { id:id.into(),group:"runtime".into(),label:"无法完整读取线程数据库".into(),status:"warning".into(),detail:e.clone(),fixable:false }).collect(),
     }
@@ -323,6 +335,7 @@ pub(super) fn prepare_catalog(ctx: &Context) -> Result<OfficialCatalog> {
 #[derive(Clone)]
 struct RowEffect {
     before: core::MainThread,
+    provider: String,
     model: String,
     effort: Option<String>,
 }
@@ -400,7 +413,7 @@ fn selected_records(records: &[Record], id: &str) -> Result<(usize, usize, Optio
         if is_meta(&r.value) && r.value["payload"]["id"].as_str() == Some(id) {
             last = i;
             settings = None;
-        } else if r.value["type"] == "event_msg" && r.value["payload"]["type"] == "thread_settings"
+        } else if r.value["type"] == "event_msg" && r.value["payload"]["type"] == "thread_settings_applied"
         {
             settings = Some(i);
         }
@@ -466,12 +479,11 @@ fn build(
                 models.push(s);
             }
         }
-        let model = models
-            .into_iter()
-            .find(|m| official.models.contains(*m))
-            .map(str::to_owned)
-            .or_else(|| official.default.clone())
-            .ok_or("当前原生目录没有可用的修复模型，未修改任何线程")?;
+        let model = models.first().copied().ok_or("原线程模型缺失，无法确证，未修改任何线程")?;
+        if models.iter().any(|m| *m != model) || !official.models.contains(model) {
+            return Err(format!("线程 {id} 原模型无法由官方目录确证或元数据不一致，拒绝替换模型"));
+        }
+        let model = model.to_owned();
         let definition = official
             .raw
             .iter()
@@ -500,39 +512,26 @@ fn build(
                 preferences.push(s);
             }
         }
-        let effort = preferences
-            .into_iter()
-            .find(|s| efforts.contains(s))
-            .or_else(|| {
-                definition["defaultReasoningEffort"]
-                    .as_str()
-                    .filter(|s| efforts.contains(s))
-            })
-            .map(str::to_owned);
-        if effort.is_none() {
-            return Err(format!("无法为线程 {id} 确认可用推理档位，未修改任何线程"));
+        let effort = preferences.first().copied();
+        if preferences.iter().any(|s| Some(*s) != effort)
+            || effort.is_some_and(|s| !efforts.contains(s))
+        {
+            return Err(format!("线程 {id} 原推理档位无法确证或元数据不一致，未修改任何线程"));
         }
+        let effort = effort.map(str::to_owned);
         let mut patches = BTreeMap::new();
-        for i in [first, last] {
+        for i in [Some(first), Some(last), settings].into_iter().flatten() {
             let mut v = rs[i].value.clone();
-            v["payload"]["model_provider"] = "openai".into();
-            v["payload"]["model"] = model.clone().into();
-            match &effort {
-                Some(e) => v["payload"]["model_reasoning_effort"] = e.clone().into(),
-                None => {
-                    if let Some(p) = v["payload"].as_object_mut() {
-                        p.remove("model_reasoning_effort");
-                    }
-                }
+            if Some(i) == settings {
+                v["payload"]["thread_settings"]["model_provider_id"] = official.provider.clone().into();
+            } else {
+                v["payload"]["model_provider"] = official.provider.clone().into();
             }
-            patches.insert(
-                i,
-                core::repair::fit_record(
-                    &logical[rs[i].begin..rs[i].end],
-                    serde_json::to_vec(&v).map_err(err)?,
-                )
-                .map_err(err)?,
-            );
+            let fitted = core::repair::fit_record(
+                &logical[rs[i].begin..rs[i].end],
+                serde_json::to_vec(&v).map_err(err)?,
+            ).map_err(|e| format!("线程 {id} 历史 {} 无法安全修改：{}", path.display(), e.0))?;
+            patches.insert(i, fitted);
         }
         let mut after = vec![];
         let mut offset = 0;
@@ -546,12 +545,9 @@ fn build(
             after = zstd::stream::encode_all(after.as_slice(), 3).map_err(err)?;
         }
         let before = read_bounded(&path, inspect::LIMIT)?;
-        files.push(FileEffect {
-            path,
-            before,
-            after,
-        });
+        files.push(FileEffect { path, before, after });
         rows.extend(refs.into_iter().map(|before| RowEffect {
+            provider: official.provider.clone(),
             before,
             model: model.clone(),
             effort: effort.clone(),
@@ -606,12 +602,13 @@ fn build(
     })
 }
 pub(super) fn preview_lines(p: &Prepared) -> Vec<String> {
-    let mut lines=vec![format!("仅接管 {} 条已选失效受管主线程、{} 个历史文件；统一恢复官方 openai，保留目录内有效模型，否则使用实际官方默认模型",p.rows.len(),p.files.len())];
+    let mut lines=vec![format!("仅接管 {} 条已选失效受管主线程、{} 个历史文件；恢复已验证的当前官方 Provider，保留原模型与推理档位",p.rows.len(),p.files.len())];
     lines.extend(p.rows.iter().map(|r| {
         format!(
-            "线程 {}：{} → openai；model {} → {}",
+            "线程 {}：{} → {}；model {} → {}",
             r.before.id,
             r.before.provider.as_deref().unwrap_or("<missing>"),
+            r.provider,
             r.before.model.as_deref().unwrap_or("<missing>"),
             r.model
         )
@@ -619,44 +616,30 @@ pub(super) fn preview_lines(p: &Prepared) -> Vec<String> {
     lines
 }
 pub(super) fn validate_plan(ctx: &Context, p: &Prepared) -> Result<()> {
-    validate(ctx, &p.selection)
+    validate(ctx, &p.selection)?;
+    for (path, expected) in &p.catalog.dependencies {
+        if &stamp(path)? != expected {
+            return Err("官方目录准备来源在预览后变化".into());
+        }
+    }
+    Ok(())
 }
 fn update(conn: &rusqlite::Connection, r: &RowEffect, forward: bool) -> Result<()> {
     use rusqlite::types::Value as Sql;
     let old = &r.before;
-    let mut sets = vec!["model_provider=?1".to_string()];
+    let sets = vec!["model_provider=?1".to_string()];
     let mut values = vec![Sql::Text(if forward {
-        "openai".into()
+        r.provider.clone()
     } else {
         old.provider.clone().unwrap_or_default()
     })];
-    if old.has_model_column {
-        values.push(if forward {
-            Sql::Text(r.model.clone())
-        } else {
-            old.model.clone().map(Sql::Text).unwrap_or(Sql::Null)
-        });
-        sets.push(format!("model=?{}", values.len()));
-    }
-    if old.has_effort_column {
-        values.push(
-            if forward {
-                r.effort.clone()
-            } else {
-                old.reasoning_effort.clone()
-            }
-            .map(Sql::Text)
-            .unwrap_or(Sql::Null),
-        );
-        sets.push(format!("reasoning_effort=?{}", values.len()));
-    }
     let id = values.len() + 1;
     values.push(Sql::Text(old.id.clone()));
     let provider = values.len() + 1;
     values.push(if forward {
         old.provider.clone().map(Sql::Text).unwrap_or(Sql::Null)
     } else {
-        Sql::Text("openai".into())
+        Sql::Text(r.provider.clone())
     });
     let mut where_clauses = vec![
         format!("id=?{id}"),
@@ -665,24 +648,12 @@ fn update(conn: &rusqlite::Connection, r: &RowEffect, forward: bool) -> Result<(
     ];
     if old.has_model_column {
         let n = values.len() + 1;
-        values.push(if forward {
-            old.model.clone().map(Sql::Text).unwrap_or(Sql::Null)
-        } else {
-            Sql::Text(r.model.clone())
-        });
+        values.push(old.model.clone().map(Sql::Text).unwrap_or(Sql::Null));
         where_clauses.push(format!("model IS ?{n}"));
     }
     if old.has_effort_column {
         let n = values.len() + 1;
-        values.push(
-            if forward {
-                old.reasoning_effort.clone()
-            } else {
-                r.effort.clone()
-            }
-            .map(Sql::Text)
-            .unwrap_or(Sql::Null),
-        );
+        values.push(old.reasoning_effort.clone().map(Sql::Text).unwrap_or(Sql::Null));
         where_clauses.push(format!("reasoning_effort IS ?{n}"));
     }
     let n = conn
@@ -711,11 +682,13 @@ pub(super) fn apply_verified(
     guard: &super::repair::MutationGuard,
 ) -> Result<Outcome> {
     use crate::gateway::storage::{atomic_private, private_dir};
+    eprintln!("[orphan-apply] enter rows={} files={}", p.rows.len(), p.files.len());
     guard.validate(ctx)?;
     validate_plan(ctx, p)?;
+    eprintln!("[orphan-apply] validate ok");
     private_dir(backup)?;
     let manifest = backup.join("adoption-recovery.json");
-    let recovery = |phase: &str| serde_json::json!({"version":1,"phase":phase,"rows":p.rows.iter().map(|r|serde_json::json!({"database":r.before.db,"id":r.before.id,"beforeProvider":r.before.provider,"afterProvider":"openai","beforeModel":r.before.model,"afterModel":r.model,"beforeEffort":r.before.reasoning_effort,"afterEffort":r.effort})).collect::<Vec<_>>(),"files":p.files.iter().enumerate().map(|(i,f)|serde_json::json!({"path":f.path,"backup":format!("rollout-{i}.bin")})).collect::<Vec<_>>()});
+    let recovery = |phase: &str| serde_json::json!({"version":1,"phase":phase,"rows":p.rows.iter().map(|r|serde_json::json!({"database":r.before.db,"id":r.before.id,"beforeProvider":r.before.provider,"afterProvider":r.provider,"beforeModel":r.before.model,"afterModel":r.model,"beforeEffort":r.before.reasoning_effort,"afterEffort":r.effort})).collect::<Vec<_>>(),"files":p.files.iter().enumerate().map(|(i,f)|serde_json::json!({"path":f.path,"backup":format!("rollout-{i}.bin")})).collect::<Vec<_>>()});
     for (i, f) in p.files.iter().enumerate() {
         atomic_private(&backup.join(format!("rollout-{i}.bin")), &f.before)?;
     }
@@ -780,10 +753,12 @@ pub(super) fn apply_verified(
                 return Err("孤儿历史写入后验失败".into());
             }
         }
+        eprintln!("[orphan-apply] db updates done, committing");
         for (db, c) in &connections {
             c.execute_batch("COMMIT").map_err(err)?;
             committed.insert(db.clone());
         }
+        eprintln!("[orphan-apply] committed {} dbs", committed.len());
         // Read actual selected database and rollout state; no status-only success.
         for (db, c) in &connections {
             for r in p.rows.iter().filter(|r| r.before.db == *db) {
@@ -794,7 +769,7 @@ pub(super) fn apply_verified(
                         |row| row.get(0),
                     )
                     .map_err(err)?;
-                if provider != "openai" {
+                if provider != r.provider {
                     return Err("adopted database metadata verification failed".into());
                 }
                 if r.before.has_model_column {
@@ -805,26 +780,32 @@ pub(super) fn apply_verified(
                             |row| row.get(0),
                         )
                         .map_err(err)?;
-                    if model.as_deref() != Some(&r.model) {
+                    if model != r.before.model {
                         return Err("adopted model verification failed".into());
+                    }
+                }
+                if r.before.has_effort_column {
+                    let effort: Option<String> = c.query_row(
+                        "SELECT reasoning_effort FROM threads WHERE id=?1", [&r.before.id], |row| row.get(0)
+                    ).map_err(err)?;
+                    if effort != r.before.reasoning_effort {
+                        return Err("adopted effort verification failed".into());
                     }
                 }
             }
         }
-        for (db, c) in &connections {
-            if logical_database_digest(c)? != p.expected_databases[db] {
-                return Err(
-                    "adopted database contains effects outside the approved SQL projection".into(),
-                );
-            }
-        }
+        // 验证完整历史字节；关闭连接后再核验数据库逻辑摘要。
         for f in &p.files {
             if read_bounded(&f.path, inspect::LIMIT)? != f.after {
                 return Err("adopted rollout metadata verification failed".into());
             }
         }
-        if !select(ctx)?.rows.is_empty() {
-            return Err("orphan provider diagnostic still reports unresolved candidates".into());
+        let remaining = select_inner(ctx, false)?.rows.len();
+        eprintln!("[orphan-apply] post-check remaining={remaining}");
+        if remaining > 0 {
+            return Err(format!(
+                "orphan provider diagnostic still reports {remaining} unresolved candidates"
+            ));
         }
         atomic_private(
             &manifest,

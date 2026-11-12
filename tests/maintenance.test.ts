@@ -261,10 +261,10 @@ describe('maintenance page', () => {
 })
 
 describe('system diagnostic dialog', () => {
-  it('opens and automatically checks all 35 items in four groups', async () => {
+  it('opens and automatically checks all 34 items in four groups', async () => {
     await openDialog()
     expect(api.runDiagnostics).toHaveBeenCalledOnce()
-    expect(wrapper!.findAll('.mnt-item')).toHaveLength(35)
+    expect(wrapper!.findAll('.mnt-item')).toHaveLength(34)
     expect(wrapper!.findAll('.mnt-group')).toHaveLength(4)
     expect(wrapper!.text()).toContain('全部修复（2 项）')
     expect(wrapper!.text()).toContain('配置')
@@ -311,7 +311,7 @@ describe('system diagnostic dialog', () => {
     expect(api.previewRepair).toHaveBeenCalledWith('all')
     expect(api.applyRepair).toHaveBeenCalledWith('repair-ticket')
     expect(wrapper!.text()).toContain('已备份并修复 2 项')
-    expect(wrapper!.findAll('.mnt-item')).toHaveLength(35)
+    expect(wrapper!.findAll('.mnt-item')).toHaveLength(34)
   })
 
   it('shows the all-clear line instead of the list when nothing is wrong', async () => {
@@ -330,16 +330,15 @@ describe('system diagnostic dialog', () => {
   })
 
   it.each(['warning', 'error'] as const)(
-    'shows the normal panel when %s items have no available repair',
+    'keeps %s items visible when no automatic repair is available',
     async (status) => {
       api.runDiagnostics.mockResolvedValueOnce({
         ...report(),
         items: report().items.map((i) => ({ ...i, status, fixable: false })),
       })
       await openDialog()
-      expect(wrapper!.get('.mnt-clear').text()).toBe('当前诊断一切正常')
-      expect(wrapper!.get('.mnt-clear-meme').attributes('alt')).toContain('Ciallo')
-      expect(wrapper!.find('.mnt-groups').exists()).toBe(false)
+      expect(wrapper!.find('.mnt-clear').exists()).toBe(false)
+      expect(wrapper!.find('.mnt-groups').exists()).toBe(true)
       expect(wrapper!.text()).not.toContain('全部修复')
       expect(api.previewRepair).not.toHaveBeenCalled()
       expect(api.applyRepair).not.toHaveBeenCalled()
@@ -358,12 +357,11 @@ describe('system diagnostic dialog', () => {
     expect(wrapper!.findAll('button').some((b) => b.text().includes('全部修复'))).toBe(false)
   })
 
-  it('shows the normal line for an index change during scanning', async () => {
+  it('shows the scan failure for an index change', async () => {
     api.runDiagnostics.mockRejectedValueOnce(Error('会话索引在本轮观察期间变化；请重新检测'))
     await openDialog()
-    expect(wrapper!.get('.mnt-clear').text()).toBe('当前诊断一切正常')
-    expect(wrapper!.get('.mnt-clear-meme').attributes('alt')).toContain('Ciallo')
-    expect(wrapper!.find('.mnt-error').exists()).toBe(false)
+    expect(wrapper!.find('.mnt-clear').exists()).toBe(false)
+    expect(wrapper!.get('.mnt-error').text()).toContain('请重新检测')
     expect(wrapper!.find('.mnt-groups').exists()).toBe(false)
     expect(wrapper!.text()).not.toContain('全部修复')
     expect(api.previewRepair).not.toHaveBeenCalled()
@@ -382,7 +380,7 @@ describe('system diagnostic dialog', () => {
     await button('重新检测').trigger('click')
     await flushPromises()
     expect(wrapper!.text()).toContain('线程库正忙')
-    expect(wrapper!.findAll('.mnt-item')).toHaveLength(35)
+    expect(wrapper!.findAll('.mnt-item')).toHaveLength(34)
   })
 
   it('shows the loading state until the first scan resolves', async () => {
@@ -393,7 +391,7 @@ describe('system diagnostic dialog', () => {
     expect(wrapper!.findAll('.mnt-item')).toHaveLength(0)
     resolve(report())
     await flushPromises()
-    expect(wrapper!.findAll('.mnt-item')).toHaveLength(35)
+    expect(wrapper!.findAll('.mnt-item')).toHaveLength(34)
   })
 
   it('does not let a stale scan overwrite a reopened dialog', async () => {
@@ -406,14 +404,14 @@ describe('system diagnostic dialog', () => {
     await flushPromises()
     resolve({ ...report(), items: [] })
     await flushPromises()
-    expect(wrapper.findAll('.mnt-item')).toHaveLength(35)
+    expect(wrapper.findAll('.mnt-item')).toHaveLength(34)
   })
 })
 
 describe('browser maintenance adapter', () => {
   it('repairs demo state and rejects a consumed ticket', async () => {
     const mock = createMaintenanceMock()
-    expect((await mock.runDiagnostics()).items).toHaveLength(35)
+    expect((await mock.runDiagnostics()).items).toHaveLength(34)
     const preview = await mock.previewRepair('all')
     const result = await mock.applyRepair(preview.ticket)
     expect(result.fixedIds).toHaveLength(2)

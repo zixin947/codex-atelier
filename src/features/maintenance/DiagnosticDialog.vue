@@ -20,7 +20,6 @@ const emit = defineEmits<{ close: []; completed: [report: DiagnosticReport] }>()
 const report = ref<DiagnosticReport | null>(null)
 const log = ref<string[]>([])
 const error = ref('')
-const indexChangedDuringScan = ref(false)
 const busy = ref<'scan' | 'fix' | 'all' | null>(null)
 const fixingId = ref<string | null>(null)
 const expanded = ref(new Set<string>())
@@ -60,11 +59,11 @@ const fixableCount = computed(() => {
 const allClear = computed(
   () =>
     !busy.value &&
-    (indexChangedDuringScan.value ||
-      (report.value &&
-        fixableCount.value === 0 &&
-        !report.value.transitionInFlight &&
-        !error.value)),
+    report.value !== null &&
+    report.value.items.length > 0 &&
+    report.value.items.every((item) => item.status === 'ok') &&
+    !report.value.transitionInFlight &&
+    !error.value,
 )
 
 function isFixable(item: DiagnosticItem) {
@@ -81,7 +80,6 @@ async function scan() {
   if (busy.value) return
   const token = ++generation
   busy.value = 'scan'
-  indexChangedDuringScan.value = false
   error.value = ''
   log.value = []
   try {
@@ -97,7 +95,6 @@ async function scan() {
   } catch (e) {
     if (alive && token === generation) {
       error.value = message(e)
-      indexChangedDuringScan.value = error.value === '会话索引在本轮观察期间变化；请重新检测'
     }
   } finally {
     if (alive && token === generation) busy.value = null

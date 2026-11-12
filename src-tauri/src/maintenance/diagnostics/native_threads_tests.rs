@@ -190,9 +190,13 @@ fn native_provider_preflight_blocks_unreadable_and_unplanned_atelier_rows() {
     write_rows(&path, &[meta("a", "atelier", "x")]);
     f.insert("a", "atelier", path.to_str().unwrap(), "x");
     let before = fs::read(&f.db).unwrap();
-    assert!(adapter::review_provider_target(&f.ctx, "openai", true)
+    // changes_provider=false：计划不含 Provider 改写，必须拒绝这些 Atelier 行。
+    assert!(adapter::review_provider_target(&f.ctx, "openai", false)
         .unwrap_err()
         .contains("Atelier受管线程"));
+    // changes_provider=true：孤儿接管/线程收敛本身就要改写这些行，应放行。
+    adapter::review_provider_target(&f.ctx, "openai", true)
+        .expect("已批准 Provider 改写时不得再以「计划不包含」拒绝");
     assert_eq!(fs::read(&f.db).unwrap(), before);
     Connection::open(&f.db)
         .unwrap()

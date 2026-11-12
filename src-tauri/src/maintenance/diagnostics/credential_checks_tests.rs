@@ -218,7 +218,7 @@ fn native_legacy_is_unknown_without_authorization_and_bad_references_do_not_pass
     assert!(RelayStateDocument::from_json(&serde_json::to_vec(&invalid).unwrap()).is_err());
 }
 #[test]
-fn gateway_and_native_sources_use_distinct_schemas_and_inspection_is_read_only() {
+fn excluded_key_inventory_is_not_inspected_or_reported() {
     use crate::gateway::types::{Catalog, Credential, Profile, ProfileKind, Settings};
     let f = Fixture::new();
     let ctx = f.ctx();
@@ -263,7 +263,8 @@ fn gateway_and_native_sources_use_distinct_schemas_and_inspection_is_read_only()
     fs::write(&secret, &bytes).unwrap();
     let checks = inspect(&ctx, &toml::Value::Table(Default::default()), None, 10000);
     assert_eq!(checks[0].status, "ok");
-    assert!(checks[0].detail.contains("Atelier Gateway"));
+    assert_eq!(checks.len(), 1);
+    assert_eq!(checks[0].id, "auth_token_expiry");
     assert_eq!(fs::read(&secret).unwrap(), bytes);
     fs::create_dir_all(ctx.home.join("codexmate/relay")).unwrap();
     let native = state(json!([{"id":"relay-a","apiKeyStored":true}]));
@@ -273,14 +274,14 @@ fn gateway_and_native_sources_use_distinct_schemas_and_inspection_is_read_only()
     )
     .unwrap();
     assert_eq!(
-        inspect(&ctx, &toml::Value::Table(Default::default()), None, 10000)[0].status,
-        "warning"
+        inspect(&ctx, &toml::Value::Table(Default::default()), None, 10000).iter().any(|i| i.id == "api_key_integrity"),
+        false
     );
     assert!(!ctx.home.join("codexmate/relay/keys").exists());
     fs::write(native_catalog::native_state_path(&ctx.home), b"invalid").unwrap();
     assert_eq!(
-        inspect(&ctx, &toml::Value::Table(Default::default()), None, 10000)[0].status,
-        "warning"
+        inspect(&ctx, &toml::Value::Table(Default::default()), None, 10000).iter().any(|i| i.id == "api_key_integrity"),
+        false
     );
     assert!(!serde_json::to_string(&checks)
         .unwrap()

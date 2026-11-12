@@ -4,6 +4,9 @@ pub(super) use native::{apply_native, prepare_native, PreparedAction, ProcessPre
 #[cfg(test)]
 #[path = "native_process_tests.rs"]
 mod native_tests;
+#[cfg(test)]
+#[path = "process_tests.rs"]
+mod process_tests;
 use super::*;
 use std::{
     path::Path,
@@ -98,7 +101,32 @@ impl Runner for SystemRunner {
         thread::sleep(Duration::from_millis(200))
     }
 }
-#[cfg(test)]
+/// 关闭 Desktop 并等待进程真正退出。用于修复前的静默窗口。
+pub(super) fn shutdown(path: &Path, runner: &dyn Runner) -> Result<()> {
+    if !runner.running(path)? {
+        return Ok(());
+    }
+    runner.quit(path)?;
+    for _ in 0..40 {
+        if !runner.running(path)? {
+            return Ok(());
+        }
+        runner.pause();
+    }
+    Err("Desktop 尚未退出；未强杀或重复启动".into())
+}
+/// 启动 Desktop 并等待其进程出现。
+pub(super) fn launch_and_wait(path: &Path, runner: &dyn Runner) -> Result<()> {
+    runner.launch(path)?;
+    for _ in 0..40 {
+        if runner.running(path)? {
+            return Ok(());
+        }
+        runner.pause();
+    }
+    Err("启动命令已发送，但尚未检测到目标进程".into())
+}
+
 pub(super) fn restart(path: &Path, runner: &dyn Runner) -> Result<()> {
     if runner.running(path)? {
         runner.quit(path)?;

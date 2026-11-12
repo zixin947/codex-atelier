@@ -26,14 +26,17 @@ pub fn quiet_window(id: &str) -> QuietWindow {
         | "takeover_backup_orphan"
         | "config_global_validity"
         | "config_profile_conflict"
+        | "thread_history_integrity" // Atelier backup-proven recovery requires the same quiet window.
         | "thread_missing_rollouts"
         | "legacy_migrated_threads"
         | "thread_response_item_ids"
         | "router_unlock_auth_residue"
         | "thread_poisoned_instructions"
+        | "thread_model_catalog_consistency"
+        // 以下三项不在原版显式分支表内；原版走 default(2)=Unknown，同样要求静默窗口。
+        // 显式列出以便审计，行为与原版一致。
         | "rollout_orphan_providers"
         | "project_state_integrity"
-        | "thread_model_catalog_consistency"
         | "thread_provider_consistency" => QuietWindow::Required,
         _ => QuietWindow::Unknown,
     }
@@ -170,7 +173,7 @@ mod tests {
     }
     #[test]
     fn unknown_or_observation_id_is_rejected() {
-        assert!(repair_gates("thread_history_integrity", &[]).is_err());
+        assert!(repair_gates("thread_history_integrity", &[]).unwrap().use_quiet_transition);
         assert!(repair_gates("unknown", &[]).is_err());
     }
 }

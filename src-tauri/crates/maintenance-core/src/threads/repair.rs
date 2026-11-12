@@ -587,13 +587,11 @@ pub fn plan_provider_convergence(
                 {
                     let mut v = r.value.clone();
                     payload_mut(&mut v)?.insert("model_provider".into(), json!(target.id()));
-                    changes.insert(
-                        index,
-                        fit_record(
-                            &logical[r.start..r.content_end],
-                            serde_json::to_vec(&v).map_err(|e| RepairError(e.to_string()))?,
-                        )?,
-                    );
+                    let fitted = fit_record(
+                        &logical[r.start..r.content_end],
+                        serde_json::to_vec(&v).map_err(|e| RepairError(e.to_string()))?,
+                    )?;
+                    changes.insert(index, fitted);
                 }
             }
             if let Some(index) = settings {
@@ -605,13 +603,11 @@ pub fn plan_provider_convergence(
                 {
                     let mut v = r.value.clone();
                     v["payload"]["thread_settings"]["model_provider_id"] = json!(target.id());
-                    changes.insert(
-                        index,
-                        fit_record(
-                            &logical[r.start..r.content_end],
-                            serde_json::to_vec(&v).map_err(|e| RepairError(e.to_string()))?,
-                        )?,
-                    );
+                    let fitted = fit_record(
+                        &logical[r.start..r.content_end],
+                        serde_json::to_vec(&v).map_err(|e| RepairError(e.to_string()))?,
+                    )?;
+                    changes.insert(index, fitted);
                 }
             }
             if !changes.is_empty() {

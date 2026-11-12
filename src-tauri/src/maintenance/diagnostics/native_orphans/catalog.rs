@@ -17,14 +17,22 @@ pub(crate) trait Rpc {
 }
 struct StdioRpc {
     child: Child,
-    input: ChildStdin,
+    input: Option<ChildStdin>,
     output: mpsc::Receiver<Result<Value>>,
     next: u64,
 }
 impl Drop for StdioRpc {
     fn drop(&mut self) {
-        let _ = self.child.kill();
-        let _ = self.child.wait();
+        // EOF requests normal app-server shutdown; never force-kill a Codex process.
+        drop(self.input.take());
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while Instant::now() < deadline {
+            match self.child.try_wait() {
+                Ok(Some(_)) | Err(_) => return,
+                Ok(None) => std::thread::sleep(Duration::from_millis(20)),
+            }
+        }
+        eprintln!("maintenance app-server has not exited after stdin EOF; left running");
     }
 }
 impl StdioRpc {
@@ -77,7 +85,7 @@ impl StdioRpc {
         });
         let mut rpc = Self {
             child,
-            input,
+            input: Some(input),
             output,
             next: 1,
         };
@@ -86,9 +94,10 @@ impl StdioRpc {
             json!({"clientInfo":{"name":"codex_atelier_maintenance","version":"0.1.0"},"capabilities":{"experimentalApi":true}}),
             Duration::from_secs(10),
         )?;
-        serde_json::to_writer(&mut rpc.input, &json!({"method":"initialized"})).map_err(err)?;
-        rpc.input.write_all(b"\n").map_err(err)?;
-        rpc.input.flush().map_err(err)?;
+        let input = rpc.input.as_mut().unwrap();
+        serde_json::to_writer(&mut *input, &json!({"method":"initialized"})).map_err(err)?;
+        input.write_all(b"\n").map_err(err)?;
+        input.flush().map_err(err)?;
         Ok(rpc)
     }
 }
@@ -96,13 +105,14 @@ impl Rpc for StdioRpc {
     fn request(&mut self, method: &str, params: Value, timeout: Duration) -> Result<Value> {
         let id = self.next;
         self.next += 1;
+        let input = self.input.as_mut().unwrap();
         serde_json::to_writer(
-            &mut self.input,
+            &mut *input,
             &json!({"id":id,"method":method,"params":params}),
         )
         .map_err(err)?;
-        self.input.write_all(b"\n").map_err(err)?;
-        self.input.flush().map_err(err)?;
+        input.write_all(b"\n").map_err(err)?;
+        input.flush().map_err(err)?;
         let deadline = Instant::now() + timeout;
         loop {
             let v = self
@@ -127,59 +137,32 @@ impl Rpc for StdioRpc {
 }
 #[derive(Clone)]
 pub(crate) struct OfficialCatalog {
+    pub(super) provider: String,
     pub(super) models: BTreeSet<String>,
     pub(super) default: Option<String>,
     pub(super) raw: Vec<Value>,
     pub(super) dependencies: BTreeMap<PathBuf, Option<Stamp>>,
 }
+impl OfficialCatalog {
+    pub(crate) fn provider_target(&self) -> &str {
+        &self.provider
+    }
+}
 fn validate_source(config: &Value, native: Option<&RelayStateDocument>) -> Result<()> {
-    if !config.is_object()
-        || config
-            .get("model_catalog_json")
-            .is_some_and(|v| !v.is_null())
-    {
-        return Err("官方目录来源被 model_catalog_json 覆盖，已停止孤儿接管".into());
+    if !config.is_object() {
+        return Err("配置不是有效对象，无法确认官方目录来源".into());
+    }
+    if config.get("model_catalog_json").is_some_and(|v| !v.is_null()) {
+        return Err("自定义 model_catalog_json 不能作为官方孤儿接管依据".into());
     }
     let provider = match config.get("model_provider") {
         None | Some(Value::Null) => "openai",
         Some(Value::String(s)) => s.as_str(),
         _ => return Err("官方目录来源 model_provider 类型无效".into()),
     };
-    if provider == "openai" {
-        if config.get("openai_base_url").is_none_or(|v| {
-            v.is_null()
-                || v.as_str().is_some_and(|s| {
-                    s.trim_end_matches('/') == "https://chatgpt.com/backend-api/codex"
-                })
-        }) {
-            return Ok(());
-        }
-    } else if provider != "aimai1" {
-        // A named alias of the built-in official connection is still official.
-        let p = &config["model_providers"][provider];
-        let base = &p["base_url"];
-        let plain = [
-            "env_key",
-            "experimental_bearer_token",
-            "auth",
-            "gateway_oauth",
-            "model_catalog_url",
-        ]
-        .iter()
-        .all(|key| p[*key].is_null())
-            && ["http_headers", "env_http_headers", "query_params"]
-                .iter()
-                .all(|key| p[*key].is_null() || p[*key].as_object().is_some_and(|v| v.is_empty()));
-        if p["requires_openai_auth"] == true
-            && plain
-            && (base.is_null()
-                || base.as_str().is_some_and(|s| {
-                    s.trim_end_matches('/') == "https://chatgpt.com/backend-api/codex"
-                }))
-        {
-            return Ok(());
-        }
-    } else if provider == "aimai1" {
+    if provider != "aimai1" {
+        return atelier_maintenance_core::router_verification::official_provider_target(config).map(|_| ());
+    } else {
         if let Some(native) = native {
             let i = native.catalog_inputs().map_err(err)?;
             if i.router_enabled && !i.no_account_mode {
@@ -313,6 +296,10 @@ pub(super) fn prepare_with(ctx: &Context, rpc: &mut impl Rpc) -> Result<Official
         }
     }
     Ok(OfficialCatalog {
+        provider: match config["model_provider"].as_str() {
+            Some("aimai1") | None => "openai",
+            Some(provider) => provider,
+        }.to_owned(),
         models: ids,
         default,
         raw,

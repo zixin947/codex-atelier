@@ -788,6 +788,13 @@ pub fn inspect_thread_provider_convergence_with_reader(
         ));
         return i;
     }
+    inspect_validated_provider_target(dbs, target, cache)
+}
+/// Caller must validate the official alias against the effective configuration first.
+pub fn inspect_validated_provider_target(
+    dbs: &[PathBuf], target: &str, cache: &mut DiagnosticRolloutProviderCache,
+) -> ThreadProviderConvergenceInspection {
+    let mut i = ThreadProviderConvergenceInspection { target_provider: target.into(), ..Default::default() };
     for db in dbs {
         if std::fs::metadata(db).is_err() {
             continue;

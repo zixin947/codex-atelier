@@ -64,12 +64,14 @@ pub struct Observation {
     pub bytes_read: u64,
     history: Vec<HistoryLine>,
     history_error: Option<String>,
+    full_history: Option<history::FileHistoryInspection>,
     error: Option<String>,
     eof: bool,
     summary_bytes: usize,
 }
 #[derive(Default)]
 struct Cache {
+    full: Option<(u64, std::collections::BTreeSet<String>)>,
     entries: BTreeMap<PathBuf, (Stamp, Result<Rc<Observation>, String>)>,
     requests: BTreeMap<PathBuf, PathBuf>,
     rows: BTreeMap<PathBuf, Result<Vec<super::MainThread>, String>>,
@@ -109,6 +111,27 @@ pub fn with_scope<T>(f: impl FnOnce() -> T) -> T {
     }
     let _guard = Guard(owner);
     f()
+}
+/// Run all diagnostic consumers in one bounded streaming operation. The caller supplies
+/// an explicit decompressed-byte safety ceiling; exhausted coverage stays incomplete.
+/// History is aggregated while streaming, not retained as per-record replay summaries.
+/// Call this OUTSIDE the application's snapshot/observation scope.
+pub fn with_full_scope<T>(
+    roots: &[PathBuf],
+    total_bytes: u64,
+    f: impl FnOnce() -> T,
+) -> Result<T, String> {
+    if active() {
+        return Err("full observation must own the outer scope".into());
+    }
+    let ids = history::collect_rollout_ids(roots);
+    Ok(with_scope(|| {
+        CACHE.with(|c| c.borrow_mut().as_mut().unwrap().full = Some((total_bytes, ids)));
+        f()
+    }))
+}
+pub fn full_active() -> bool {
+    CACHE.with(|cache| cache.borrow().as_ref().is_some_and(|c| c.full.is_some()))
 }
 pub fn metrics() -> (usize, u64) {
     CACHE.with(|cache| {
@@ -215,13 +238,27 @@ pub fn read(path: &Path) -> Option<Result<Rc<Observation>, String>> {
                 Err("history changed during observation; retry required".into())
             };
         }
-        let allowance = CACHE
-            .with(|cache| TOTAL_BYTES.saturating_sub(cache.borrow().as_ref().unwrap().bytes))
-            .min(FILE_BYTES);
+        let allowance = CACHE.with(|cache| {
+            let cache = cache.borrow();
+            let c = cache.as_ref().unwrap();
+            match &c.full {
+                Some((total, _)) => total.saturating_sub(c.bytes),
+                None => TOTAL_BYTES.saturating_sub(c.bytes).min(FILE_BYTES),
+            }
+        });
         let summary_budget = CACHE.with(|cache| {
             (64usize * 1024 * 1024).saturating_sub(cache.borrow().as_ref().unwrap().summary_bytes)
         });
-        let mut result = scan(&physical, allowance, summary_budget).map(Rc::new);
+        let full_ids = CACHE.with(|c| {
+            c.borrow()
+                .as_ref()
+                .unwrap()
+                .full
+                .as_ref()
+                .map(|(_, ids)| ids.clone())
+        });
+        let mut result =
+            scan_with_ids(&physical, allowance, summary_budget, full_ids.as_ref()).map(Rc::new);
         if stamp(&physical)? != before {
             result = Err("history changed while streaming; retry required".into());
         }
@@ -328,6 +365,14 @@ fn provider(value: &Value, which: &str) -> Result<Option<String>, RolloutReadFai
     }
 }
 pub(super) fn scan(path: &Path, budget: u64, summary_budget: usize) -> Result<Observation, String> {
+    scan_with_ids(path, budget, summary_budget, None)
+}
+fn scan_with_ids(
+    path: &Path,
+    budget: u64,
+    summary_budget: usize,
+    full_ids: Option<&std::collections::BTreeSet<String>>,
+) -> Result<Observation, String> {
     let mut out = Observation {
         first_meta: None,
         anchors: Ok(None),
@@ -338,6 +383,7 @@ pub(super) fn scan(path: &Path, budget: u64, summary_budget: usize) -> Result<Ob
         bytes_read: 0,
         history: vec![],
         history_error: None,
+        full_history: full_ids.map(|_| Default::default()),
         error: None,
         eof: false,
         summary_bytes: 0,
@@ -348,8 +394,9 @@ pub(super) fn scan(path: &Path, budget: u64, summary_budget: usize) -> Result<Ob
     if summary_budget < 4 * MAX_FIELD_BYTES {
         return Err("operation history summary budget exhausted".into());
     }
-    let max_lines =
-        MAX_LINES.min((summary_budget - 4 * MAX_FIELD_BYTES) / std::mem::size_of::<HistoryLine>());
+    let max_lines = MAX_LINES.min(
+        (summary_budget.saturating_sub(4 * MAX_FIELD_BYTES)) / std::mem::size_of::<HistoryLine>(),
+    );
     let file = fs::File::open(path).map_err(|e| e.to_string())?;
     let mut reader: Box<dyn BufRead> = if path.to_string_lossy().ends_with(".jsonl.zst") {
         Box::new(std::io::BufReader::new(
@@ -364,12 +411,15 @@ pub(super) fn scan(path: &Path, budget: u64, summary_budget: usize) -> Result<Ob
     let mut settings = None;
     let mut line = 0;
     let mut base_bytes = 0usize;
+    let mut previous = None;
+    let mut first_meta = false;
     while out.bytes_read < budget {
-        if out.history.len() == max_lines
-            || out.history.len() * 2 * std::mem::size_of::<HistoryLine>()
-                + base_bytes
-                + 4 * MAX_FIELD_BYTES
-                >= summary_budget
+        if full_ids.is_none()
+            && (out.history.len() == max_lines
+                || out.history.len() * 2 * std::mem::size_of::<HistoryLine>()
+                    + base_bytes
+                    + 4 * MAX_FIELD_BYTES
+                    >= summary_budget)
         {
             out.history_error =
                 Some("history summary limit exhausted; structure coverage partial".into());
@@ -397,6 +447,9 @@ pub(super) fn scan(path: &Path, budget: u64, summary_budget: usize) -> Result<Ob
         if !newline && n == LINE_BYTES {
             // Drain without retaining oversized bodies. Other checks remain explicitly incomplete.
             oversized = true;
+            if let Some(h) = out.full_history.as_mut() {
+                h.oversized_lines += 1;
+            }
             while out.bytes_read < budget {
                 let available = match reader.fill_buf() {
                     Ok(b) => b,
@@ -420,7 +473,7 @@ pub(super) fn scan(path: &Path, budget: u64, summary_budget: usize) -> Result<Ob
                     break;
                 }
             }
-            if out.history_error.is_none() {
+            if full_ids.is_none() && out.history_error.is_none() {
                 out.history.push(HistoryLine {
                     end: out.bytes_read,
                     newline,
@@ -439,6 +492,11 @@ pub(super) fn scan(path: &Path, budget: u64, summary_budget: usize) -> Result<Ob
         let value = serde_json::from_slice::<Value>(&record).ok();
         let body = record.strip_suffix(b"\n").unwrap_or(&record);
         let body = body.strip_suffix(b"\r").unwrap_or(body);
+        if newline && !body.is_empty() {
+            if let (Some(ids), Some(h)) = (full_ids, out.full_history.as_mut()) {
+                history::record_value(value.as_ref(), ids, &mut previous, &mut first_meta, h);
+            }
+        }
         let meta = value.as_ref().is_some_and(|v| v["type"] == "session_meta");
         let base_value = value
             .as_ref()
@@ -462,7 +520,7 @@ pub(super) fn scan(path: &Path, budget: u64, summary_budget: usize) -> Result<Ob
             out.error = Some("history reference exceeds summary budget".into());
             break;
         }
-        if out.history_error.is_none() {
+        if full_ids.is_none() && out.history_error.is_none() {
             base_bytes += base.as_ref().map_or(0, String::len);
             out.history.push(HistoryLine {
                 end: out.bytes_read,
@@ -559,11 +617,46 @@ pub(super) fn scan(path: &Path, budget: u64, summary_budget: usize) -> Result<Ob
         out.complete = false;
         out.error = Some("oversized history record; other checks incomplete".into());
     }
+    if let Some(h) = out.full_history.as_mut() {
+        h.bytes_read = out.bytes_read;
+        h.complete = out.complete && record.last().is_none_or(|b| *b == b'\n');
+        h.error = out.error.clone();
+        if oversized {
+            h.limit = Some(history::HistoryLimit::RecordLimit);
+            h.error = None;
+        } else if out.error.as_deref().is_some_and(|e| {
+            matches!(
+                e,
+                "history reference exceeds summary budget"
+                    | "session metadata exceeds observation budget"
+                    | "settings provider exceeds observation budget"
+            )
+        }) {
+            h.limit = Some(history::HistoryLimit::SummaryBudget);
+            h.error = None;
+        }
+        if !out.complete && h.error.is_none() && h.limit.is_none() {
+            h.limit = Some(history::HistoryLimit::ByteBudget);
+        }
+    }
     out.summary_bytes = out.history.capacity() * std::mem::size_of::<HistoryLine>()
         + base_bytes
         + out.first_meta.as_ref().map_or(0, |v| v.to_string().len())
         + out.reference.as_ref().map_or(0, |(_, text)| text.len())
-        + 2 * MAX_FIELD_BYTES.min(out.bytes_read as usize);
+        + if full_ids.is_some() {
+            last_provider
+                .as_ref()
+                .ok()
+                .and_then(|p| p.as_ref())
+                .map_or(0, String::len)
+                + settings
+                    .as_ref()
+                    .and_then(|p| p.as_ref())
+                    .map_or(0, String::len)
+                + std::mem::size_of::<Observation>()
+        } else {
+            2 * MAX_FIELD_BYTES.min(out.bytes_read as usize)
+        };
     out.anchors = match &out.first_meta {
         Some(first) => {
             if first
@@ -586,6 +679,9 @@ pub(super) fn scan(path: &Path, budget: u64, summary_budget: usize) -> Result<Ob
     Ok(out)
 }
 impl Observation {
+    pub fn full_history(&self) -> Option<history::FileHistoryInspection> {
+        self.full_history.clone()
+    }
     pub fn require_complete(&self) -> Result<(), String> {
         if self.complete {
             Ok(())

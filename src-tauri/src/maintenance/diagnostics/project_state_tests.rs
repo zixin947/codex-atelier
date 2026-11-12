@@ -635,3 +635,87 @@ fn project_prefix_rejects_unapproved_new_rows_and_external_after_revisions() {
         assert!(!f.root.join("project-backup").exists());
     }
 }
+
+#[test]
+fn account_scoped_projects_are_not_rebuilt_as_legacy_global_roots() {
+    let f = Fixture::new();
+    f.row("one", "/project", None, 1, false);
+    f.state(json!({
+        "electron-owner-value:electron-saved-workspace-roots:account-a": ["/project"],
+        "electron-owner-value:thread-workspace-root-hints:account-a": {"one": "/project"}
+    }));
+    let path = f.ctx.home.join(".codex-global-state.json");
+    let before = fs::read(&path).unwrap();
+    let item = inspect(&f.ctx);
+    assert_eq!(item.status, "warning");
+    assert!(!item.fixable);
+    assert!(prepare(&f.ctx).err().unwrap().contains("账号隔离"));
+    assert_eq!(fs::read(path).unwrap(), before);
+}
+
+fn account_fixture(f: &Fixture) -> (Value, String) {
+    use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+    let claims = json!({"https://api.openai.com/auth": {"user_id":"principal", "chatgpt_user_id":"different", "chatgpt_account_id":"account"}});
+    let token = format!("header.{}.signature", URL_SAFE_NO_PAD.encode(serde_json::to_vec(&claims).unwrap()));
+    fs::write(f.ctx.home.join("auth.json"), serde_json::to_vec(&json!({"tokens":{"access_token":token}})).unwrap()).unwrap();
+    let owner = format!("{:x}", Sha256::digest(br#"["principal","account"]"#));
+    let state = json!({
+        "electron-renderer-content-owner":owner,
+        format!("electron-owner-value:electron-saved-workspace-roots:{owner}"): ["/workspace"],
+        format!("electron-owner-value:thread-workspace-root-hints:{owner}"): {"thread":"/workspace"},
+        "electron-owner-value:electron-saved-workspace-roots:other-account": false
+    });
+    (state, owner)
+}
+#[test]
+fn account_owner_uses_authenticated_principal_and_does_not_merge_other_accounts() {
+    let f = Fixture::new();
+    let (state, _) = account_fixture(&f);
+    f.state(state);
+    assert_eq!(inspect(&f.ctx).status, "ok");
+    assert!(prepare(&f.ctx).is_err());
+}
+#[test]
+fn account_mismatch_and_corrupt_scoped_fields_are_not_healthy() {
+    for mode in 0..4 {
+        let f = Fixture::new();
+        let (mut state, owner) = account_fixture(&f);
+        match mode {
+            0 => state["electron-renderer-content-owner"] = json!("another"),
+            1 => state[format!("electron-owner-value:electron-saved-workspace-roots:{owner}")] = json!([42]),
+            2 => state[format!("electron-owner-value:thread-workspace-root-hints:{owner}")] = json!([]),
+            _ => { fs::remove_file(f.ctx.home.join("auth.json")).unwrap(); }
+        }
+        f.state(state);
+        let item = inspect(&f.ctx);
+        assert_eq!(item.status, "warning");
+        assert!(!item.fixable);
+    }
+}
+#[test]
+fn migrated_projects_allow_pending_assignments_but_reject_dangling_database_roots() {
+    for corrupt in [false, true] {
+        let f = Fixture::new();
+        let (mut state, owner) = account_fixture(&f);
+        state[format!("electron-owner-value:app-server-projects-migration-by-host:{owner}")] = json!({format!("local:{}",f.ctx.home.display()):{"version":1,"projectsMigrated":true,"threadAssignmentsMigrated":false,"pendingThreadAssignmentIds":["pending"]}});
+        f.state(state);
+        let c = Connection::open(&f.db).unwrap();
+        c.execute_batch("ALTER TABLE threads ADD COLUMN project_id TEXT; CREATE TABLE projects(id TEXT PRIMARY KEY,name TEXT,metadata TEXT); CREATE TABLE project_roots(project_id TEXT,path TEXT); INSERT INTO projects VALUES('p','Project','{}'); INSERT INTO project_roots VALUES('p','/workspace');").unwrap();
+        if corrupt { c.execute("UPDATE project_roots SET project_id='missing'", []).unwrap(); }
+        assert_eq!(inspect(&f.ctx).status, if corrupt {"warning"} else {"ok"});
+    }
+}
+
+#[test]
+fn account_unknown_migration_schema_and_missing_project_tables_stay_warning() {
+    for version in [1, 2] {
+        let f = Fixture::new();
+        let (mut state, owner) = account_fixture(&f);
+        state[format!("electron-owner-value:app-server-projects-migration-by-host:{owner}")] = json!({format!("local:{}", f.ctx.home.display()):{"version":version,"projectsMigrated":true}});
+        f.state(state);
+        let before = fs::read(f.ctx.home.join(".codex-global-state.json")).unwrap();
+        assert_eq!(inspect(&f.ctx).status, "warning");
+        assert!(prepare(&f.ctx).is_err());
+        assert_eq!(fs::read(f.ctx.home.join(".codex-global-state.json")).unwrap(), before);
+    }
+}

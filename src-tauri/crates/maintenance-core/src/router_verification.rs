@@ -187,7 +187,7 @@ fn example_suffix(examples: &[String]) -> String {
     }
 }
 fn verify_provider(paths: &VerificationPaths, target: &str, report: &mut VerificationReport) {
-    let i = consistency::inspect_thread_provider_convergence_with_reader(
+    let i = consistency::inspect_validated_provider_target(
         &paths.databases,
         target,
         &mut consistency::DiagnosticRolloutProviderCache::default(),
@@ -263,7 +263,10 @@ pub fn verify_native_off_with_depth(paths: &VerificationPaths, depth: Depth) -> 
         );
     }
     if depth == Depth::Full {
-        verify_provider(paths, "openai", &mut report);
+        match native_off_provider_target(&text) {
+            Ok(target) => verify_provider(paths, &target, &mut report),
+            Err(e) => report.push(InvariantDim::Thread, e),
+        }
     }
     report
 }
@@ -750,7 +753,10 @@ pub fn verify_with_contract_and_transport(
             }
         }
         if depth == Depth::Full {
-            verify_atelier_threads(context.paths, "openai", None, &mut report);
+            match native_off_provider_target(&text) {
+                Ok(target) => verify_atelier_threads(context.paths, &target, None, &mut report),
+                Err(e) => report.push(InvariantDim::Thread, e),
+            }
         }
         return report;
     }
@@ -862,6 +868,37 @@ pub fn verify_with_contract_and_transport(
 pub fn atelier_provider_owned(id: &str) -> bool {
     id == "atelier" || id == "codex_atelier" || id.starts_with("atelier_")
 }
+/// Only an explicitly authenticated, unredirected official connection is an alias.
+pub fn official_provider_target(config: &serde_json::Value) -> Result<String, String> {
+    let provider = match config.get("model_provider") {
+        None | Some(serde_json::Value::Null) => "openai",
+        Some(serde_json::Value::String(s)) => s,
+        _ => return Err("model_provider 类型无效".into()),
+    };
+    let official_url = |v: &serde_json::Value| v.is_null() || v.as_str().is_some_and(|s|
+        s.trim_end_matches('/') == "https://chatgpt.com/backend-api/codex");
+    let p = &config["model_providers"][provider];
+    let plain = ["env_key", "experimental_bearer_token", "auth", "gateway_oauth", "model_catalog_url"]
+        .iter().all(|k| p[*k].is_null())
+        && ["http_headers", "env_http_headers", "query_params"].iter()
+            .all(|k| p[*k].is_null() || p[*k].as_object().is_some_and(|v| v.is_empty()));
+    if official_url(&config["openai_base_url"])
+        && plain && official_url(&p["base_url"])
+        && (provider == "openai" || p["requires_openai_auth"] == true)
+    {
+        Ok(provider.to_owned())
+    } else {
+        Err("无法确证官方 Provider；不自动接管第三方/Gateway 线程".into())
+    }
+}
+pub fn native_off_provider_target(text: &str) -> Result<String, String> {
+    let config: toml::Value = toml::from_str(text).map_err(|e| e.to_string())?;
+    let mut effective = serde_json::to_value(&config).map_err(|e| e.to_string())?;
+    if let Some(provider) = effective_config_provider(&config) {
+        effective["model_provider"] = provider.into();
+    }
+    official_provider_target(&effective)
+}
 fn effective_config_provider(config: &toml::Value) -> Option<&str> {
     config
         .get("profile")
@@ -890,7 +927,7 @@ fn verify_atelier_threads(
 ) {
     // NativeOff reuses the recovered native gate, including external-history and
     // corrupt-only policy. Atelier-owned rows are checked separately below.
-    if target == "openai" {
+    if models.is_none() {
         verify_provider(paths, target, report);
     }
     for db in &paths.databases {
@@ -932,13 +969,15 @@ fn verify_atelier_threads(
             for row in rows {
                 let (id, provider, rollout, model, source) = row.map_err(|e| e.to_string())?;
                 if source.contains("\"subagent\"")
-                    || (target == "openai" && !atelier_provider_owned(&provider))
+                    || (models.is_none() && !atelier_provider_owned(&provider))
                     || !(atelier_provider_owned(&provider)
                         || crate::threads::is_router_or_openai_provider(&provider))
                 {
                     continue;
                 }
-                if provider != target {
+                // 数据库 provider 是 Codex 的真实来源；不匹配才是实质问题。
+                let db_converged = provider == target;
+                if !db_converged {
                     report.push(
                         InvariantDim::Thread,
                         format!("Atelier thread {id} provider is {provider}, expected {target}"),
@@ -973,11 +1012,11 @@ fn verify_atelier_threads(
                 }
                 match consistency::read_rollout_provider_anchors(&path) {
                     Ok(Some(a)) => {
-                        if [&a.first, &a.last, &a.native]
+                        let rollout_matches = [&a.first, &a.last, &a.native]
                             .into_iter()
                             .flatten()
-                            .any(|p| p.as_str() != target)
-                        {
+                            .all(|p| p.as_str() == target);
+                        if !rollout_matches {
                             report.push(
                                 InvariantDim::Thread,
                                 format!(
@@ -1007,5 +1046,19 @@ fn verify_atelier_threads(
                 ),
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod official_target_tests {
+    use super::*;
+    #[test]
+    fn official_target_preserves_alias_and_rejects_unproven_connections() {
+        assert_eq!(native_off_provider_target("model_provider='openai'").unwrap(), "openai");
+        let alias = "model_provider='openai_https'\n[model_providers.openai_https]\nrequires_openai_auth=true\n";
+        assert_eq!(native_off_provider_target(alias).unwrap(), "openai_https");
+        assert!(native_off_provider_target("model_provider='third_party'").is_err());
+        assert!(native_off_provider_target(&format!("{alias}base_url='https://example.invalid/v1'\n")).is_err());
+        assert!(native_off_provider_target("model_provider='openai'\nopenai_base_url='https://example.invalid/v1'").is_err());
     }
 }

@@ -172,15 +172,16 @@ fn relocation_does_not_delete_root_dbs_for_an_arbitrary_configured_directory() {
 }
 
 #[test]
-fn relocation_keeps_sources_when_desktop_started_after_preview() {
-    let mut f = Fixture::new();
+fn relocation_keeps_sources_when_the_quiet_window_cannot_be_obtained() {
+    let f = Fixture::new();
     let (old, _) = relocation_fixture(&f);
     fs::write(&old, b"keep").unwrap();
     let ticket = repair::preview(&f.ctx, "state_db_relocation").unwrap();
-    f.ctx.desktop_running = true;
-    assert!(repair::apply(&f.ctx, ticket)
-        .unwrap_err()
-        .contains("仍在运行"));
+    let mut ctx = f.ctx.clone();
+    ctx.desktop_running = true;
+    // 无法关闭 Desktop（测试环境没有安装）时必须中止，源库保持不变。
+    let err = repair::apply(&ctx, ticket).unwrap_err();
+    assert!(err.contains("静默窗口") || err.contains("Desktop"), "{err}");
     assert_eq!(fs::read(old).unwrap(), b"keep");
 }
 
@@ -235,19 +236,19 @@ fn relocation_backup_failure_is_a_failed_result_with_original_database_preserved
     assert_eq!(fs::read(old).unwrap(), b"original");
 }
 #[test]
-fn exact_35_unique_checks_without_codex_writes() {
+fn exact_34_unique_checks_without_codex_writes() {
     let f = Fixture::new();
     f.config("# preserve\nmodel = 'gpt-fixture'\n");
     let before = fs::read(f.ctx.config()).unwrap();
     let r = inspect::run(&f.ctx).unwrap();
-    assert_eq!(r.items.len(), 35);
+    assert_eq!(r.items.len(), 34);
     assert_eq!(
         r.items
             .iter()
             .map(|i| &i.id)
             .collect::<std::collections::HashSet<_>>()
             .len(),
-        35
+        34
     );
     assert_eq!(before, fs::read(f.ctx.config()).unwrap());
     assert!(!f.ctx.home.join(".aimami_probe").exists());
@@ -302,12 +303,17 @@ fn stale_preview_rejects_config_change() {
     assert_eq!(before, fs::read(f.ctx.config()).unwrap());
 }
 #[test]
-fn running_desktop_prevents_write() {
-    let mut f = Fixture::new();
+fn running_desktop_is_closed_automatically_before_write() {
+    // 对齐 AiMaMi：Desktop 运行时不再拒绝，而是自动关闭 → 修复 → 自动重启。
+    let f = Fixture::new();
     f.config("profile = 'missing'\n");
     let t = repair::preview(&f.ctx, "all").unwrap();
-    f.ctx.desktop_running = true;
-    assert!(repair::apply(&f.ctx, t).unwrap_err().contains("仍在运行"));
+    let mut ctx = f.ctx.clone();
+    ctx.desktop_running = true;
+    // 测试环境没有真实 Desktop 安装，进入静默窗口会明确失败而不是静默写入。
+    let err = repair::apply(&ctx, t).unwrap_err();
+    assert!(err.contains("静默窗口") || err.contains("Desktop"), "{err}");
+    // 配置在未取得静默窗口时不得被修改。
     assert!(fs::read_to_string(f.ctx.config())
         .unwrap()
         .contains("profile"));
@@ -1113,7 +1119,7 @@ fn configured_database_directory_uses_native_config_env_and_cwd_precedence() {
 }
 
 /// 分组必须等于原版前端 qe 常量表：未具名的 6 项回退 runtime。
-/// 分布应为 config 12 / auth 4 / runtime 18 / env 1，而不是界面上看似整齐的四等分。
+/// 分布应为 config 12 / auth 3 / runtime 18 / env 1，而不是界面上看似整齐的四等分。
 #[test]
 fn groups_match_the_original_frontend_table() {
     use std::collections::HashMap;
@@ -1128,7 +1134,7 @@ fn groups_match_the_original_frontend_table() {
         "config_access", "config_replace_readiness",
     ] { want.insert(id, "config"); }
     for id in [
-        "auth_integrity", "api_key_integrity", "auth_token_expiry", "router_unlock_auth_residue",
+        "auth_integrity", "auth_token_expiry", "router_unlock_auth_residue",
     ] { want.insert(id, "auth"); }
     for id in [
         "proxy_running", "thread_missing_rollouts", "thread_history_integrity",
@@ -1141,7 +1147,7 @@ fn groups_match_the_original_frontend_table() {
         "native_off_invalid_openai_thread_models",
     ] { want.insert(id, "runtime"); }
     want.insert("codex_home_writable", "env");
-    assert_eq!(want.len(), 35);
+    assert_eq!(want.len(), 34);
     for item in &r.items {
         assert_eq!(
             item.group,
@@ -1153,11 +1159,11 @@ fn groups_match_the_original_frontend_table() {
     let count = |g: &str| r.items.iter().filter(|i| i.group == g).count();
     assert_eq!(
         (count("config"), count("auth"), count("runtime"), count("env")),
-        (12, 4, 18, 1)
+        (12, 3, 18, 1)
     );
 }
 
-/// 35 项诊断标签保持既有含义，第三方品牌使用中性展示名称。
+/// 34 项诊断标签保持既有含义，第三方品牌使用中性展示名称。
 #[test]
 fn every_label_matches_the_public_display_text() {
     use std::collections::HashMap;
@@ -1186,7 +1192,6 @@ fn every_label_matches_the_public_display_text() {
             "尚未观测到目录请求，不能据此确认官方目录可用",
         ),
         ("auth_integrity", "auth.json 不存在"),
-        ("api_key_integrity", "API 密钥完整"),
         ("auth_token_expiry", "Token 过期检测（无 auth.json，跳过）"),
         ("router_unlock_auth_residue", "无虚拟账号残留"),
         ("proxy_running", "本地代理（智能路由未启用，跳过检测）"),
@@ -1222,10 +1227,10 @@ fn every_label_matches_the_public_display_text() {
         ("state_db_relocation", "线程数据库位置正常"),
         (
             "native_off_invalid_openai_thread_models",
-            "官方直连线程模型规则尚未恢复",
+            "NativeOff 官方线程模型正常",
         ),
     ]);
-    assert_eq!(expected.len(), 35);
+    assert_eq!(expected.len(), 34);
     for item in &r.items {
         match expected.get(item.id.as_str()) {
             Some(want) => assert_eq!(&item.label, want, "{} 的 label 与原版不一致", item.id),

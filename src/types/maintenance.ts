@@ -74,6 +74,10 @@ export interface DiagnosticRepairPlan {
   title: string
   changes: string[]
   warnings: string[]
+  /**
+   * 该修复需要 Desktop 静默窗口。对齐 AiMaMi：后端会自动关闭客户端，
+   * 修复完成后自动重新启动，前端不再要求用户手动退出。
+   */
   requiresDesktopClosed: boolean
 }
 export interface DiagnosticFixResult {

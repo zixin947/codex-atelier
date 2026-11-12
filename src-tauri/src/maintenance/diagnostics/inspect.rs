@@ -428,7 +428,7 @@ pub(super) fn take_scan_count() -> usize {
     SCAN_COUNT.with(|count| count.replace(0))
 }
 pub(super) fn run(ctx: &Context) -> Result<DiagnosticReport> {
-    super::snapshot::with_observation(|| run_observed(ctx))
+    super::snapshot::with_full_observation(ctx, || run_observed(ctx))
 }
 fn run_observed(ctx: &Context) -> Result<DiagnosticReport> {
     #[cfg(test)]
@@ -1084,7 +1084,7 @@ fn run_observed(ctx: &Context) -> Result<DiagnosticReport> {
             }
         }
     }
-    debug_assert_eq!(items.len(), 35);
+    debug_assert_eq!(items.len(), 34);
     Ok(DiagnosticReport {
         mode: "native".into(),
         has_issues: items

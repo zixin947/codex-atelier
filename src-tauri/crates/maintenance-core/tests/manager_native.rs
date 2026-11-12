@@ -470,7 +470,7 @@ fn unknown_selector_is_rejected_without_io() {
     let t = TempDir::new().unwrap();
     let m = manager(&t, Ops::default(), FakeRunner::default(), false);
     assert!(matches!(
-        m.repair("thread_history_integrity").result,
+        m.repair("unknown_diagnostic").result,
         Err(ManagerError::Operation(_))
     ));
     assert!(m.operations().trace().is_empty());
