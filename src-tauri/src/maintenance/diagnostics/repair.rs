@@ -63,6 +63,7 @@ pub(super) struct Ticket {
     home: PathBuf,
     app_root: PathBuf,
     config_hash: String,
+    history_evidence: Vec<(PathBuf, Vec<u8>)>,
     gateway_hash: Option<String>,
     pub(super) files: Vec<FileChange>,
     db: Option<PathBuf>,
@@ -153,6 +154,19 @@ fn preview_internal(
     let mut changes = vec![];
     let mut warnings = vec!["会先保存备份，校验外部变更；确认后才修改上述文件。".into()];
     let mut files = vec![];
+    let mut history_evidence = vec![];
+    if item_ids.iter().any(|id| id == super::history_recovery_workflow::ID) {
+        if !selected.iter().any(|i| i.id == super::history_recovery_workflow::ID && i.status == "error") { return Err("历史未确认为真实错误，不准备恢复".into()); }
+        if item_ids.len() != 1 { return Err("请先单独恢复线程历史，然后重新检测其他项目".into()); }
+        let recovery = super::history_recovery_workflow::prepare(ctx)?;
+        if recovery.is_empty() { return Err("没有可确证的历史备份，不猜测修复".into()); }
+        for candidate in recovery {
+            changes.push(format!("从 {} 佐证恢复 {}：{} 条记录、{} 个分隔符", candidate.backup.display(), candidate.path.display(), candidate.repaired_records, candidate.restored_separators));
+            history_evidence.push((candidate.backup, candidate.evidence));
+            files.push(FileChange::write(candidate.path, candidate.before, candidate.after));
+        }
+        warnings.push("本轮仅恢复有备份佐证的损坏历史；完成后请重新检测，无佐证的错误保持未修复".into());
+    }
     let syntax_only = item_ids.len() == 1 && item_ids[0] == "config_toml_syntax";
     let c = match inspect::config(ctx) {
         Ok(c) => c,
@@ -209,6 +223,7 @@ fn preview_internal(
                 coordinated: None,
                 orphans: None,
                 project: None,
+                history_evidence: vec![],
             });
         }
         Err(e) => return Err(format!("配置解析失败：{e}")),
@@ -343,7 +358,7 @@ fn preview_internal(
     }
     let requires_desktop_closed = !super::quiet_window::can_run_with_desktop(&item_ids);
     warnings.push(if requires_desktop_closed {
-        "请先退出 Codex / ChatGPT Desktop 并结束 codex CLI。Atelier 不会替你强制结束客户端。".into()
+        "执行时会自动关闭 ChatGPT / Codex Desktop，修复完成后自动重新启动。未保存的会话内容可能丢失。".into()
     } else {
         "本次仅清理已关闭路由的残留，不需要退出 Desktop；不会发送停止或重启命令。".into()
     });
@@ -375,6 +390,7 @@ fn preview_internal(
         } else {
             None
         },
+        history_evidence,
         files,
         db,
         rows,
@@ -474,6 +490,17 @@ pub(super) fn acquire(ctx: &Context) -> Result<MutationGuard> {
     Ok(guard)
 }
 fn validate_apply_context(ctx: &Context, t: &Ticket, reject_transition: bool) -> Result<()> {
+    validate_apply_context_inner(ctx, t, reject_transition, true)
+}
+
+/// `require_quiet` 为真时，Desktop 仍在运行即中止。
+/// 普通 `apply` 会先建立静默窗口再以 false 调用；Manager 路径由它自己保证静默。
+fn validate_apply_context_inner(
+    ctx: &Context,
+    t: &Ticket,
+    reject_transition: bool,
+    require_quiet: bool,
+) -> Result<()> {
     if now_ms().saturating_sub(t.created_at) > 300_000 {
         return Err("修复预览已过期，请重新检测".into());
     }
@@ -492,7 +519,10 @@ fn validate_apply_context(ctx: &Context, t: &Ticket, reject_transition: bool) ->
     if reject_transition && inspect::transition_in_flight(ctx) {
         return Err("路由转换进行中，请等待完成后重新预览；未修改任何文件。".into());
     }
-    if ctx.desktop_running && !super::quiet_window::can_run_with_desktop(&t.view.item_ids) {
+    if require_quiet
+        && ctx.desktop_running
+        && !super::quiet_window::can_run_with_desktop(&t.view.item_ids)
+    {
         return Err("Desktop 仍在运行；请退出客户端后重新预览。未修改任何文件。".into());
     }
     if ctx.runtime.as_ref().is_some_and(|r| r.active_requests > 0) {
@@ -500,12 +530,38 @@ fn validate_apply_context(ctx: &Context, t: &Ticket, reject_transition: bool) ->
     }
     Ok(())
 }
+fn has_codex_writer(processes: &[u8]) -> bool {
+    processes.split(|b| *b == b'\n').filter_map(|l| std::str::from_utf8(l).ok()).any(|l| Path::new(l.trim()).file_name().is_some_and(|n| n == "codex"))
+}
+#[test]
+fn standalone_writer_is_not_cleared_when_desktop_has_exited() {
+    assert!(has_codex_writer(b"/usr/bin/login\n/opt/homebrew/bin/codex\n"));
+    assert!(!has_codex_writer(b"/usr/bin/login\n/Applications/Codex Atelier.app/Contents/MacOS/codex-atelier\n"));
+}
 pub(super) fn apply(ctx: &Context, t: Ticket) -> Result<DiagnosticFixResult> {
-    validate_apply_context(ctx, &t, true)?;
+    // 先做不涉及 Desktop 的校验（票据过期、目录、转换态）。
+    validate_apply_context_inner(ctx, &t, true, false)?;
+    // 原版语义：需要静默窗口的修复会先关闭 Desktop，修复完成后自动重新启动。
+    let mut window = super::desktop_window::DesktopWindow::enter(ctx, &t.view.item_ids)?;
     let guard = acquire(ctx)?;
     // A transition can appear while waiting for the filesystem locks.
-    validate_apply_context(ctx, &t, true)?;
-    apply_body(ctx, t, &guard)
+    validate_apply_context_inner(ctx, &t, true, false)?;
+    let mut quiet = ctx.clone();
+    #[cfg(not(test))]
+    {
+        let output = std::process::Command::new("/bin/ps").args(["-axo", "comm="]).output().map_err(|_| "无法核对剩余 Codex 写入进程")?;
+        if !output.status.success() { return Err("无法核对剩余 Codex 写入进程".into()); }
+        if has_codex_writer(&output.stdout) {
+            return Err("仍有 Codex CLI 写入进程；未写入历史，请退出该进程后重新预览".into());
+        }
+        quiet.desktop_running = false;
+    }
+    let result = apply_body(&quiet, t, &guard);
+    // 无论修复成功与否都恢复客户端，避免把用户留在已关闭状态。
+    let restored = window.restore();
+    let out = result?;
+    restored?;
+    Ok(out)
 }
 /// Manager owns the transition journal and has refreshed Context from real process
 /// inspection. Only its own active-transition barrier is omitted; quiet/CAS checks remain.
@@ -534,6 +590,7 @@ pub(super) fn validate_reviewed_sources(ctx: &Context, t: &Ticket) -> Result<()>
             return Err("网关配置已变化，请重新预览".into());
         }
     }
+    super::history_recovery_workflow::validate_evidence(&t.history_evidence)?;
     for f in &t.files {
         if file_state(&f.path)? != f.before {
             return Err("待修复文件已被外部更新，请重新预览；未修改文件".into());
@@ -1043,6 +1100,7 @@ mod rollback_tests {
                 coordinated: None,
                 orphans: None,
                 project: None,
+                history_evidence: vec![],
             }
         }
     }

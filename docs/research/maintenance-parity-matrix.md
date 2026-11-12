@@ -168,3 +168,13 @@ project_state_integrity
 3. `native_off_invalid_openai_thread_models` 的模型映射比对规则。
 4. 12 项 step 修复各自的前置条件，尤其 `config_toml_syntax.fix-db-orphan` 的触发条件。
 5. `fix_requires_quiet_window` 的精确 ID → 0/1/2 表（14 号文档已给表，但未与本轮 id 集合逐项核对）。
+
+## 2026-11-12 实机修复与范围调整
+
+- 用户明确删除 API 密钥完整性检查（不属于修复范围），当前生产诊断 34 项；不读取旧版密钥。
+- 全量流式观察实机覆盖 145/145 线程，约 596 MB 解压数据，无预算缺口或读取错误。
+- 备份佐证恢复一个损坏历史：150 处 LF 恢复为 U+2028；525 条严格 JSON 记录，其他字节和新增记录保留。
+- 旧 Rollout provider 已恢复为经配置验证的 openai_https，当前 gpt-6.1-sol 保留。
+- 最终安装版实机诊断摘要 34 项均 ok；不代表上游生成、所有维护页功能或所有故障分支均已验收。
+- Provider 修复已写入但首次结果刷新出现来源变化错误，随后独立复检通过；该刷新竞争仍需单独回归。
+- 最新前端 111 测试和类型检查通过；提交前 Rust 全量 582 通过、4 忽略，maintenance-core 全套通过。

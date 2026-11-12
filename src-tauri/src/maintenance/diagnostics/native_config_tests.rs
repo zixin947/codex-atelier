@@ -91,7 +91,7 @@ fn native_redirect_detection_is_textual_and_redacts_url_credentials() {
     let f = Fixture::new("openai_base_url=\"https://user:password@api.openai.com/v1?secret=value#token\"\nmodel='keep'\n");
     let before = fs::read(f.ctx.config()).unwrap();
     let report = f.report();
-    assert_eq!(report.items.len(), 35);
+    assert_eq!(report.items.len(), 34);
     let issue = item(&report, "config_third_party");
     assert_eq!(issue.status, "error");
     assert!(issue.fixable);

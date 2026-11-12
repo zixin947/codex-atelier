@@ -47,6 +47,7 @@ pub struct HistoryInspection {
     pub oversized_lines: usize,
     pub bytes_read: u64,
     pub errors: Vec<String>,
+    pub limits: Vec<(String, HistoryLimit)>,
     pub examples: Vec<String>,
 }
 impl HistoryInspection {
@@ -58,6 +59,12 @@ impl HistoryInspection {
             && self.missing_rollouts == 0
     }
 }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HistoryLimit {
+    ByteBudget,
+    SummaryBudget,
+    RecordLimit,
+}
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct FileHistoryInspection {
     pub complete: bool,
@@ -66,6 +73,7 @@ pub struct FileHistoryInspection {
     pub oversized_lines: usize,
     pub bytes_read: u64,
     pub error: Option<String>,
+    pub limit: Option<HistoryLimit>,
 }
 /// 0x1008b3598: recurse at depths 0..6; UUID is the final 36 bytes before
 /// .jsonl/.jsonl.zst of a rollout-* name. Preserve literal case, do not read content.
@@ -377,4 +385,68 @@ pub fn inspect_thread_history_with_ids(
         }
     }
     out
+}
+
+/// Full coverage within the explicit ceiling supplied to observation::with_full_scope.
+/// No fair-share truncation: consumes the aggregate produced by the shared stream.
+pub fn inspect_thread_history_full(rows: &[MainThread]) -> Result<HistoryInspection, String> {
+    let mut out = HistoryInspection {
+        total: rows.len(),
+        selected: rows.len(),
+        ..Default::default()
+    };
+    for row in rows {
+        let Some(path) = row.rollout_path.as_deref() else {
+            out.missing_paths += 1;
+            continue;
+        };
+        let path = match resolve_rollout(Path::new(path)) {
+            Ok(Some(p)) => p,
+            Ok(None) => {
+                out.missing_rollouts += 1;
+                continue;
+            }
+            Err(e) => {
+                out.errors.push(format!("{}: {e}", row.id));
+                continue;
+            }
+        };
+        let result = super::observation::read(&path)
+            .ok_or("full history requires full observation scope")?;
+        out.scanned += 1;
+        match result {
+            Ok(observed) => {
+                let h = observed
+                    .full_history()
+                    .ok_or("full history requires full observation scope")?;
+                out.bytes_read += h.bytes_read;
+                out.structural_errors += h.structural_errors;
+                out.missing_base_refs += h.missing_base_refs;
+                out.oversized_lines += h.oversized_lines;
+                if h.complete {
+                    out.complete += 1;
+                } else {
+                    out.partial += 1;
+                }
+                if let Some(limit) = h.limit {
+                    out.limits.push((row.id.clone(), limit));
+                }
+                if let Some(error) = h.error {
+                    out.errors.push(format!("{}: {error}", row.id));
+                }
+            }
+            Err(e) => {
+                out.partial += 1;
+                if e == "operation history summary budget exhausted" {
+                    out.limits
+                        .push((row.id.clone(), HistoryLimit::SummaryBudget));
+                } else if e == "operation history budget exhausted" {
+                    out.limits.push((row.id.clone(), HistoryLimit::ByteBudget));
+                } else {
+                    out.errors.push(format!("{}: {e}", row.id));
+                }
+            }
+        }
+    }
+    Ok(out)
 }

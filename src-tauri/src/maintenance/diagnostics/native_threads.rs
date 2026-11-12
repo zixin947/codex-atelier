@@ -864,7 +864,7 @@ fn inspect_projected(
             } else if count > 0 {
                 ("error", "线程调用项 ID 存在旧版前缀")
             } else {
-                ("ok", "线程调用项 ID 健康（数据库不存在，跳过）")
+                ("ok", if copies.is_empty() { "线程调用项 ID 健康（数据库不存在，跳过）" } else { "线程调用项 ID 健康" })
             };
             Ok(diagnostic(
                 id,
@@ -886,7 +886,7 @@ fn inspect_projected(
             } else if !p.warnings.is_empty() {
                 ("warning", "无法完整检查线程系统提示")
             } else {
-                ("ok", "线程系统提示健康（数据库不存在，跳过）")
+                ("ok", if copies.is_empty() { "线程系统提示健康（数据库不存在，跳过）" } else { "线程系统提示健康" })
             };
             Ok(diagnostic(
                 id,
@@ -1045,7 +1045,13 @@ fn review_provider_target_observed(
             .iter()
             .map(|p| p.copy.clone())
             .collect::<Vec<_>>();
-        let inspected = consistency::inspect_thread_provider_convergence_with_reader(
+        if target != "openai" && target != "aimai1" {
+            let text = std::fs::read_to_string(ctx.config()).map_err(err)?;
+            if atelier_maintenance_core::router_verification::native_off_provider_target(&text)? != target {
+                return Err("Provider目标与已验证的有效配置不一致".into());
+            }
+        }
+        let inspected = consistency::inspect_validated_provider_target(
             &copies,
             target,
             &mut consistency::DiagnosticRolloutProviderCache::default(),
@@ -1065,13 +1071,17 @@ fn review_provider_target_observed(
         }
         // Native collectors deliberately exclude Atelier IDs. Do not silently
         // promise a NativeOff migration for rows this adapter cannot rewrite.
-        for row in core::collect_diagnostic_main_threads(&copies).map_err(err)? {
-            if row
-                .provider
-                .as_deref()
-                .is_some_and(super::router_intent::owns_provider)
-            {
-                return Err("仍有Atelier受管线程，原生Provider计划不包含这些行；未开始修复，需先提供对应Gateway线程迁移计划".into());
+        // 例外：本次计划本身包含 Provider 改写（孤儿接管或线程收敛）时，
+        // 这些 Atelier 行正是被接管的对象，不能再用「计划不包含」拒绝。
+        if !changes_provider {
+            for row in core::collect_diagnostic_main_threads(&copies).map_err(err)? {
+                if row
+                    .provider
+                    .as_deref()
+                    .is_some_and(super::router_intent::owns_provider)
+                {
+                    return Err("仍有Atelier受管线程，原生Provider计划不包含这些行；未开始修复，需先提供对应Gateway线程迁移计划".into());
+                }
             }
         }
         Ok(())

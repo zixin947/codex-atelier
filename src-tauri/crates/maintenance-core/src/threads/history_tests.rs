@@ -230,3 +230,82 @@ fn history_default_limits_are_native_values() {
     assert_eq!(l.line_bytes, 0x1800001);
     assert_eq!(l.drain_bytes, 0x4000000);
 }
+
+#[test]
+fn full_stream_aggregates_without_fair_share_or_retained_line_summaries() {
+    let t = tempfile::tempdir().unwrap();
+    for compressed in [false, true] {
+        let p = t.path().join(if compressed {
+            "full.jsonl.zst"
+        } else {
+            "full.jsonl"
+        });
+        let bytes = b"{\"ordinal\":1}\n{\"ordinal\":1}\n{bad}\n";
+        fs::write(
+            &p,
+            if compressed {
+                zstd::stream::encode_all(&bytes[..], 1).unwrap()
+            } else {
+                bytes.to_vec()
+            },
+        )
+        .unwrap();
+        super::observation::with_full_scope(&[], 4096, || {
+            let h = inspect_thread_history_full(&[row(Some(p.clone()))]).unwrap();
+            assert_eq!(h.complete, 1);
+            assert_eq!(h.structural_errors, 2);
+            assert!(h.errors.is_empty());
+            assert!(h.limits.is_empty());
+            let again = inspect_thread_history_full(&[row(Some(p.clone()))]).unwrap();
+            assert_eq!(h, again);
+            assert_eq!(super::observation::metrics(), (1, bytes.len() as u64));
+            super::observation::validate().unwrap();
+        })
+        .unwrap();
+    }
+}
+#[test]
+fn full_stream_budget_is_typed_and_unterminated_tail_stays_partial() {
+    let t = tempfile::tempdir().unwrap();
+    let a = t.path().join("a.jsonl");
+    let b = t.path().join("b.jsonl");
+    fs::write(&a, b"{}\n{}\n").unwrap();
+    fs::write(&b, b"{}\n").unwrap();
+    super::observation::with_full_scope(&[], 4, || {
+        let h = inspect_thread_history_full(&[row(Some(a.clone())), row(Some(b.clone()))]).unwrap();
+        assert_eq!(h.partial, 2);
+        assert_eq!(h.limits.len(), 2);
+        assert!(h.limits.iter().all(|(_, l)| *l == HistoryLimit::ByteBudget));
+        assert!(h.errors.is_empty());
+        assert_eq!(h.bytes_read, 4);
+    })
+    .unwrap();
+    fs::write(&a, b"{}").unwrap();
+    super::observation::with_full_scope(&[], 4096, || {
+        let h = inspect_thread_history_full(&[row(Some(a.clone()))]).unwrap();
+        assert_eq!(h.partial, 1);
+        assert!(h.errors.is_empty());
+        assert!(h.limits.is_empty());
+    })
+    .unwrap();
+}
+#[test]
+fn full_stream_crosses_legacy_file_ceiling_with_bounded_summary() {
+    let t = tempfile::tempdir().unwrap();
+    let p = t.path().join("large.jsonl.zst");
+    let line = format!("{{\"ignored\":\"{}\"}}\n", "x".repeat(1024 * 1024));
+    let mut encoder = zstd::stream::write::Encoder::new(fs::File::create(&p).unwrap(), 1).unwrap();
+    use std::io::Write;
+    for _ in 0..65 {
+        encoder.write_all(line.as_bytes()).unwrap();
+    }
+    encoder.finish().unwrap();
+    super::observation::with_full_scope(&[], 70 * 1024 * 1024, || {
+        let h = inspect_thread_history_full(&[row(Some(p.clone()))]).unwrap();
+        assert_eq!(h.complete, 1);
+        assert!(h.coverage_complete());
+        assert_eq!(h.bytes_read, 65 * line.len() as u64);
+        assert!(super::observation::retained_summary_bytes() < 1024 * 1024);
+    })
+    .unwrap();
+}

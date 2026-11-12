@@ -18,7 +18,6 @@ const definitions: [string, DiagnosticGroup, string][] = [
   ['config_access', 'config', 'config.toml 可正常读取'],
   ['config_replace_readiness', 'config', 'config.toml 权限未显示只读'],
   ['auth_integrity', 'auth', 'auth.json 正常'],
-  ['api_key_integrity', 'auth', 'API 密钥完整'],
   ['auth_token_expiry', 'auth', 'Token 过期检测（API Key 模式，不适用）'],
   ['router_unlock_auth_residue', 'auth', '无虚拟账号残留'],
   ['proxy_running', 'runtime', '本地代理运行中'],
@@ -48,7 +47,6 @@ export function createDiagnosticDemo(): DiagnosticItem[] {
     // 原版没有 skipped / unknown：跳过检测走 ok，未确认走 warning。
     const skipped = [
       'router_http_contract',
-      'api_key_integrity',
       'router_unlock_auth_residue',
     ].includes(id)
     const unknown = id === 'official_catalog_freshness'

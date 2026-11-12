@@ -55,6 +55,12 @@ struct ObservedCopy {
 thread_local! {
     static OBSERVED: std::cell::RefCell<Option<std::collections::BTreeMap<PathBuf, ObservedCopy>>> = const { std::cell::RefCell::new(None) };
 }
+/// Full diagnostic reads share streaming summaries, bounded to 4 GiB per operation.
+pub(super) fn with_full_observation<T>(ctx: &super::Context, read: impl FnOnce() -> Result<T>) -> Result<T> {
+    use atelier_maintenance_core::threads::observation;
+    if observation::active() { return with_observation(read); }
+    observation::with_full_scope(&[ctx.home.join("sessions"), ctx.home.join("archived_sessions")], 4 * 1024 * 1024 * 1024, || with_observation(read))?
+}
 /// Read-only phase only. Mutable planning projections still use independent copies.
 pub(super) fn with_observation<T>(read: impl FnOnce() -> Result<T>) -> Result<T> {
     let owner = OBSERVED.with(|s| {
@@ -357,6 +363,88 @@ mod tests {
             2
         );
         assert_eq!(take_snapshot_count(), 1);
+    }
+    #[test]
+    fn observation_rejects_db_and_wal_changes_at_each_boundary() {
+        for mode in ["DELETE", "WAL"] {
+            for boundary in ["cached", "callback", "scope"] {
+                let temp = Scratch::new().unwrap();
+                // Stability checks must not depend on a .sqlite extension.
+                let path = temp.0.join("source.db");
+                let writer = Connection::open(&path).unwrap();
+                writer.execute_batch(&format!(
+                    "PRAGMA journal_mode={mode}; PRAGMA wal_autocheckpoint=0; CREATE TABLE sample(value INTEGER); INSERT INTO sample VALUES(1);"
+                )).unwrap();
+                let mutate = || {
+                    writer.execute("INSERT INTO sample VALUES(2)", []).unwrap();
+                };
+                let result = with_observation(|| {
+                    with_observed_path(&path, |_, connection| {
+                        let count: i64 = connection
+                            .query_row("SELECT COUNT(*) FROM sample", [], |r| r.get(0))
+                            .unwrap();
+                        assert_eq!(count, 1);
+                        if boundary == "callback" {
+                            mutate();
+                        }
+                        Ok(())
+                    })?;
+                    if boundary == "callback" {
+                        panic!("callback mutation was accepted");
+                    }
+                    mutate();
+                    if boundary == "cached" {
+                        with_observed_path(&path, |_, _| {
+                            panic!("stale cached observation was reused")
+                        })?;
+                    }
+                    Ok(())
+                });
+                assert!(
+                    result.unwrap_err().contains("观察期间变化"),
+                    "{mode}/{boundary}"
+                );
+                // A rejected scope must not leave a stale private copy in the next round.
+                let count = with_observation(|| {
+                    with_observed_path(&path, |_, connection| {
+                        connection
+                            .query_row("SELECT COUNT(*) FROM sample", [], |r| r.get::<_, i64>(0))
+                            .map_err(|e| e.to_string())
+                    })
+                })
+                .unwrap();
+                assert_eq!(count, 2);
+            }
+        }
+    }
+    #[test]
+    fn transient_source_change_retries_with_a_fresh_snapshot() {
+        let temp = Scratch::new().unwrap();
+        let path = temp.0.join("source.db");
+        let writer = Connection::open(&path).unwrap();
+        writer
+            .execute_batch("CREATE TABLE sample(value INTEGER); INSERT INTO sample VALUES(1);")
+            .unwrap();
+        let mut attempts = 0;
+        take_snapshot_count();
+        let count = read_with_hook(
+            &path,
+            |connection| {
+                connection
+                    .query_row("SELECT COUNT(*) FROM sample", [], |r| r.get::<_, i64>(0))
+                    .map_err(|e| e.to_string())
+            },
+            || {
+                attempts += 1;
+                if attempts == 1 {
+                    writer.execute("INSERT INTO sample VALUES(2)", []).unwrap();
+                }
+            },
+        )
+        .unwrap();
+        assert_eq!(count, 2);
+        assert_eq!(attempts, 2);
+        assert_eq!(take_snapshot_count(), 2);
     }
     #[test]
     fn invalid_wal_is_not_silently_ignored() {

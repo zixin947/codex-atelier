@@ -354,7 +354,7 @@ fn official_diagnostic(
     })
 }
 pub(super) fn report(ctx: &Context) -> Result<DiagnosticReport> {
-    super::snapshot::with_observation(|| augment_report(ctx, inspect::run(ctx)?, snapshot(ctx)))
+    super::snapshot::with_full_observation(ctx, || augment_report(ctx, inspect::run(ctx)?, snapshot(ctx)))
 }
 fn augment_report(
     ctx: &Context,
@@ -460,11 +460,13 @@ pub(super) struct Reviewed {
 }
 pub(super) fn preview(ctx: &Context, selected: &str) -> Result<Reviewed> {
     let original = snapshot(ctx)?;
-    let (ordinary_report, report) = super::snapshot::with_observation(|| {
+    let (ordinary_report, report) = super::snapshot::with_full_observation(ctx, || {
         let ordinary = inspect::run(ctx)?;
         let report = augment_report(ctx, ordinary.clone(), Ok(original.clone()))?;
         Ok((ordinary, report))
     })?;
+    // History restoration must precede other rollout plans; never overlap their CAS baselines.
+    let selected = if selected == "all" && ordinary_report.items.iter().any(|i| i.id == super::history_recovery_workflow::ID && i.status == "error" && i.fixable) { super::history_recovery_workflow::ID } else { selected };
     let gates = manager_report(report.clone()).repair_gates(selected)?;
     let has_primary = ordinary_report.items.iter().any(|i| {
         i.fixable && i.id != "router_postcondition" && (selected == "all" || selected == i.id)
@@ -477,6 +479,18 @@ pub(super) fn preview(ctx: &Context, selected: &str) -> Result<Reviewed> {
     } else {
         None
     };
+    // Backup-proven byte restoration has no router/config/provider effect.
+    // Keep its approval and postcondition scoped to the restored files, not unrelated route debt.
+    if selected == super::history_recovery_workflow::ID {
+        let ticket = primary.ok_or("没有可确证的历史恢复计划")?;
+        return Ok(Reviewed {
+            view: ticket.view.clone(), created_at: now_ms(), selected: selected.into(),
+            home: ctx.home.clone(), app_root: ctx.app_root.clone(), original,
+            primary: Some(ticket), batch: None, reconcile: None, native_primary: None,
+            expected_final_config: optional(&ctx.config())?, initial_config: optional(&ctx.config())?,
+            context: ctx.clone(),
+        });
+    }
     let needs_postcondition = report.items.iter().any(|i| {
         i.id == "router_postcondition" && i.fixable && (selected == "all" || selected == i.id)
     });
@@ -508,15 +522,6 @@ pub(super) fn preview(ctx: &Context, selected: &str) -> Result<Reviewed> {
     } else {
         None
     };
-    if original.target() == TransitionTarget::NativeOff
-        && (gates.use_quiet_transition || gates.direct_postcondition)
-        && inspect::config(ctx).is_ok()
-    {
-        let changes_provider = primary
-            .as_ref()
-            .is_some_and(repair::Ticket::changes_provider_target);
-        super::native_threads::review_provider_target(ctx, "openai", changes_provider)?;
-    }
     let primary_effect = primary.as_ref().and_then(repair::Ticket::config_after);
     let native_primary = if let (Some(plan), Some(after)) = (&reconcile, &primary_effect) {
         if original
@@ -562,6 +567,23 @@ pub(super) fn preview(ctx: &Context, selected: &str) -> Result<Reviewed> {
         (None, Some(after)) => after.clone(),
         (None, None) => optional(&ctx.config())?,
     };
+    if original.target() == TransitionTarget::NativeOff
+        && (gates.use_quiet_transition || gates.direct_postcondition)
+        && inspect::config(ctx).is_ok()
+    {
+        let changes_provider = primary
+            .as_ref()
+            .is_some_and(repair::Ticket::changes_provider_target);
+        let target = verification::native_off_provider_target(
+            std::str::from_utf8(expected_final_config.as_deref().unwrap_or_default()).map_err(err)?,
+        )?;
+        if primary.as_ref().and_then(repair::Ticket::orphan_catalog)
+            .is_some_and(|catalog| catalog.provider_target() != target)
+        {
+            return Err("孤儿接管 Provider 与批准的最终配置目标不一致，未开始修复".into());
+        }
+        super::native_threads::review_provider_target(ctx, &target, changes_provider)?;
+    }
     let mut view =
         primary
             .as_ref()
@@ -592,7 +614,10 @@ pub(super) fn preview(ctx: &Context, selected: &str) -> Result<Reviewed> {
     }
     if gates.use_quiet_transition || gates.direct_postcondition {
         view.warnings
-            .retain(|w| !w.starts_with("请先退出 Codex / ChatGPT Desktop"));
+            .retain(|w| {
+                !w.starts_with("请先退出 Codex / ChatGPT Desktop")
+                    && !w.starts_with("执行时会自动关闭 ChatGPT")
+            });
         view.warnings.push("确认后将请求 Desktop 正常退出并建立写入静默窗口；必要时结束识别到的 Codex 写入进程。若操作前 Desktop 已运行，验证完成后自动重开。".into());
         view.changes.push(format!(
             "验证修复目标后提交路由回执：{}",
@@ -1171,6 +1196,12 @@ pub(super) fn apply_native(
     ctx: &Context,
     reviewed: Reviewed,
 ) -> Result<DiagnosticFixResult> {
+    if reviewed.selected == super::history_recovery_workflow::ID {
+        let ticket = reviewed.primary.ok_or("历史恢复票据缺失")?;
+        let mut result = repair::apply(ctx, ticket)?;
+        result.report = report(&Context::native(app)?)?;
+        return Ok(result);
+    }
     let runner = Arc::new(process::SystemRunner::default());
     let process_context = ProcessContext {
         user_home: std::env::var_os("HOME").map(PathBuf::from),
@@ -1245,7 +1276,9 @@ fn apply_with_runner<R: Runner + Send + Sync + 'static>(
     {
         super::native_threads::review_provider_target(
             ctx,
-            "openai",
+            &verification::native_off_provider_target(
+                std::str::from_utf8(reviewed.expected_final_config.as_deref().unwrap_or_default()).map_err(err)?,
+            )?,
             reviewed
                 .primary
                 .as_ref()

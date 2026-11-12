@@ -98,3 +98,14 @@ pnpm tauri build --bundles app
 已按原版文案调整的条目：`config_access`、`config_toml_syntax`、`proxy_running`、`catalog_path_validity`、`catalog_integrity`、`official_catalog_freshness`、`codex_process_state`、`codex_home_writable`。
 
 仍需逐函数裁定的部分：`router_postcondition` 的提交确认条件、`project_state_integrity` 的索引算法、`native_off_invalid_openai_thread_models` 的模型映射规则，以及各 `fix_*` 的前置条件。这些没有证据时不宣称已对齐。
+
+## 2026-11-11：修复自动接管 Desktop 生命周期（对齐 AiMaMi）
+
+维护工具执行修复时的进程行为改为与 AiMaMi 1.2.7 完全一致：
+
+- 除 `residual_cache` 与 `residual_manifest` 两项纯文件清理外，其余修复在 Desktop 运行时**自动关闭 ChatGPT / Codex**，修复完成后**自动重新启动**。
+- 判定表来自原版 `fix_requires_quiet_window`（@0x10037d594）的精确分支，见 `docs/research/maintenance-parity-matrix.md` 与 14 号裁定文档。
+- 关闭使用 `osascript` 优雅退出并轮询等待；进程不退出则中止并报告，不做强杀。
+- 修复失败路径同样恢复客户端：`DesktopWindow` 的 `Drop` 保证这一点。
+- 预览阶段的警告文案改为如实说明会自动停启，并提示未保存内容可能丢失。
+- 单元测试在 `cfg(test)` 下硬跳过真实停启（此前有测试误关开发者 ChatGPT 的事故），真实停启逻辑由 `process_tests.rs` 的假 Runner 覆盖。

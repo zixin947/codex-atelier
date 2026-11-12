@@ -15,4 +15,6 @@ artifacts/
 # Built from the vendored routing core
 src-tauri/binaries/atelier-router
 
+# 本地 Go 工具链（scripts/install-go.mjs 准备，不进仓库）
+.toolchain/
 src-tauri/binaries/hud-native/

@@ -11,7 +11,11 @@ fn item(id: &str, status: &str, detail: impl Into<String>) -> DiagnosticItem {
         group: "auth".into(),
         status: status.into(),
         label: if id == "auth_token_expiry" {
-            "Token 过期检测（无 auth.json，跳过）"
+            if status == "ok" { "Token 过期检测（无 auth.json，跳过）" } else { "Token 到期检查未通过" }
+        } else if status == "error" {
+            "API 密钥缺失或读取失败"
+        } else if status == "warning" {
+            "API 密钥来源尚未确认"
         } else {
             "API 密钥完整"
         }
@@ -245,34 +249,8 @@ pub(super) fn inspect(
             "路由模式无法确认，未猜测到期检查适用性",
         ),
     };
-    let keys = match native_catalog::context_source(ctx) {
-        Ok(native_catalog::Source::Native {
-            state_path,
-            catalog_root,
-            ..
-        }) => {
-            match super::read_bounded(&state_path, super::inspect::LIMIT)
-                .ok()
-                .and_then(|bytes| RelayStateDocument::from_json(&bytes).ok())
-            {
-                Some(state) => native_keys(&state, &catalog_root, |_| KeyObservation::Unknown),
-                None => item(
-                    "api_key_integrity",
-                    "warning",
-                    "原生RelayState无法读取；未降级为Gateway或访问钥匙串",
-                ),
-            }
-        }
-        Ok(native_catalog::Source::Gateway { catalog_path, .. }) => {
-            gateway_keys(ctx, &catalog_path)
-        }
-        Err(_) => item(
-            "api_key_integrity",
-            "warning",
-            "无法确认真实Native/Gateway凭据来源；未回退猜测或访问钥匙串",
-        ),
-    };
-    vec![keys, expiry]
+    // API key inventory is outside the maintenance repair scope.
+    vec![expiry]
 }
 
 #[cfg(test)]

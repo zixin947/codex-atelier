@@ -4,9 +4,12 @@ mod access_checks;
 #[cfg(test)]
 mod auth_workflow_tests;
 mod config_syntax;
+mod desktop_window;
 mod credential_checks;
 mod directory_probe;
 mod inspect;
+mod history_recovery;
+mod history_recovery_workflow;
 mod native_auth;
 #[cfg(test)]
 mod native_auth_tests;

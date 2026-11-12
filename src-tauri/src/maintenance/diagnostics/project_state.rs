@@ -17,6 +17,8 @@ use std::{
 #[path = "project_state_tests.rs"]
 mod tests;
 
+mod account;
+
 #[derive(Clone, PartialEq, Eq)]
 struct Stamp {
     length: u64,
@@ -261,10 +263,29 @@ fn diagnostic(i: &core::ProjectStateInspection) -> DiagnosticItem {
         fixable: native.fixable,
     }
 }
+/// Current Desktop isolates project state by account; the recovered legacy writer
+/// must never reconstruct global roots across account boundaries.
+fn has_account_project_state(bytes: Option<&[u8]>) -> bool {
+    bytes
+        .and_then(|b| serde_json::from_slice::<serde_json::Value>(b).ok())
+        .and_then(|v| v.as_object().map(|m| m.contains_key("electron-renderer-content-owner") || m.keys().any(|key| {
+            ["electron-saved-workspace-roots", "thread-workspace-root-hints",
+             "app-server-projects-migration-by-host"].iter().any(|name|
+                key.strip_prefix(&format!("electron-owner-value:{name}:"))
+                    .is_some_and(|owner| !owner.is_empty()))
+        })))
+        .unwrap_or(false)
+}
 fn inspect_value(
     before: Option<&[u8]>,
     db: core::ProjectDbSnapshot,
 ) -> Result<core::ProjectStateInspection> {
+    if has_account_project_state(before) {
+        return Ok(core::ProjectStateInspection {
+            read_error: Some("检测到账号隔离的新版项目格式；旧版全局索引规则不适用，尚未验证当前账号的项目完整性，已禁止旧格式重建".into()),
+            ..Default::default()
+        });
+    }
     let scratch = Scratch::new()?;
     let path = scratch.0.join("project.json");
     if let Some(bytes) = before {
@@ -428,6 +449,9 @@ fn prepare_database(
 fn prepare_for_database(ctx: &Context, database: Option<PathBuf>) -> Result<Prepared> {
     let state = ctx.home.join(".codex-global-state.json");
     let before = optional(&state, 8 * 1024 * 1024)?;
+    if has_account_project_state(before.as_deref()) {
+        return Err("新版账号隔离项目索引不支持旧格式重建；未修改文件".into());
+    }
     let mut dependencies = BTreeMap::new();
     for p in [ctx.config(), state.clone()] {
         dependencies.insert(p.clone(), stamp(&p)?);
@@ -494,6 +518,9 @@ pub(super) fn inspect(ctx: &Context) -> DiagnosticItem {
     // Diagnosis needs the observation, not sealed repair dependencies or source hashes.
     let observed = (|| -> Result<DiagnosticItem> {
         let before = optional(&ctx.home.join(".codex-global-state.json"), 8 * 1024 * 1024)?;
+        if has_account_project_state(before.as_deref()) {
+            return Ok(account::inspect(ctx, before.as_deref().unwrap()));
+        }
         let inspection = match active_database(ctx)? {
             Some(db) => prepare_database(ctx, &db, before.as_deref(), false)?.0,
             None => inspect_value(before.as_deref(), core::ProjectDbSnapshot::default())?,

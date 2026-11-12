@@ -54,6 +54,7 @@ impl Drop for Fixture {
 }
 fn official() -> catalog::OfficialCatalog {
     catalog::OfficialCatalog {
+        provider: "openai".into(),
         dependencies: BTreeMap::new(),
         models: ["gpt-known", "gpt-default"]
             .into_iter()
@@ -209,7 +210,7 @@ fn database_membership_change_is_not_approved_by_unchanged_rollout_bytes() {
     assert!(validate(&f.ctx, &p).unwrap_err().contains("数据库集合"));
 }
 #[test]
-fn confirmed_apply_preserves_healthy_mixed_providers_and_preserves_or_falls_back_models() {
+fn confirmed_apply_preserves_healthy_mixed_providers_and_original_models() {
     let f = Fixture::new();
     let mut untouched = vec![];
     for (id, p) in [
@@ -226,13 +227,13 @@ fn confirmed_apply_preserves_healthy_mixed_providers_and_preserves_or_falls_back
         "aimami_relay_deleted",
         "gpt-known",
     );
-    f.row("warning", "atelier_deleted", "atelier_deleted", "bad-model");
+
     let p = build(&f.ctx, select(&f.ctx).unwrap(), &official()).unwrap();
     let guard = super::super::repair::acquire(&f.ctx).unwrap();
     let result = apply(&f.ctx, &p, &f.base.join("backups"), &guard).unwrap();
     assert!(!result.is_empty());
     assert_eq!(f.state("known"), ("openai".into(), "gpt-known".into()));
-    assert_eq!(f.state("warning"), ("openai".into(), "gpt-default".into()));
+
     for (id, provider, path, bytes) in untouched {
         assert_eq!(f.state(id).0, provider);
         assert_eq!(fs::read(path).unwrap(), bytes);
@@ -500,4 +501,93 @@ fn actual_database_trigger_failure_rolls_back_and_returns_verified_prefix_withou
         serde_json::from_slice(&fs::read(f.base.join("backups/adoption-recovery.json")).unwrap())
             .unwrap();
     assert_eq!(recovery["phase"], "rolledBack");
+}
+
+#[test]
+fn official_alias_is_preserved_through_preview_apply_and_recovery() {
+    let f = Fixture::new();
+    fs::write(f.ctx.config(), "model_provider='openai_https'\n[model_providers.openai_https]\nrequires_openai_auth=true\n").unwrap();
+    let path = f.row("orphan", "aimami_relay_deleted", "aimami_relay_deleted", "gpt-known");
+    let config = json!({"config":{"model_provider":"openai_https","model_providers":{"openai_https":{"requires_openai_auth":true}}}});
+    let mut rpc = FakeRpc { expected: VecDeque::from([
+        ("config/read", json!({"includeLayers":true}), config.clone()),
+        ("model/list", json!({"includeHidden":true,"limit":100}), json!({"data":official().raw})),
+        ("config/read", json!({"includeLayers":true}), config),
+    ]) };
+    let catalog = catalog::prepare_with(&f.ctx, &mut rpc).unwrap();
+    let p = prepare_with_catalog(&f.ctx, &catalog).unwrap();
+    assert!(preview_lines(&p).join("\n").contains("→ openai_https"));
+    let guard = super::super::repair::acquire(&f.ctx).unwrap();
+    apply(&f.ctx, &p, &f.base.join("backup"), &guard).unwrap();
+    assert_eq!(f.state("orphan"), ("openai_https".into(), "gpt-known".into()));
+    assert_eq!(records(&fs::read(path).unwrap())[0].value["payload"]["model_provider"], "openai_https");
+    let recovery: Value = serde_json::from_slice(&fs::read(f.base.join("backup/adoption-recovery.json")).unwrap()).unwrap();
+    assert_eq!(recovery["rows"][0]["afterProvider"], "openai_https");
+    assert!(select(&f.ctx).unwrap().rows.is_empty());
+}
+#[test]
+fn unknown_model_and_custom_catalog_refuse_without_writes() {
+    let f = Fixture::new();
+    let path = f.row("orphan", "atelier_deleted", "atelier_deleted", "bad-model");
+    let before = fs::read(&path).unwrap();
+    assert!(prepare_with_catalog(&f.ctx, &official()).err().unwrap().contains("拒绝替换模型"));
+    assert_eq!(fs::read(path).unwrap(), before);
+    assert_eq!(f.state("orphan"), ("atelier_deleted".into(), "bad-model".into()));
+    for value in [json!("/synthetic/custom.json"), json!("")] {
+        let mut rpc = FakeRpc { expected: VecDeque::from([("config/read", json!({"includeLayers":true}),
+            json!({"config":{"model_provider":"openai", "model_catalog_json":value}}))]) };
+        assert!(catalog::prepare_with(&f.ctx, &mut rpc).err().unwrap().contains("自定义"));
+        assert!(rpc.expected.is_empty());
+    }
+}
+#[test]
+fn provider_source_change_rejects_before_backup_or_mutation() {
+    let f = Fixture::new();
+    let path = f.row("orphan", "atelier_deleted", "atelier_deleted", "gpt-known");
+    let before = fs::read(&path).unwrap();
+    let p = prepare_with_catalog(&f.ctx, &official()).unwrap();
+    fs::write(f.ctx.config(), "model_provider='third_party'\n").unwrap();
+    let guard = super::super::repair::acquire(&f.ctx).unwrap();
+    assert!(apply(&f.ctx, &p, &f.base.join("backup"), &guard).is_err());
+    assert!(!f.base.join("backup").exists());
+    assert_eq!(fs::read(path).unwrap(), before);
+    assert_eq!(f.state("orphan").0, "atelier_deleted");
+}
+
+#[test]
+fn native_only_orphan_replaces_provider_id_without_adding_a_field() {
+    let f = Fixture::new();
+    let path = f.row("native-only", "openai", "openai", "gpt-known");
+    let mut original = fs::read(&path).unwrap();
+    let settings = json!({"type":"event_msg","ordinal":2,"payload":{"type":"thread_settings_applied","thread_settings":{"model_provider_id":"aimami_relay_deleted"}}});
+    original.extend(format!("{settings}\n").as_bytes());
+    fs::write(&path, &original).unwrap();
+    let selected = select(&f.ctx).unwrap();
+    assert!(selected.rollout_ids.contains("native-only"));
+    let plan = build(&f.ctx, selected, &official()).unwrap();
+    assert_eq!(plan.files.len(), 1);
+    assert_eq!(plan.files[0].after.len(), original.len());
+    let record: Value = serde_json::from_slice(plan.files[0].after.split(|b| *b == b'\n').filter(|l| !l.is_empty()).last().unwrap()).unwrap();
+    let settings = &record["payload"]["thread_settings"];
+    assert_eq!(settings["model_provider_id"], "openai");
+    assert!(settings.get("model_provider").is_none());
+    assert_eq!(fs::read(path).unwrap(), original);
+}
+
+#[test]
+fn protected_growth_rejects_entire_plan_without_changing_history_or_database() {
+    let f = Fixture::new();
+    let path = f.row("protected", "aimami_relay_deleted", "aimami_relay_deleted", "gpt-known");
+    let mut original = fs::read(&path).unwrap();
+    // The first session_meta can be rewritten, but this protected settings record cannot grow.
+    original.extend(format!("{}\n", json!({"type":"event_msg","ordinal":2,"payload":{"type":"thread_settings_applied","thread_settings":{"model_provider_id":"openai"}}})).as_bytes());
+    fs::write(&path, &original).unwrap();
+    let database = fs::read(&f.db).unwrap();
+    let mut catalog = official();
+    catalog.provider = "openai_official_alias_that_cannot_fit".into();
+    let error = build(&f.ctx, select(&f.ctx).unwrap(), &catalog).err().unwrap();
+    assert!(error.contains("ROUTER_HISTORY_LAYOUT_PROTECTED"));
+    assert!(error.contains("protected"));
+    assert_eq!(fs::read(path).unwrap(), original);
+    assert_eq!(fs::read(&f.db).unwrap(), database);
 }
