@@ -2,13 +2,14 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { theme, setTheme, type ThemeId } from '../../app/theme'
 import Icon from './Icon.vue'
-const emit = defineEmits<{ change: [label: string, saved: boolean] }>()
+const emit = defineEmits<{ change: [label: string, saved: boolean]; openChange: [open: boolean] }>()
 const details = ref<HTMLDetailsElement>()
 const trigger = ref<HTMLElement>()
-const label = computed(() => (theme.value === 'endfield' ? '终末地' : '千禧机壳'))
+const label = computed(() => choices.find((choice) => choice.id === theme.value)!.label)
 const choices: { id: ThemeId; label: string; detail: string }[] = [
   { id: 'endfield', label: '终末地', detail: '纸墨工业 · 信号色与测绘网格' },
   { id: 'millennium', label: '千禧机壳', detail: '奶油面板 · 薄荷绿' },
+  { id: 'hud', label: '环形 HUD', detail: '环形导航 · 银灰面板与机械反馈' },
 ]
 function close(restoreFocus = false) {
   if (!details.value?.open) return
@@ -54,7 +55,7 @@ onUnmounted(() => {
 })
 </script>
 <template>
-  <details ref="details" class="theme-switcher" @keydown="focusChoice">
+  <details ref="details" class="theme-switcher" @keydown="focusChoice" @toggle="emit('openChange', !!details?.open)">
     <summary
       ref="trigger"
       class="theme-trigger"
@@ -212,6 +213,21 @@ onUnmounted(() => {
   --swatch-accent: #8fd6a0;
   --swatch-bg: #ddd4bf;
   --swatch-ink: #393b34;
+}
+.theme-menu-swatch.hud {
+  --swatch-bg: #202222;
+  border-color: #fffa00;
+  border-radius: 50%;
+}
+.theme-menu-swatch.hud::before {
+  inset: 4px;
+  width: auto;
+  border: 1px solid #fffa00;
+  border-radius: 50%;
+  background: transparent;
+}
+.theme-menu-swatch.hud i {
+  background: #d3d4cf;
 }
 .theme-menu-swatch::before {
   content: '';

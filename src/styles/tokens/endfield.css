@@ -4,7 +4,7 @@
    No upstream palette, artwork or wordmark is used. The visual grammar is ours:
    paper surfaces, one signal colour, flat rules instead of bevels. */
 
-:root[data-theme='endfield'] {
+:root:is([data-theme='endfield'], [data-theme='hud']) {
   --radius: 0px;
 
   --field-signal: var(--signal);

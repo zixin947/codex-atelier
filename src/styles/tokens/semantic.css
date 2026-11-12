@@ -58,7 +58,7 @@
   --scrim: #292e286b;
 }
 
-:root[data-theme='endfield'] {
+:root:is([data-theme='endfield'], [data-theme='hud']) {
   color-scheme: light;
 
   --canvas: #eceee6;
