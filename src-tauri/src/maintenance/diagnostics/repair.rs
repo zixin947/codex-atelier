@@ -530,6 +530,14 @@ fn validate_apply_context_inner(
     }
     Ok(())
 }
+fn has_codex_writer(processes: &[u8]) -> bool {
+    processes.split(|b| *b == b'\n').filter_map(|l| std::str::from_utf8(l).ok()).any(|l| Path::new(l.trim()).file_name().is_some_and(|n| n == "codex"))
+}
+#[test]
+fn standalone_writer_is_not_cleared_when_desktop_has_exited() {
+    assert!(has_codex_writer(b"/usr/bin/login\n/opt/homebrew/bin/codex\n"));
+    assert!(!has_codex_writer(b"/usr/bin/login\n/Applications/Codex Atelier.app/Contents/MacOS/codex-atelier\n"));
+}
 pub(super) fn apply(ctx: &Context, t: Ticket) -> Result<DiagnosticFixResult> {
     // 先做不涉及 Desktop 的校验（票据过期、目录、转换态）。
     validate_apply_context_inner(ctx, &t, true, false)?;
@@ -540,7 +548,14 @@ pub(super) fn apply(ctx: &Context, t: Ticket) -> Result<DiagnosticFixResult> {
     validate_apply_context_inner(ctx, &t, true, false)?;
     let mut quiet = ctx.clone();
     #[cfg(not(test))]
-    { quiet.desktop_running = false; } // Real DesktopWindow::enter succeeded; synthetic running flags remain protected.
+    {
+        let output = std::process::Command::new("/bin/ps").args(["-axo", "comm="]).output().map_err(|_| "无法核对剩余 Codex 写入进程")?;
+        if !output.status.success() { return Err("无法核对剩余 Codex 写入进程".into()); }
+        if has_codex_writer(&output.stdout) {
+            return Err("仍有 Codex CLI 写入进程；未写入历史，请退出该进程后重新预览".into());
+        }
+        quiet.desktop_running = false;
+    }
     let result = apply_body(&quiet, t, &guard);
     // 无论修复成功与否都恢复客户端，避免把用户留在已关闭状态。
     let restored = window.restore();

@@ -794,7 +794,7 @@ pub fn inspect_thread_provider_convergence_with_reader(
 pub fn inspect_validated_provider_target(
     dbs: &[PathBuf], target: &str, cache: &mut DiagnosticRolloutProviderCache,
 ) -> ThreadProviderConvergenceInspection {
-    let mut i = ThreadProviderConvergenceInspection { target_provider: target.into(), ..Default::default() };
+    let mut i = ThreadProviderConvergenceInspection { target_provider: if target == "aimai1" { target.into() } else { "openai".into() }, ..Default::default() };
     for db in dbs {
         if std::fs::metadata(db).is_err() {
             continue;
@@ -809,14 +809,22 @@ pub fn inspect_validated_provider_target(
                 continue;
             }
         };
-        for row in rows {
+        for mut row in rows {
+            if row.provider == target && target != "aimai1" { row.provider = "openai".into(); }
             let observation = match row.rollout_path.as_ref() {
                 None => ProviderObservation::PathMissing,
                 Some(p) => match crate::threads::resolve_rollout(Path::new(p)) {
                     Ok(None) => ProviderObservation::FileMissing(p.into()),
                     Err(e) => ProviderObservation::Error(e.to_string()),
                     Ok(Some(_)) => match cache.read(Path::new(p)) {
-                        Ok(Some(a)) => ProviderObservation::Anchors(a),
+                        Ok(Some(mut a)) => {
+                            if target != "aimai1" {
+                                for p in [&mut a.first, &mut a.last, &mut a.native] {
+                                    if p.as_deref() == Some(target) { *p = Some("openai".into()); }
+                                }
+                            }
+                            ProviderObservation::Anchors(a)
+                        },
                         Ok(None) => ProviderObservation::Corrupt(format!(
                             "Invalid data: session_meta missing in {p}"
                         )),
@@ -960,4 +968,24 @@ pub fn check_thread_model_catalog_consistency_from_sources(
         true,
         &inspect_router_thread_model_catalog(dbs, catalog_dir),
     )
+}
+
+#[cfg(test)]
+mod official_alias_regression {
+    use super::*;
+    #[test]
+    fn validated_alias_preserves_existing_official_history() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = dir.path().join("state.sqlite");
+        let rollout = dir.path().join("rollout.jsonl");
+        std::fs::write(&rollout, b"{\"type\":\"session_meta\",\"payload\":{\"id\":\"test\",\"model_provider\":\"openai\"}}\n").unwrap();
+        let c = rusqlite::Connection::open(&db).unwrap();
+        c.execute_batch("CREATE TABLE threads(id TEXT, rollout_path TEXT, model_provider TEXT, source TEXT, archived INTEGER)").unwrap();
+        c.execute("INSERT INTO threads VALUES('test',?1,'openai','cli',0)", [rollout.to_str().unwrap()]).unwrap();
+        drop(c);
+        let result = inspect_validated_provider_target(&[db], "openai_https", &mut DiagnosticRolloutProviderCache::default());
+        assert_eq!(result.total, 1);
+        assert_eq!(result.db_mismatch + result.rollout_mismatch, 0);
+        assert!(result.errors.is_empty());
+    }
 }

@@ -71,7 +71,7 @@ pub struct Observation {
 }
 #[derive(Default)]
 struct Cache {
-    full: Option<(u64, std::collections::BTreeSet<String>)>,
+    full: Option<(u64, Rc<std::collections::BTreeSet<String>>)>,
     entries: BTreeMap<PathBuf, (Stamp, Result<Rc<Observation>, String>)>,
     requests: BTreeMap<PathBuf, PathBuf>,
     rows: BTreeMap<PathBuf, Result<Vec<super::MainThread>, String>>,
@@ -126,7 +126,7 @@ pub fn with_full_scope<T>(
     }
     let ids = history::collect_rollout_ids(roots);
     Ok(with_scope(|| {
-        CACHE.with(|c| c.borrow_mut().as_mut().unwrap().full = Some((total_bytes, ids)));
+        CACHE.with(|c| c.borrow_mut().as_mut().unwrap().full = Some((total_bytes, Rc::new(ids))));
         f()
     }))
 }
@@ -258,7 +258,7 @@ pub fn read(path: &Path) -> Option<Result<Rc<Observation>, String>> {
                 .map(|(_, ids)| ids.clone())
         });
         let mut result =
-            scan_with_ids(&physical, allowance, summary_budget, full_ids.as_ref()).map(Rc::new);
+            scan_with_ids(&physical, allowance, summary_budget, full_ids.as_deref()).map(Rc::new);
         if stamp(&physical)? != before {
             result = Err("history changed while streaming; retry required".into());
         }
