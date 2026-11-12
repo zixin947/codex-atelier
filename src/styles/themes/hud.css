@@ -1,0 +1,913 @@
+/* Adapted from EndfieldHUD HUDDesignTokens.swift / HUDDesignButtons.swift.
+ * Copyright (c) 2026 DDDuoDuo, MIT. See public/licenses/EndfieldHUD.txt.
+ * Navigation layout / plate geometry also adapt HUDNavigation.swift.
+ * Functional pages remain Atelier's; no extracted game assets are included. */
+:root[data-theme='hud'] {
+  --canvas: #1b1d1d;
+  --surface: #d3d4cf;
+  --elevated: #e4e5e0;
+  --inset: #ecede8;
+  --hairline: #b3b4af;
+  --control-line: #8a8b86;
+  --radius-control: 3px;
+  --radius-panel: 4px;
+  --shadow-overlay: 0 12px 32px #0005;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-fast: 100ms;
+  --motion: 220ms;
+}
+.hud-home.hud-native-ready .hud-navigation {
+  visibility: hidden;
+}
+.hud-native-ready .hud-navigation * {
+  animation: none !important;
+}
+.hud-native-error {
+  position: absolute;
+  z-index: 4;
+  top: 8px;
+  left: 220px;
+  right: 20px;
+  color: #ffb4a8;
+  font-size: 12px;
+}
+[data-theme='hud'] .workstation {
+  background: radial-gradient(ellipse at 50% 48%, #363a37 0, #202323 47%, #141616 100%);
+}
+[data-theme='hud'] .topbar {
+  background: #191b1bf2;
+  border-color: #484c45;
+  color: #e4e5e0;
+  --ink: #e4e5e0;
+  --muted: #b3b4af;
+  --faint: #9a9a9a;
+  --surface: #252827;
+  --elevated: #303430;
+  --inset: #383c37;
+  --focus: #fffa00;
+  --accent-text: #fffa00;
+}
+[data-theme='hud'] .topbar .brand-mark {
+  color: #171c17;
+  background: linear-gradient(#fffc6b, #fffa00 38%, #e9cf12);
+}
+[data-theme='hud'] .topbar .badge {
+  background: #fffa0010;
+  color: #fffa00;
+  border-color: #fffa0040;
+}
+[data-theme='hud'] .statusbar {
+  background: #191b1b;
+  color: #c6c7c2;
+  border-color: #484c45;
+}
+[data-theme='hud'] .statusbar .dot {
+  background: #fffa00;
+}
+[data-theme='hud'] .shell-body {
+  padding: 18px 20px;
+  gap: 18px;
+}
+[data-theme='hud'] main {
+  --canvas: #d3d4cf;
+  --shell: #d3d4cf;
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(125deg, #e4e5e0, #d3d4cf 55%, #c6c7c2);
+  border: 1px solid #e4e5e080;
+  border-radius: 4px;
+  box-shadow:
+    0 12px 36px #0004,
+    inset 0 1px #fff6;
+  scrollbar-color: #8a8b86 #d3d4cf;
+}
+[data-theme='hud'] .page {
+  padding: 24px;
+}
+.hud-workbench-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  padding: 10px 18px;
+  background: #d3d4cf;
+  border-bottom: 1px solid #8a8b86;
+}
+.hud-workbench-tabs a {
+  min-height: 30px;
+  padding: 6px 18px;
+  color: #20231f;
+  font-size: 12px;
+}
+.hud-workbench-tabs a.active {
+  background: #20231f;
+  color: #fffa00;
+}
+.hud-workbench-tabs a.active::before {
+  display: none;
+}
+[data-theme='hud'] .page-heading {
+  border-bottom: 1px solid #8a8b86;
+  padding-bottom: 16px;
+}
+[data-theme='hud'] .page-heading .eyebrow {
+  color: #575e55;
+}
+[data-theme='hud'] .panel {
+  background: #ecede8;
+  border-color: #b3b4af;
+  box-shadow: 0 2px 0 #0000000c;
+}
+[data-theme='hud'] .panel-head {
+  background: linear-gradient(#e4e5e0, #d3d4cf);
+}
+[data-theme='hud'] .button.primary {
+  background: linear-gradient(#fffc6b, #fffa00 38%, #e9cf12);
+  color: #121212;
+  border-color: #b8a511;
+  box-shadow:
+    inset 0 1px #ffffb4,
+    0 2px 0 #898321;
+}
+[data-theme='hud'] .button:not(.primary) {
+  background: linear-gradient(#ecede8, #cdcec9);
+}
+[data-theme='hud'] .button:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+}
+[data-theme='hud'] .button {
+  transition:
+    transform var(--motion-fast) var(--ease),
+    background-color var(--motion) var(--ease);
+}
+
+/* The same navigation links form an ellipse at home and a readable rail in a module. */
+.hud-navigation {
+  color: #d3d4cf;
+  flex-shrink: 0;
+}
+[data-hud-transitioning='true'] .hud-navigation,
+.hud-open[data-hud-transitioning='true'] .hud-navigation {
+  overflow: visible;
+  z-index: 3;
+}
+.hud-orbits {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.hud-orbit-plane {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: transform var(--motion) var(--ease);
+}
+.hud-ring-detail,
+.hud-ring-rotor,
+.hud-ring-mesh {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+/* EndfieldHUD's watch ambient tracks: 41/6 seconds per leg, -15 / +25 degrees. */
+.hud-home .hud-ring-rotor {
+  animation: hud-ring-turn 6.833333s linear infinite alternate;
+}
+.hud-home .hud-ring-mesh {
+  animation: hud-mesh-turn 6.833333s linear infinite alternate;
+}
+.hud-home .hud-indicator-glow {
+  animation: hud-indicator-pulse 1.7s ease-in-out infinite alternate;
+}
+@keyframes hud-ring-turn {
+  to {
+    transform: rotate(-15deg);
+  }
+}
+@keyframes hud-mesh-turn {
+  to {
+    transform: rotate(25deg);
+  }
+}
+@keyframes hud-indicator-pulse {
+  from {
+    opacity: 0.76;
+  }
+  to {
+    opacity: 1;
+  }
+}
+[data-hud-paused='true'] :is(.hud-ring-rotor, .hud-ring-mesh, .hud-indicator-glow) {
+  animation-play-state: paused;
+}
+.hud-module-plate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 20%, #ffffff60 50%, transparent 80%);
+  transform: translateX(-120%);
+  transition: transform 700ms var(--ease);
+}
+.hud-nav-heading {
+  display: flex;
+  justify-content: space-between;
+  color: #a9ada5;
+  font: 9px var(--font-mono);
+  letter-spacing: 0.14em;
+}
+.hud-nav-heading b {
+  color: #fffa00;
+}
+.hud-module {
+  display: flex;
+  position: relative;
+  align-items: center;
+  color: #20231f;
+  isolation: isolate;
+}
+.hud-module-plate {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(145deg, #e4e5e0, #d3d4cf 56%, #b3b4af);
+  border: 1px solid #fff7;
+  border-radius: 3px;
+  box-shadow:
+    inset 0 1px #fff7,
+    inset 0 -3px #0002,
+    0 4px 12px #0003;
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+  transition: transform var(--motion) var(--ease);
+}
+.hud-module small {
+  color: #697263;
+  font: 9px var(--font-mono);
+}
+.hud-module.active .hud-module-plate {
+  background: linear-gradient(145deg, #fffc6b, #fffa00 38%, #e9cf12);
+}
+.hud-module.active small {
+  color: #575100;
+}
+.hud-navigation .hud-module {
+  background: transparent;
+  color: #20231f;
+}
+.hud-navigation .hud-module.active::before {
+  display: none;
+}
+.hud-navigation .hud-module small {
+  display: block;
+  margin-left: 0;
+  color: #575e55;
+  opacity: 1;
+}
+[data-theme='hud'] .topbar .brand-mark i {
+  background: #171c17;
+}
+.hud-module:focus-visible {
+  outline: 2px solid #fffa00;
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+.hud-module:active .hud-module-plate {
+  transform: scale(0.97);
+  transition-duration: var(--motion-fast);
+}
+.hud-return {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #e4e5e0;
+  font-size: 11px;
+  padding: 12px 4px;
+  border-top: 1px solid #6c6d68;
+}
+.hud-nav-caption {
+  color: #9a9a9a;
+  font: 8px var(--font-mono);
+  letter-spacing: 0.12em;
+}
+/* EndfieldHUD HUDNavigation.swift: the original 1000 x 640 stage. */
+.hud-home .shell-body {
+  justify-content: center;
+  padding: 0;
+}
+.hud-home .hud-navigation {
+  position: absolute;
+  inset: auto;
+  left: 50%;
+  top: 50%;
+  width: min(1220px, calc(100vw - 64px), calc((100vh - 140px) * 1.5625));
+  aspect-ratio: 1000 / 640;
+  transform: translate(-50%, -50%) perspective(1600px) rotateY(-8deg) rotateZ(-3deg);
+  pointer-events: none;
+}
+.hud-home .hud-navigation nav {
+  position: absolute;
+  inset: 0;
+}
+.hud-home .hud-module {
+  position: absolute;
+  left: var(--hud-x);
+  top: var(--hud-y);
+  width: var(--hud-w);
+  height: var(--hud-h);
+  padding: 9px 10px;
+  transform: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+.hud-home .hud-module small {
+  position: absolute;
+  top: 8px;
+  left: 14px;
+  font-size: 8px;
+}
+.hud-home .hud-module > span:last-child {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.hud-home .hud-module > svg {
+  width: 30px;
+  height: 30px;
+}
+.hud-home .hud-module[data-tile-group='right'] {
+  gap: 4px;
+  padding: 8px 4px;
+}
+.hud-home .hud-module[data-tile-group='right'] > svg {
+  width: 24px;
+  height: 24px;
+}
+.hud-home .hud-module[data-tile-group='right'] > span:last-child {
+  font-size: 11px;
+}
+.hud-home .hud-module[data-tile-group='right'] small {
+  display: none;
+}
+.hud-home .hud-module[data-tile-group='bottom'] {
+  flex-direction: row;
+  padding-bottom: 18px;
+}
+.hud-home .hud-module[data-tile-group='bottom'] > svg {
+  width: 22px;
+  height: 22px;
+}
+.hud-home .hud-module[data-tile-group='bottom'] small {
+  display: none;
+}
+.hud-home .hud-module-plate {
+  clip-path: none;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.hud-home .hud-module-plate::after {
+  display: none;
+}
+.hud-module-surface {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.hud-face-high {
+  stop-color: #e4e5e0;
+}
+.hud-face-mid {
+  stop-color: #d3d4cf;
+}
+.hud-face-low {
+  stop-color: #b3b4af;
+}
+[data-tile-group='bottom'] .hud-face-high {
+  stop-color: #ede78b;
+}
+[data-tile-group='bottom'] .hud-face-mid {
+  stop-color: #d6c958;
+}
+[data-tile-group='bottom'] .hud-face-low {
+  stop-color: #a79d41;
+}
+.hud-module.active .hud-face-high {
+  stop-color: #fffc6b;
+}
+.hud-module.active .hud-face-mid {
+  stop-color: #fffa00;
+}
+.hud-module.active .hud-face-low {
+  stop-color: #e9cf12;
+}
+.hud-home .hud-nav-heading {
+  display: none;
+}
+.hud-home .hud-nav-caption {
+  position: absolute;
+  bottom: 0;
+  left: 36%;
+}
+.hud-open .hud-module-surface {
+  display: none;
+}
+.hud-stage-brand {
+  position: absolute;
+  left: 28%;
+  top: 3%;
+  color: #e4e5e0;
+}
+.hud-stage-brand b {
+  display: block;
+  font-size: 17px;
+  letter-spacing: -0.03em;
+}
+.hud-stage-brand small {
+  display: block;
+  margin-top: 4px;
+  color: #9a9f94;
+  font: 7px var(--font-mono);
+  letter-spacing: 0.08em;
+}
+.hud-stage-clock {
+  position: absolute;
+  left: 79%;
+  top: 11%;
+  width: 17%;
+  padding: 5px 8px;
+  color: #e4e5e0;
+  background: linear-gradient(135deg, #282c28, #131616);
+  border: 1px solid #a49d4f;
+  border-radius: 5px;
+  box-shadow: 3px 4px #0005;
+  transform: rotate(-5deg);
+}
+.hud-stage-clock small {
+  display: block;
+  color: #252820;
+  background: #dfd864;
+  font: 7px var(--font-mono);
+  padding: 2px 5px;
+}
+.hud-stage-clock b {
+  display: block;
+  padding: 3px 4px;
+  font: 600 23px var(--font-mono);
+  letter-spacing: -0.06em;
+}
+.hud-stage-clock span {
+  display: block;
+  color: #91978a;
+  font: 6px var(--font-mono);
+  border-top: 1px solid #73775e;
+  padding-top: 3px;
+}
+.hud-stage-identity {
+  position: absolute;
+  left: 9%;
+  top: 88%;
+  width: 25%;
+  display: flex;
+  gap: 10px;
+  padding: 8px;
+  background: linear-gradient(135deg, #3a4139, #171b18);
+  border: 1px solid #686f5d;
+  border-radius: 4px;
+  box-shadow: 3px 3px #0004;
+}
+.hud-stage-identity > span {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  background: #c3c97b;
+  color: #20231f;
+  font: 700 22px var(--font-mono);
+}
+.hud-stage-identity b {
+  display: block;
+  font-size: 11px;
+  margin: 3px 0 6px;
+}
+.hud-stage-identity small {
+  color: #a6ad9a;
+  font-size: 7px;
+}
+.hud-map {
+  position: absolute;
+  left: 29%;
+  top: 17.1875%;
+  width: 42%;
+  aspect-ratio: 1;
+  margin: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #242926;
+  box-shadow: inset 0 0 24px #0009;
+}
+.hud-map img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.95;
+}
+.hud-map > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.hud-map figcaption {
+  position: absolute;
+  left: 13%;
+  top: 9%;
+  color: #ecefdf;
+}
+.hud-map figcaption small {
+  display: block;
+  font: 6px var(--font-mono);
+  letter-spacing: 0.1em;
+  color: #c1c6b6;
+}
+.hud-map figcaption b {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+  border-bottom: 2px solid #e0dd5c;
+  padding: 4px 20px 4px 0;
+}
+.hud-map figcaption span {
+  display: block;
+  font-size: 8px;
+  margin-top: 4px;
+  color: #c1c6b6;
+}
+.hud-map-credit {
+  position: absolute;
+  bottom: 8%;
+  left: 24%;
+  color: #a9b19b;
+  font: 5px var(--font-mono);
+}
+@media (hover: hover) and (pointer: fine) {
+  .hud-home .hud-module:hover .hud-module-plate {
+    background: none;
+    filter: brightness(1.12);
+    transform: translateY(-3px);
+  }
+  .hud-home .hud-module:hover > svg {
+    transform: translateY(-1px);
+  }
+}
+.hud-open .hud-navigation {
+  position: relative;
+  width: 164px;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+.hud-open .hud-orbits {
+  position: fixed;
+  width: 1100px;
+  height: 900px;
+  left: -800px;
+  top: 0;
+  opacity: 0.25;
+}
+.hud-open .hud-nav-heading {
+  padding: 6px 4px 16px;
+}
+.hud-open .hud-navigation nav {
+  display: grid;
+  gap: 5px;
+  padding: 4px;
+}
+.hud-open .hud-module {
+  left: auto !important;
+  top: auto !important;
+  min-height: 40px;
+  padding: 9px 11px;
+  gap: 9px;
+}
+
+/* The rail repeats the native tile's material stack rather than a flat fill.
+   Values come from HUDNavigationEntry.updateAppearance: plate white .88 alpha,
+   a 0.25-white 0.65 stroke, a #fff .38 inner border and a top bevel at .67.
+   Selected and hover states follow sidePlateColor + the layered hover light. */
+.hud-open .hud-module-plate {
+  background:
+    linear-gradient(180deg, #ffffffc4 0 1.5px, #0000 1.5px),
+    linear-gradient(112deg, #ffffffe8, #f2f3eee0 46%, #dfe0dbeb);
+  border: 0;
+  border-radius: 2px;
+  box-shadow:
+    inset 0 0 0 1px #ffffff61,
+    inset 0 0 0 2.5px #ffffff3d,
+    1px 1px 0 #2b2e2a52,
+    0 3px 8px #0000001f;
+  clip-path: none;
+}
+.hud-open .hud-module > svg {
+  color: #20231f;
+}
+.hud-open .hud-module.active .hud-module-plate {
+  background:
+    linear-gradient(180deg, #fffffff0 0 1.5px, #0000 1.5px),
+    linear-gradient(112deg, #fffbd9f5, #fffa00 62%, #e9cf12);
+  box-shadow:
+    inset 0 0 0 1px #ffffffff,
+    inset 0 0 0 2.5px #ffffff6b,
+    1px 1px 0 #b8a51180,
+    0 3px 10px #fffa0040;
+}
+.hud-open .hud-module.active > svg {
+  color: #121212;
+}
+.hud-open .hud-module.active > span:last-child {
+  color: #121212;
+  font-weight: 700;
+}
+@media (hover: hover) and (pointer: fine) {
+  .hud-open .hud-module:hover .hud-module-plate {
+    background: linear-gradient(180deg, #ffffffff 0 1.5px, #0000 1.5px), #ffffff;
+    box-shadow:
+      inset 0 0 0 1px #ffffffe0,
+      inset 0 0 0 2.5px #ffffff7a,
+      1px 1px 0 #2b2e2a52,
+      0 5px 14px #00000026;
+    transform: translateY(-1px);
+  }
+  .hud-open .hud-module.active:hover .hud-module-plate {
+    background:
+      linear-gradient(180deg, #fffffff0 0 1.5px, #0000 1.5px),
+      linear-gradient(112deg, #ffffb3, #fffa00 55%, #e2c80f);
+    transform: translateY(-1px);
+  }
+}
+.hud-open .hud-module:active .hud-module-plate {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 0 0 1px #ffffff61,
+    inset 0 1px 3px #00000026,
+    0 1px 2px #0000001f;
+}
+.hud-open .hud-module > svg {
+  width: 17px;
+  height: 17px;
+}
+.hud-open .hud-module > span:last-child {
+  font-size: 12px;
+}
+.hud-open .hud-return {
+  margin: 12px 4px 0;
+}
+.hud-open .hud-nav-caption {
+  margin: 12px 4px;
+  line-height: 1.8;
+}
+@media (hover: hover) and (pointer: fine) {
+  .hud-home .hud-module:hover .hud-module-plate::after {
+    transform: translateX(120%);
+  }
+  .hud-home .hud-module:hover .hud-module-plate {
+    transform: translateY(-2px);
+    background: linear-gradient(145deg, #f4f5ef, #e4e5e0);
+  }
+  .hud-home .hud-module.active:hover .hud-module-plate {
+    background: linear-gradient(#ffffa0, #fffa00, #e9cf12);
+  }
+}
+@media (max-width: 1100px) {
+  .hud-home main {
+    max-width: calc(100% - 330px);
+  }
+  .hud-home .page {
+    padding: 18px;
+  }
+  .hud-open .hud-navigation {
+    width: 148px;
+  }
+  [data-theme='hud'] .shell-body {
+    gap: 12px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+}
+@media (max-width: 760px) {
+  .hud-home .shell-body,
+  .hud-open .shell-body {
+    flex-direction: column;
+    padding: 12px;
+  }
+  .hud-home .hud-navigation,
+  .hud-open .hud-navigation {
+    position: relative;
+    width: 100%;
+    max-height: 150px;
+    overflow: auto;
+    pointer-events: auto;
+  }
+  .hud-home .hud-navigation nav,
+  .hud-open .hud-navigation nav {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    padding: 4px;
+  }
+  .hud-home .hud-module,
+  .hud-open .hud-module {
+    position: relative;
+    left: auto !important;
+    top: auto !important;
+    transform: none;
+    width: auto;
+    height: 40px;
+    min-height: 40px;
+    padding: 6px;
+    flex-wrap: nowrap;
+    gap: 5px;
+  }
+  .hud-home .hud-module small,
+  .hud-home .hud-nav-heading,
+  .hud-nav-caption,
+  .hud-return {
+    display: none;
+  }
+  .hud-home .hud-module > span:last-child {
+    flex-basis: auto;
+    font-size: 11px;
+  }
+  .hud-home main {
+    max-width: 100%;
+    flex: 1;
+  }
+  .hud-home .hud-orbits,
+  .hud-map,
+  .hud-stage-clock,
+  .hud-stage-identity,
+  .hud-stage-brand {
+    display: none;
+  }
+  .hud-home .hud-navigation {
+    left: auto;
+    top: auto;
+    transform: none;
+    aspect-ratio: auto;
+  }
+  .hud-home .hud-module-surface {
+    display: none;
+  }
+  .hud-home .hud-module-plate {
+    background: #d3d4cf;
+    border: 1px solid #b3b4af;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-theme='hud'] :is(.hud-ring-rotor, .hud-ring-mesh, .hud-indicator-glow) {
+    animation: none;
+  }
+  [data-theme='hud'] .hud-orbit-plane,
+  [data-theme='hud'] .hud-module-plate::after {
+    transition: none;
+  }
+  [data-theme='hud'] .hud-orbits {
+    transition: none;
+  }
+  [data-theme='hud'] .hud-module-plate,
+  [data-theme='hud'] .button {
+    transition: none;
+    transform: none;
+  }
+}
+/* Functional pages inherit the 终末地 token set, which colours success states in
+   forest green. The HUD shell is black / silver / signal yellow only, so every
+   green text and hairline is remapped to ink here instead of editing each page. */
+[data-theme='hud'] {
+  --green: var(--ink);
+  --positive: var(--ink);
+  --positive-wash: #e4e5e0;
+  --mint: #e4e5e0;
+}
+[data-theme='hud'] .account-current,
+[data-theme='hud'] .account-plan-plus {
+  background: #fffa001f;
+  border-color: #b8a511;
+  color: #575100;
+}
+[data-theme='hud'] .account-card.current {
+  border-color: var(--ink);
+  box-shadow:
+    inset 0 0 0 1px #fffa00,
+    var(--raised);
+}
+
+/* The workbench placeholder is a full-width bordered paragraph when the local
+   engine is not connected: a blank slab under a lone 20px heading. Give the
+   idle state a stage instead — centred, numbered, and restrained. */
+[data-theme='hud'] .original-agents:has(> button) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 62vh;
+  gap: 0;
+  text-align: center;
+}
+[data-theme='hud'] .original-agents:has(> button) h2 {
+  margin: 0 0 10px;
+  font: 700 26px/1.2 var(--font-body);
+  letter-spacing: -0.02em;
+  color: #20231f;
+}
+[data-theme='hud'] .original-agents:has(> button) h2::before {
+  content: 'MODULE / STANDBY';
+  display: block;
+  margin-bottom: 14px;
+  color: #575e55;
+  font: 9px/1 var(--font-mono);
+  letter-spacing: 0.16em;
+}
+[data-theme='hud'] .original-agents:has(> button) p {
+  max-width: 46ch;
+  padding: 0;
+  border: 0;
+  color: #464b45;
+  font-size: 13px;
+  line-height: 1.7;
+  text-wrap: pretty;
+}
+[data-theme='hud'] .original-agents:has(> button) .usage-scope {
+  margin: 8px 0 30px;
+  color: #6c736a;
+  font-size: 11px;
+}
+[data-theme='hud'] .original-agents:has(> button) .button {
+  min-height: 40px;
+  padding: 0 26px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: linear-gradient(#fffc6b, #fffa00 38%, #e9cf12);
+  color: #121212;
+  border: 1px solid #b8a511;
+  border-radius: 2px;
+  box-shadow:
+    inset 0 1px #ffffb4,
+    0 2px 0 #898321;
+}
+[data-theme='hud'] .original-agents:has(> button) .button:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+[data-theme='hud'] .original-agents:has(> button) .button:disabled {
+  background: #cdcec9;
+  border-color: #a8a9a4;
+  color: #6c6d68;
+  box-shadow: none;
+}
+
+/* 终末地 sets --radius: 0 for its cut-corner grammar; several feature sheets
+   hard-code 8-20px pill and card radii that predate that rule. Keep the shell
+   rectangular and let only真控件 (switch track) stay pill-shaped. */
+[data-theme='hud']
+  :is(
+    .thread-segments,
+    .thread-segments button,
+    .thread-detail-tags span,
+    .thread-welcome,
+    .routing-history,
+    .routing-request,
+    .mnt-card,
+    .mnt-action,
+    .mnt-error,
+    .mnt-primary-button,
+    .mnt-item,
+    .mnt-log,
+    .mnt-field input
+  ) {
+  border-radius: 2px;
+}
+
+@media (forced-colors: active) {
+  .hud-module-plate {
+    background: Canvas;
+    border: 1px solid ButtonText;
+    clip-path: none;
+  }
+  .hud-module {
+    color: LinkText;
+  }
+  .hud-module.active {
+    outline: 2px solid Highlight;
+  }
+}

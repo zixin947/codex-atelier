@@ -1,0 +1,12 @@
+Static map placeholder, generated from:
+
+Natural Earth 1:50m Admin 0 Countries — public domain
+https://www.naturalearthdata.com/about/terms-of-use/
+https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson
+
+NOAA ETOPO 2022 — CC0-1.0
+https://doi.org/10.25921/fd45-gt74
+Contour data from EndfieldHUD revision 19de06a45a6fb701cac1be4a1571111a8813b798, Resources/WorldMap/Terrain.bin
+SHA-256: 5356727bab11c5f96d69a94658d4f884a2e56b01e89f837670d57660e66635dd
+Binary path decoding adapted from Sources/WorldMapTerrain.swift, Copyright (c) 2026 DDDuoDuo, MIT.
+This static illustration is a UI placeholder, not a navigation or boundary authority.

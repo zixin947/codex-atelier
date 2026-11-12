@@ -45,7 +45,7 @@ watch(
         address.searchParams.set('atelierUsage', 'chatgpt')
         address.searchParams.set('tab', props.usageTab || 'usage')
       }
-      if (theme.value === 'endfield') address.searchParams.set('atelierStyle', 'endfield')
+      if (theme.value !== 'millennium') address.searchParams.set('atelierStyle', 'endfield')
       url.value = address.toString()
     } catch (e) {
       error.value = String(e)

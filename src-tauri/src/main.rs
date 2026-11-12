@@ -5,6 +5,7 @@ mod desktop_bridge;
 mod desktop_pets;
 mod desktop_runtime;
 mod gateway;
+mod hud_native;
 mod maintenance;
 mod plugin_modes;
 mod plugins;
@@ -19,6 +20,10 @@ fn main() {
             gateway::original_ui::protocol(context.app_handle().clone(), request, responder);
         })
         .plugin(tauri_plugin_dialog::init())
+        .manage(hud_native::HudNativeState::default())
+        .on_window_event(|window, event| {
+            if matches!(event, tauri::WindowEvent::Destroyed) { hud_native::cleanup(window); }
+        })
         .manage(gateway::GatewayState::default())
         .manage(accounts::AccountsState::default())
         .manage(maintenance::MaintenanceState::default())
@@ -31,6 +36,8 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            hud_native::hud_native_supported,
+            hud_native::hud_native_update,
             desktop_pets::desktop_pet_action,
             maintenance::maintenance_snapshot,
             maintenance::maintenance_diagnose,

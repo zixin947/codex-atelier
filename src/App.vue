@@ -2,12 +2,15 @@
 import { onMounted, onUnmounted, ref, computed, nextTick } from 'vue'
 import { isTauri } from '@tauri-apps/api/core'
 import { useAccountRefresh } from './app/accountRefresh'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAtelier } from './app/store'
 import Icon from './shared/components/Icon.vue'
 import Modal from './shared/components/Modal.vue'
 import ThemePicker from './shared/components/ThemePicker.vue'
 import ThemeSwitcher from './shared/components/ThemeSwitcher.vue'
+import HudNavigation from './shared/hud/HudNavigation.vue'
+import { useHudMotion } from './shared/hud/motion'
+import { useNativeHud } from './shared/hud/native'
 import EndfieldBackground from './shared/background/EndfieldBackground.vue'
 import { theme } from './app/theme'
 import {
@@ -16,7 +19,13 @@ import {
   previewStartupAnimation,
 } from './app/startup'
 const workstation = ref<HTMLElement | null>(null)
+const hudSurface = ref<HTMLElement | null>(null)
+const hudExpanded = ref(false)
 const route = useRoute()
+const router = useRouter()
+const hudOverview = computed(
+  () => theme.value === 'hud' && route.path === '/' && !hudExpanded.value,
+)
 const workbenchActive = computed(() => route.path === '/' || route.path.startsWith('/workbench/'))
 const workbenchNav = [
   { path: '/', label: '概览' },
@@ -66,6 +75,20 @@ const nav = [
   { path: '/diagnostics', label: '诊断与回滚', icon: 'pulse' },
   { path: '/maintenance', label: '维护工具', icon: 'settings' },
 ]
+const nativeHud = useNativeHud(
+  hudSurface,
+  () => hudOverview.value,
+  () => nav.map((item) => item.label),
+  (index) => {
+    hudExpanded.value = true
+    void router.push(nav[index]!.path)
+  },
+)
+useHudMotion(workstation, () => ({
+  active: theme.value === 'hud' && !nativeHud.ready.value,
+  expanded: route.path !== '/' || hudExpanded.value,
+  route: route.path,
+}))
 onMounted(async () => {
   if (isTauri()) {
     void accountRefresh.initialize()
@@ -86,13 +109,21 @@ async function previewStartup() {
 </script>
 <template>
   <a class="skip-link" href="#main-content" @click.prevent="skip">跳转到主内容</a>
-  <div ref="workstation" class="workstation">
+  <div
+    ref="workstation"
+    class="workstation"
+    :class="{
+      'hud-home': hudOverview,
+      'hud-native-ready': nativeHud.ready.value,
+      'hud-open': theme === 'hud' && (route.path !== '/' || hudExpanded),
+    }"
+  >
     <EndfieldBackground
       v-if="theme === 'endfield' && workstation && !startupAnimationActive"
       :host="workstation"
     />
     <header class="topbar">
-      <a class="brand" href="#/" aria-label="Codex Atelier 首页"
+      <a class="brand" href="#/" aria-label="Codex Atelier 首页" @click="hudExpanded = false"
         ><span class="brand-mark"><i /><i /><i /></span
         ><span>CODEX <b>ATELIER</b><small>YOUR PERSONAL CONTROL ROOM</small></span></a
       >
@@ -110,39 +141,43 @@ async function previewStartup() {
       </div>
       <div v-else class="top-context mono tiny">
         {{
-          workbenchActive
-            ? 'ATELIER / CHATGPT USAGE'
-            : realPlugins
-              ? 'CODEX / USER PLUGINS'
-              : route.path === '/desktop-pets'
-                ? 'ATELIER / DESKTOP PETS'
-                : route.path === '/threads'
-                  ? 'ATELIER / THREAD ARCHIVE'
-                  : route.path === '/maintenance'
-                    ? 'ATELIER / MAINTENANCE'
-                    : route.path === '/routing'
-                      ? 'ATELIER / LIVE ROUTING'
-                      : 'ATELIER / LOCAL GATEWAY'
+          hudOverview
+            ? 'ATELIER / ORBITAL HUD'
+            : workbenchActive
+              ? 'ATELIER / CHATGPT USAGE'
+              : realPlugins
+                ? 'CODEX / USER PLUGINS'
+                : route.path === '/desktop-pets'
+                  ? 'ATELIER / DESKTOP PETS'
+                  : route.path === '/threads'
+                    ? 'ATELIER / THREAD ARCHIVE'
+                    : route.path === '/maintenance'
+                      ? 'ATELIER / MAINTENANCE'
+                      : route.path === '/routing'
+                        ? 'ATELIER / LIVE ROUTING'
+                        : 'ATELIER / LOCAL GATEWAY'
         }}
       </div>
       <div class="top-actions">
         <span class="badge orange"
           ><i class="dot" />{{
-            realManagement
-              ? workbenchActive
-                ? 'ChatGPT 用量'
-                : realPlugins
-                  ? '本机插件管理'
-                  : route.path === '/desktop-pets'
-                    ? '本机桌宠管理'
-                    : route.path === '/threads'
-                      ? '本机线程管理'
-                      : route.path === '/maintenance'
-                        ? '维护工具'
-                        : route.path === '/routing'
-                          ? '本机路由观测'
-                          : '本地账号与网关'
-              : '演示数据'
+            hudOverview
+              ? '环形概览'
+              : realManagement
+                ? workbenchActive
+                  ? 'ChatGPT 用量'
+                  : realPlugins
+                    ? '本机插件管理'
+                    : route.path === '/desktop-pets'
+                      ? '本机桌宠管理'
+                      : route.path === '/threads'
+                        ? '本机线程管理'
+                        : route.path === '/maintenance'
+                          ? '维护工具'
+                          : route.path === '/routing'
+                            ? '本机路由观测'
+                            : '本地账号与网关'
+                : '演示数据'
           }}</span
         >
         <ThemeSwitcher
@@ -155,8 +190,18 @@ async function previewStartup() {
         </button>
       </div>
     </header>
-    <div class="shell-body">
-      <aside class="sidebar">
+    <div ref="hudSurface" class="shell-body">
+      <p v-if="theme === 'hud' && nativeHud.error.value" class="hud-native-error" role="alert">
+        原生 HUD 加载失败：{{ nativeHud.error.value }}
+      </p>
+      <HudNavigation
+        v-if="theme === 'hud'"
+        :items="nav"
+        :expanded="route.path !== '/' || hudExpanded"
+        @open="hudExpanded = true"
+        @overview="hudExpanded = false"
+      />
+      <aside v-else class="sidebar">
         <div class="sidebar-label">工作空间 <span>WORKSPACE</span></div>
         <nav aria-label="主导航">
           <template v-for="(item, i) in nav" :key="item.path">
@@ -219,7 +264,20 @@ async function previewStartup() {
           <span class="tiny mono">ATELIER / BUILD 0.1.0</span>
         </div>
       </aside>
-      <main id="main-content" tabindex="-1">
+      <main v-show="!hudOverview" id="main-content" data-hud-panel tabindex="-1">
+        <nav
+          v-if="theme === 'hud' && workbenchActive"
+          class="hud-workbench-tabs"
+          aria-label="工作台目录"
+        >
+          <RouterLink
+            v-for="item in workbenchNav"
+            :key="item.path"
+            :to="item.path"
+            :class="{ active: route.path === item.path }"
+            >{{ item.label }}</RouterLink
+          >
+        </nav>
         <div v-if="store.error && !realManagement" class="error-state" role="alert">
           {{ store.error }} <button @click="store.load">重新加载</button>
         </div>

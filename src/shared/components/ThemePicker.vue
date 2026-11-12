@@ -25,6 +25,12 @@ const choices: { id: ThemeId; name: string; english: string; description: string
     english: 'MILLENNIUM / 02',
     description: '奶油面板与薄荷绿，保留复古工作站质感。',
   },
+  {
+    id: 'hud',
+    name: '环形 HUD',
+    english: 'ORBITAL HUD / 03',
+    description: '环形入口、银灰面板，进入功能后展开工作区。',
+  },
 ]
 function select(choice: (typeof choices)[number]) {
   saved.value = setTheme(choice.id)
@@ -280,6 +286,18 @@ function toggleStartup() {
   --swatch-accent: #8fd6a0;
   --swatch-screen: #363d37;
   --swatch-line: #b9ae96;
+}
+.theme-swatch.hud {
+  --swatch-bg: #202222;
+  --swatch-panel: #d3d4cf;
+  border-color: #6c6d68;
+}
+.theme-swatch.hud::after {
+  content: '';
+  position: absolute;
+  inset: 4px 18%;
+  border: 1px solid #fffa00;
+  border-radius: 50%;
 }
 .swatch-header {
   position: absolute;
