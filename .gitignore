@@ -14,3 +14,5 @@ artifacts/
 
 # Built from the vendored routing core
 src-tauri/binaries/atelier-router
+
+src-tauri/binaries/hud-native/
