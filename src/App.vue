@@ -9,10 +9,10 @@ import Modal from './shared/components/Modal.vue'
 import ThemePicker from './shared/components/ThemePicker.vue'
 import ThemeSwitcher from './shared/components/ThemeSwitcher.vue'
 import HudNavigation from './shared/hud/HudNavigation.vue'
-import { useHudMotion } from './shared/hud/motion'
 import { useNativeHud } from './shared/hud/native'
 import EndfieldBackground from './shared/background/EndfieldBackground.vue'
 import { theme } from './app/theme'
+import { nav } from './app/navigation'
 import {
   startupAnimationActive,
   finishStartupInitialization,
@@ -25,7 +25,7 @@ const themeMenuOpen = ref(false)
 const route = useRoute()
 const router = useRouter()
 const hudOverview = computed(
-  () => theme.value === 'hud' && route.path === '/' && !hudExpanded.value,
+  () => theme.value === 'endfield' && route.path === '/' && !hudExpanded.value,
 )
 const workbenchActive = computed(() => route.path === '/' || route.path.startsWith('/workbench/'))
 const workbenchNav = [
@@ -34,22 +34,22 @@ const workbenchNav = [
   { path: '/workbench/sessions', label: '会话' },
   { path: '/workbench/context', label: '上下文' },
 ]
-const realPlugins = computed(() => route.path === '/plugins')
-const realManagement = computed(
-  () =>
-    workbenchActive.value ||
-    [
-      '/plugins',
-      '/connections',
-      '/providers',
-      '/routing',
-      '/routing-groups',
-      '/gateway',
-      '/desktop-pets',
-    ].includes(route.path) ||
-    (['/threads', '/maintenance'].includes(route.path) && isTauri()) ||
-    route.path.startsWith('/accounts'),
-)
+/* 真实状态标签：只描述当前页真正在做什么，不再有演示/适配器之类的开发期字眼。 */
+const pageContext = computed<{ code: string; badge: string }>(() => {
+  if (hudOverview.value) return { code: 'ATELIER / ORBITAL HUD', badge: '环形概览' }
+  if (workbenchActive.value) return { code: 'ATELIER / CHATGPT USAGE', badge: 'ChatGPT 用量' }
+  const path = route.path
+  if (path === '/plugins') return { code: 'CODEX / USER PLUGINS', badge: '本机插件' }
+  if (path === '/desktop-pets') return { code: 'ATELIER / DESKTOP PETS', badge: '本机桌宠' }
+  if (path === '/threads') return { code: 'ATELIER / THREAD ARCHIVE', badge: '本机线程' }
+  if (path === '/maintenance') return { code: 'ATELIER / MAINTENANCE', badge: '维护工具' }
+  if (path === '/routing') return { code: 'ATELIER / LIVE ROUTING', badge: '路由观测' }
+  if (path === '/routing-groups') return { code: 'ATELIER / ROUTE GROUPS', badge: '路由组' }
+  if (path === '/providers') return { code: 'ATELIER / UPSTREAM PROVIDERS', badge: '供应商' }
+  if (path === '/gateway') return { code: 'ATELIER / LOCAL GATEWAY', badge: '本地网关' }
+  if (path.startsWith('/accounts')) return { code: 'ATELIER / ACCOUNTS', badge: '账号与额度' }
+  return { code: 'ATELIER / MODELS & CONNECTIONS', badge: '模型与连接' }
+})
 const store = useAtelier(),
   settings = ref(false)
 const accountRefresh = useAccountRefresh()
@@ -60,46 +60,22 @@ function syncAccountRefresh() {
 function skip() {
   document.getElementById('main-content')?.focus()
 }
-const nav = [
-  { path: '/', label: '主工作台', icon: 'grid' },
-  { path: '/accounts', label: '账号与额度', icon: 'user' },
-  { path: '/connections', label: '模型与连接', icon: 'chip' },
-  { path: '/providers', label: '供应商', icon: 'plug' },
-  { path: '/routing', label: '路由', icon: 'arrow' },
-  { path: '/routing-groups', label: '路由组', icon: 'grid' },
-  { path: '/gateway', label: '网关', icon: 'terminal' },
-  { path: '/extensions', label: '扩展管理', icon: 'box' },
-  { path: '/plugins', label: '行为插件', icon: 'shield' },
-  { path: '/threads', label: '线程管理', icon: 'history' },
-  { path: '/desktop-pets', label: '桌宠', icon: 'heart' },
-  { path: '/planned/companions', label: '人设与陪伴', icon: 'heart' },
-  { path: '/diagnostics', label: '诊断与回滚', icon: 'pulse' },
-  { path: '/maintenance', label: '维护工具', icon: 'settings' },
-]
 const nativeHud = useNativeHud(
   hudSurface,
-  () => hudOverview.value && !settings.value && !themeMenuOpen.value && !startupAnimationActive.value,
+  () =>
+    hudOverview.value && !settings.value && !themeMenuOpen.value && !startupAnimationActive.value,
   () => nav.map((item) => item.label),
   (index) => {
     hudExpanded.value = true
     void router.push(nav[index]!.path)
   },
 )
-useHudMotion(workstation, () => ({
-  active: theme.value === 'hud' && !nativeHud.ready.value,
-  expanded: route.path !== '/' || hudExpanded.value,
-  route: route.path,
-}))
-onMounted(async () => {
+onMounted(() => {
   if (isTauri()) {
     void accountRefresh.initialize()
     window.addEventListener('focus', syncAccountRefresh)
   }
-  try {
-    await store.load()
-  } finally {
-    finishStartupInitialization()
-  }
+  finishStartupInitialization()
 })
 onUnmounted(() => window.removeEventListener('focus', syncAccountRefresh))
 async function previewStartup() {
@@ -116,7 +92,6 @@ async function previewStartup() {
     :class="{
       'hud-home': hudOverview,
       'hud-native-ready': nativeHud.ready.value,
-      'hud-open': theme === 'hud' && (route.path !== '/' || hudExpanded),
     }"
   >
     <EndfieldBackground
@@ -124,63 +99,20 @@ async function previewStartup() {
       :host="workstation"
     />
     <header class="topbar">
+      <button
+        v-if="theme === 'endfield' && !hudOverview"
+        class="ring-back"
+        aria-label="返回环形首页"
+        title="返回环形首页"
+        @click="hudExpanded = false; router.push('/')"
+      ><span aria-hidden="true">←</span><span>环形首页</span></button>
       <a class="brand" href="#/" aria-label="Codex Atelier 首页" @click="hudExpanded = false"
         ><span class="brand-mark"><i /><i /><i /></span
         ><span>CODEX <b>ATELIER</b><small>YOUR PERSONAL CONTROL ROOM</small></span></a
       >
-      <div v-if="!realManagement" class="top-context">
-        <span class="tiny">工作配置</span
-        ><select
-          v-model="store.profile"
-          aria-label="工作配置"
-          @change="store.notify('已切换示例工作配置')"
-        >
-          <option>日常开发</option>
-          <option>专注创作</option>
-          <option>沙盒实验</option>
-        </select>
-      </div>
-      <div v-else class="top-context mono tiny">
-        {{
-          hudOverview
-            ? 'ATELIER / ORBITAL HUD'
-            : workbenchActive
-              ? 'ATELIER / CHATGPT USAGE'
-              : realPlugins
-                ? 'CODEX / USER PLUGINS'
-                : route.path === '/desktop-pets'
-                  ? 'ATELIER / DESKTOP PETS'
-                  : route.path === '/threads'
-                    ? 'ATELIER / THREAD ARCHIVE'
-                    : route.path === '/maintenance'
-                      ? 'ATELIER / MAINTENANCE'
-                      : route.path === '/routing'
-                        ? 'ATELIER / LIVE ROUTING'
-                        : 'ATELIER / LOCAL GATEWAY'
-        }}
-      </div>
+      <div class="top-context mono tiny">{{ pageContext.code }}</div>
       <div class="top-actions">
-        <span class="badge orange"
-          ><i class="dot" />{{
-            hudOverview
-              ? '环形概览'
-              : realManagement
-                ? workbenchActive
-                  ? 'ChatGPT 用量'
-                  : realPlugins
-                    ? '本机插件管理'
-                    : route.path === '/desktop-pets'
-                      ? '本机桌宠管理'
-                      : route.path === '/threads'
-                        ? '本机线程管理'
-                        : route.path === '/maintenance'
-                          ? '维护工具'
-                          : route.path === '/routing'
-                            ? '本机路由观测'
-                            : '本地账号与网关'
-                : '演示数据'
-          }}</span
-        >
+        <span class="badge orange"><i class="dot" />{{ pageContext.badge }}</span>
         <ThemeSwitcher
           @open-change="themeMenuOpen = $event"
           @change="
@@ -193,11 +125,11 @@ async function previewStartup() {
       </div>
     </header>
     <div ref="hudSurface" class="shell-body">
-      <p v-if="theme === 'hud' && nativeHud.error.value" class="hud-native-error" role="alert">
+      <p v-if="theme === 'endfield' && nativeHud.error.value" class="hud-native-error" role="alert">
         原生 HUD 加载失败：{{ nativeHud.error.value }}
       </p>
       <HudNavigation
-        v-if="theme === 'hud'"
+        v-if="hudOverview"
         :items="nav"
         :expanded="route.path !== '/' || hudExpanded"
         @open="hudExpanded = true"
@@ -242,66 +174,13 @@ async function previewStartup() {
             </div>
           </template>
         </nav>
-        <div class="sidebar-bottom">
-          <div class="vent" />
-          <div class="sandbox-stamp">
-            <Icon name="shield" /><b>{{ realManagement ? '受限本机管理' : '安全沙盒' }}</b>
-            <p v-if="workbenchActive">ChatGPT 账号记录<br />用量与上下文观测</p>
-            <p v-else-if="realPlugins">仅管理两个指定插件<br />账号与代理不受影响</p>
-            <p v-else-if="route.path === '/desktop-pets'">
-              独立浮窗 · 手动管理<br />设置与账本由桌宠保存
-            </p>
-            <p v-else-if="realManagement && route.path === '/threads'">
-              按需读取 · 预览确认<br />索引修改保留备份
-            </p>
-            <p v-else-if="realManagement && route.path === '/maintenance'">
-              诊断只读 · 操作先预览<br />维护 Atelier 独立档案
-            </p>
-            <p v-else-if="route.path === '/routing'">
-              真实请求 · 实时观测<br />路由由 Atelier 管理
-            </p>
-            <p v-else-if="realManagement">独立账号 · 手动连接<br />网关默认关闭</p>
-            <p v-else>所有操作仅作用于演示数据<br />未连接本机 Codex</p>
-          </div>
-          <span class="tiny mono">ATELIER / BUILD 0.1.0</span>
-        </div>
       </aside>
       <main v-show="!hudOverview" id="main-content" data-hud-panel tabindex="-1">
-        <nav
-          v-if="theme === 'hud' && workbenchActive"
-          class="hud-workbench-tabs"
-          aria-label="工作台目录"
-        >
-          <RouterLink
-            v-for="item in workbenchNav"
-            :key="item.path"
-            :to="item.path"
-            :class="{ active: route.path === item.path }"
-            >{{ item.label }}</RouterLink
-          >
-        </nav>
-        <div v-if="store.error && !realManagement" class="error-state" role="alert">
-          {{ store.error }} <button @click="store.load">重新加载</button>
-        </div>
-        <RouterView v-else />
+        <RouterView />
       </main>
     </div>
-    <footer class="statusbar">
-      <span
-        ><i class="dot" /> {{ realManagement ? 'LOCAL ADAPTER' : 'DEMO ADAPTER' }}
-        <b>{{
-          realManagement ? '本地管理 · 运行状态见当前页面' : '本地演示 · 未连接 Codex'
-        }}</b></span
-      ><span
-        >{{
-          route.path === '/desktop-pets'
-            ? '桌宠服务状态见当前页面'
-            : accountRefresh.status?.intervalMs
-              ? '额度后台刷新已启用'
-              : '无独立后台服务'
-        }}
-        <span>/</span> 无遥测 <span>/</span> v0.1.0</span
-      >
+    <footer class="statusbar" v-if="accountRefresh.status?.intervalMs">
+      <span>额度自动刷新已开启</span>
     </footer>
   </div>
   <div v-if="store.notice" class="toast" role="status">
@@ -316,30 +195,37 @@ async function previewStartup() {
       @change="(label) => store.notify('已切换 ' + label)"
       @preview-startup="previewStartup"
     />
-    <div class="setting-row">
-      <span
-        ><b>演示交互</b
-        ><small>仅控制示例 MCP、Skills 与模拟确认；行为插件、账号与网关独立管理。</small></span
-      ><button
-        role="switch"
-        :aria-checked="store.demo"
-        class="switch"
-        :class="{ on: store.demo }"
-        aria-label="演示交互"
-        @click="store.demo = !store.demo"
-      >
-        <span />
-      </button>
-    </div>
-    <div class="inset safety-note">
-      示例状态仅保留在本次运行中。行为插件页独立使用 Codex
-      官方接口管理两个插件的启用字段。账号与网关只在对应页面由你手动配置，不自动接管现有 Codex。
-    </div>
+    <p class="muted">Codex Atelier · v0.1.0</p>
     <button class="button primary" @click="settings = false">完成</button></Modal
   >
 </template>
 
 <style scoped>
+.ring-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  height: 32px;
+  padding: 0 11px;
+  border: 1px solid var(--hairline);
+  border-radius: 5px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  transition: background 140ms, border-color 140ms;
+}
+.ring-back > span:first-child { font-size: 21px; line-height: 1; }
+.ring-back:hover { background: #e9ebd7; border-color: #969d70; }
+.ring-back:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.ring-back:active { background: #dde1bc; }
+@media (max-width: 1100px) {
+  .ring-back > span:last-child { display: none; }
+  .ring-back { width: 32px; padding: 0; justify-content: center; }
+}
+
 .workbench-subnav {
   margin: 0 12px 8px 25px;
   padding-left: 10px;

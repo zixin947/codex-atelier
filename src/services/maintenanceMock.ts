@@ -49,9 +49,7 @@ export function createMaintenanceMock(options: MaintenanceMockOptions = {}): Mai
   const report = (): DiagnosticReport => ({
     mode: 'demo',
     items: structuredClone(diagnosticItems),
-    hasIssues: diagnosticItems.some(
-      (i) => i.status === 'warning' || i.status === 'error',
-    ),
+    hasIssues: diagnosticItems.some((i) => i.status === 'warning' || i.status === 'error'),
     transitionInFlight: false,
     checkedAt: Date.now(),
     root: '/demo/.codex',
@@ -241,7 +239,7 @@ export function createMaintenanceMock(options: MaintenanceMockOptions = {}): Mai
           clean: '清理数据预览',
           rebuild: '重建账号注册表预览',
           restart: '重启 Desktop 预览',
-          forceKill: '强制结束 Desktop 预览',
+          forceKill: '关闭 Codex 预览',
         }[action],
         count,
         changes:
@@ -253,7 +251,7 @@ export function createMaintenanceMock(options: MaintenanceMockOptions = {}): Mai
                   `登记 ${orphanProfiles} 个未登记档案，保留已有账号信息`,
                 ]
               : action === 'forceKill'
-                ? ['模拟强制结束已识别的 Desktop 进程，不重新启动']
+                ? ['模拟请求 Codex 正常退出；超时即中止并报告，不结束进程']
                 : ['模拟请求 Desktop 正常退出', '模拟重新启动并检查运行状态'],
         warnings: ['演示模式：不会修改本机文件或重启客户端。'],
       }
@@ -283,7 +281,7 @@ export function createMaintenanceMock(options: MaintenanceMockOptions = {}): Mai
           clean: '清理完成，示例旧备份与失效索引已移除。',
           rebuild: '账号注册表已重建，已有名称和分组已保留。',
           restart: '模拟重启完成，未操作真实 Desktop。',
-          forceKill: '模拟结束完成，未操作真实 Desktop。',
+          forceKill: '模拟关闭完成，未操作真实 Desktop。',
         }[action],
         action === 'rebuild' ? accountCount : count,
       )

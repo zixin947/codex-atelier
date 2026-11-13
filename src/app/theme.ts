@@ -1,6 +1,6 @@
 import { readonly, ref } from 'vue'
 
-export type ThemeId = 'endfield' | 'millennium' | 'hud'
+export type ThemeId = 'endfield' | 'millennium'
 export interface BackgroundOptions {
   enabled: boolean
   animated: boolean
@@ -41,7 +41,7 @@ export function updateBackground(patch: Partial<BackgroundOptions>): boolean {
 function savedTheme(): ThemeId {
   try {
     const value = localStorage.getItem(key)
-    return value === 'millennium' || value === 'hud' ? value : 'endfield'
+    return value === 'millennium' ? value : 'endfield'
   } catch {
     return 'endfield'
   }

@@ -131,10 +131,10 @@ onUnmounted(() => {
     <div class="plugin-scope inset">
       <Icon name="shield" :size="21" />
       <div>
-        <b>真实插件配置，与演示数据分开</b>
+        <b>两个固定版本插件 · 用户级配置</b>
         <p>
-          开关在后台保存，新建 Desktop 对话时加载，无需重启应用。首次使用或定义变化时，按 Desktop
-          提示审阅并信任 Hook；已有信任会保留。
+          开关保存在本机，新的 Desktop 对话加载时生效。首次启用或定义变化时，需要按 Desktop
+          提示审阅并信任该插件的 Hook。
         </p>
       </div>
       <span class="badge">USER SCOPE</span>
@@ -273,34 +273,24 @@ onUnmounted(() => {
                   : 'Hooks · 状态未检测'
             }}</b>
             <p v-if="hooksOff(plugin)">
-              总开关已关闭，新会话不加载该插件的
-              Hook。已连接宿主以切换后的热重载回执为准；关闭不会清除信任记录。
+              总开关已关闭，新会话不加载该插件的 Hook；已建立的信任记录会保留。
             </p>
             <template v-else>
               <p>信任状态 · {{ trustLabel(plugin.hookTrust) }}</p>
-              <p v-if="plugin.enabled === true">各条 Hook 仍以自身启用与信任状态为准。</p>
               <p v-if="plugin.hookTrust.total">
                 {{ plugin.hookTrust.trusted + plugin.hookTrust.managed }}/{{
                   plugin.hookTrust.total
                 }}
                 已批准
-                <span v-if="plugin.hookTrust.managed">
-                  · {{ plugin.hookTrust.managed }} 项由策略信任</span
-                >
                 <span v-if="plugin.hookTrust.untrusted">
                   · {{ plugin.hookTrust.untrusted }} 项待信任</span
                 >
                 <span v-if="plugin.hookTrust.modified">
                   · {{ plugin.hookTrust.modified }} 项定义变化</span
                 >
-                <span v-if="plugin.hookTrust.disabled">
-                  · {{ plugin.hookTrust.disabled }} 项已单独停用</span
-                >
               </p>
-              <p v-if="plugin.hookTrust.reason">{{ plugin.hookTrust.reason }}</p>
               <p v-if="plugin.hookTrust.state === 'reviewRequired'">
-                请新建 Desktop 对话，按宿主提示审阅当前定义并决定是否信任。已信任且定义未变化的 Hook
-                不需要重复信任。
+                请新建 Desktop 对话，按宿主提示审阅当前定义并决定是否信任。
               </p>
             </template>
           </div>

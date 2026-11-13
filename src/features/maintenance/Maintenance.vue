@@ -15,9 +15,10 @@ import type {
 import './maintenance.css'
 
 /* 排版对齐 AiMaMi 1.2.7 维护页：单张卡片 + 分隔行，行内为图标、标题、描述与右侧动作或开关。
-   文案取自二进制常量区；仅把发送目标里的产品名换成 Atelier，因为接收地址由用户填写。 */
+   文案取自二进制常量区；仅把发送目标里的产品名换成 Atelier，因为接收地址由用户填写。
+   本版按使用频率重排：诊断与生图声明常驻，诊断包与高级维护各自折叠。 */
 
-type Tool = MaintenanceAction | 'export' | 'send' | 'image' | 'searchCompat'
+type Tool = MaintenanceAction | 'export' | 'send' | 'image'
 
 interface Row {
   key: Tool
@@ -31,16 +32,17 @@ interface Row {
   confirmAccept?: string
 }
 
-const rows: Row[] = [
-  {
-    key: 'diagnose',
-    icon: 'pulse',
-    title: '系统诊断',
-    description:
-      '一站式排查并修复 Codex 运行问题：第三方污染、配置/认证/线程异常、旧库残留等，发现异常可一键修复并自动重启 Codex。',
-    action: '运行诊断',
-    busy: '诊断中...',
-  },
+const diagnoseRow: Row = {
+  key: 'diagnose',
+  icon: 'pulse',
+  title: '系统诊断',
+  description:
+    '一站式排查并修复 Codex 运行问题：第三方污染、配置/认证/线程异常、旧库残留等，发现异常可一键修复并自动重启 Codex。',
+  action: '运行诊断',
+  busy: '诊断中...',
+}
+
+const packageRows: Row[] = [
   {
     key: 'export',
     icon: 'download',
@@ -58,6 +60,9 @@ const rows: Row[] = [
     action: '发送诊断',
     busy: '发送中...',
   },
+]
+
+const advancedRows: Row[] = [
   {
     key: 'clean',
     icon: 'trash',
@@ -77,33 +82,21 @@ const rows: Row[] = [
   {
     key: 'forceKill',
     icon: 'close',
-    title: '强制关闭 Codex',
+    title: '关闭 Codex',
     description:
-      '搜索并强制终止所有 Codex 相关进程（客户端、Helper、插件服务等），解决进程残留导致路由无法启动的问题。',
-    action: '强制关闭',
+      '只请求 Codex 正常退出并等待。超时未退出即中止并报告仍存在的进程，不会结束任何进程，也不会自动重启客户端。',
+    action: '关闭 Codex',
     busy: '关闭中...',
-  },
-  {
-    key: 'image',
-    icon: 'grid',
-    title: 'Image 声明过滤',
-    description:
-      '开启：在 ChatGPT 配置中关闭生图声明，并从中转请求中移除生图工具，避免不支持生图的上游返回 403；关闭：取消该限制并恢复声明透传，由模型和上游决定是否支持。此开关不会新增生图能力。',
-    action: '切换',
-  },
-  {
-    key: 'searchCompat',
-    icon: 'search',
-    title: 'Claude 联网搜索',
-    description:
-      '当前 Anthropic 协议不支持内置联网搜索，此项不可开启。不影响其他协议、MCP 或插件工具，也不改变 ChatGPT 中的搜索入口。旧对话记录不会改写；升级后请新建 Claude 对话。',
-    action: '未开放',
+    confirm: '确定关闭 Codex？',
+    confirmText:
+      '将请求 Codex 正常退出并等待；超时未退出会中止并报告。不会强制结束进程，也不会自动重启。',
+    confirmAccept: '关闭 Codex',
   },
   {
     key: 'restart',
     icon: 'refresh',
     title: '重启 Codex',
-    description: '终止并重新启动本地 Codex 进程，应用配置变更或恢复异常状态。',
+    description: '按原版流程退出并重新启动本地 Codex 进程，应用配置变更或恢复异常状态。',
     action: '重启',
     busy: '运行中...',
     confirm: '确定重启 Codex？',
@@ -111,6 +104,15 @@ const rows: Row[] = [
     confirmAccept: '重启',
   },
 ]
+
+const imageRow: Row = {
+  key: 'image',
+  icon: 'grid',
+  title: 'Image 声明过滤',
+  description:
+    '开启：在 ChatGPT 配置中关闭生图声明，并从中转请求中移除生图工具，避免不支持生图的上游返回 403；关闭：取消该限制并恢复声明透传，由模型和上游决定是否支持。此开关不会新增生图能力。',
+  action: '切换',
+}
 
 const snapshot = ref<MaintenanceSnapshot | null>(null)
 const settings = ref<MaintenanceUtilitySettings | null>(null)
@@ -160,7 +162,7 @@ async function execute(action: MaintenanceAction): Promise<MaintenanceResult | n
 }
 
 async function run(row: Row) {
-  if (busy.value || row.key === 'searchCompat') return
+  if (busy.value) return
   errors.value[row.key] = ''
 
   if (row.key === 'diagnose') {
@@ -213,7 +215,7 @@ async function perform(key: Tool) {
         key === 'restart'
           ? 'Codex 已重启'
           : key === 'forceKill'
-            ? value?.summary || `已强制终止 ${value?.changed ?? 0} 个进程`
+            ? value?.summary || `已关闭 ${value?.changed ?? 0} 个进程`
             : (value?.summary ?? '已执行')
       try {
         snapshot.value = await maintenanceService.snapshot()
@@ -299,7 +301,7 @@ onBeforeUnmount(() => {
   <section class="mnt-page" aria-labelledby="maintenance-title">
     <header class="mnt-head">
       <h1 id="maintenance-title">维护工具</h1>
-      <p>诊断系统状态、清理冗余数据、重建注册表并处理本地运行异常。</p>
+      <p>先运行系统诊断；诊断包与低频的清理、重建、进程操作收纳在各自折叠区。</p>
       <span v-if="snapshot?.mode === 'demo'" class="mnt-demo">演示数据 · 不连接本机</span>
     </header>
 
@@ -307,60 +309,109 @@ onBeforeUnmount(() => {
       {{ loadError }}<button type="button" class="mnt-text-button" @click="load">重试</button>
     </p>
 
-    <div class="mnt-card" :aria-busy="!!busy">
-      <article v-for="row in rows" :key="row.key" class="mnt-row">
-        <Icon :name="row.icon" :size="18" class="mnt-row-icon" />
-
+    <div class="mnt-card mnt-feature">
+      <article :data-row="diagnoseRow.key" class="mnt-row">
+        <Icon :name="diagnoseRow.icon" :size="18" class="mnt-row-icon" />
         <div class="mnt-row-copy">
-          <h2>{{ row.title }}</h2>
-          <p>{{ row.description }}</p>
-          <p v-if="results[row.key]" class="mnt-row-result">{{ results[row.key] }}</p>
-          <p v-if="errors[row.key]" class="mnt-row-error" role="alert">{{ errors[row.key] }}</p>
-          <p v-if="row.key === 'image' && settingsError" class="mnt-row-error" role="alert">
-            {{ settingsError }}
-          </p>
+          <h2>{{ diagnoseRow.title }}</h2>
+          <p>{{ diagnoseRow.description }}</p>
+          <p v-if="results.diagnose" class="mnt-row-result">{{ results.diagnose }}</p>
+          <p v-if="errors.diagnose" class="mnt-row-error" role="alert">{{ errors.diagnose }}</p>
         </div>
-
         <button
-          v-if="row.key === 'image' || row.key === 'searchCompat'"
           type="button"
-          class="mnt-switch"
-          role="switch"
-          :aria-checked="row.key === 'image' && imageOn"
-          :aria-label="row.title"
-          :disabled="locked || row.key === 'searchCompat'"
-          @click="run(row)"
+          class="mnt-action mnt-action-primary"
+          :disabled="locked || (busy !== null && busy !== 'diagnose')"
+          :aria-busy="busy === 'diagnose'"
+          @click="run(diagnoseRow)"
         >
-          <span class="mnt-switch-track"><i /></span>
-          <small>{{
-            row.key === 'searchCompat'
-              ? '已关闭'
-              : !settings
-                ? '未读取'
-                : imageOn
-                  ? '正在过滤'
-                  : '允许透传'
-          }}</small>
-        </button>
-
-        <button
-          v-else
-          type="button"
-          class="mnt-action"
-          :class="{
-            'mnt-action-primary': row.key === 'diagnose',
-            'mnt-action-danger': row.key === 'forceKill',
-          }"
-          :disabled="locked || (busy !== null && busy !== row.key)"
-          :aria-busy="busy === row.key"
-          @click="run(row)"
-        >
-          <Icon v-if="busy === row.key" name="refresh" :size="13" class="mnt-spin" />{{
-            busy === row.key ? (row.busy ?? '处理中...') : row.action
+          <Icon v-if="busy === 'diagnose'" name="refresh" :size="13" class="mnt-spin" />{{
+            busy === 'diagnose' ? (diagnoseRow.busy ?? '处理中...') : diagnoseRow.action
           }}
         </button>
       </article>
+
+      <article :data-row="imageRow.key" class="mnt-row">
+        <Icon :name="imageRow.icon" :size="18" class="mnt-row-icon" />
+        <div class="mnt-row-copy">
+          <h2>{{ imageRow.title }}</h2>
+          <p>{{ imageRow.description }}</p>
+          <p v-if="errors.image" class="mnt-row-error" role="alert">{{ errors.image }}</p>
+          <p v-if="settingsError" class="mnt-row-error" role="alert">{{ settingsError }}</p>
+        </div>
+        <button
+          type="button"
+          class="mnt-switch"
+          role="switch"
+          :aria-checked="imageOn"
+          :aria-label="imageRow.title"
+          :disabled="locked"
+          @click="run(imageRow)"
+        >
+          <span class="mnt-switch-track"><i /></span>
+          <small>{{ !settings ? '未读取' : imageOn ? '正在过滤' : '允许透传' }}</small>
+        </button>
+      </article>
     </div>
+
+    <details class="mnt-fold" data-section="package">
+      <summary>
+        <Icon name="download" :size="16" />诊断包
+        <small>导出或发送脱敏诊断信息</small>
+      </summary>
+      <div class="mnt-card">
+        <article v-for="row in packageRows" :key="row.key" :data-row="row.key" class="mnt-row">
+          <Icon :name="row.icon" :size="18" class="mnt-row-icon" />
+          <div class="mnt-row-copy">
+            <h2>{{ row.title }}</h2>
+            <p>{{ row.description }}</p>
+            <p v-if="results[row.key]" class="mnt-row-result">{{ results[row.key] }}</p>
+            <p v-if="errors[row.key]" class="mnt-row-error" role="alert">{{ errors[row.key] }}</p>
+          </div>
+          <button
+            type="button"
+            class="mnt-action"
+            :disabled="locked || (busy !== null && busy !== row.key)"
+            :aria-busy="busy === row.key"
+            @click="run(row)"
+          >
+            <Icon v-if="busy === row.key" name="refresh" :size="13" class="mnt-spin" />{{
+              busy === row.key ? (row.busy ?? '处理中...') : row.action
+            }}
+          </button>
+        </article>
+      </div>
+    </details>
+
+    <details class="mnt-fold" data-section="advanced">
+      <summary>
+        <Icon name="settings" :size="16" />高级维护
+        <small>低频：清理、重建与进程操作</small>
+      </summary>
+      <div class="mnt-card">
+        <article v-for="row in advancedRows" :key="row.key" :data-row="row.key" class="mnt-row">
+          <Icon :name="row.icon" :size="18" class="mnt-row-icon" />
+          <div class="mnt-row-copy">
+            <h2>{{ row.title }}</h2>
+            <p>{{ row.description }}</p>
+            <p v-if="results[row.key]" class="mnt-row-result">{{ results[row.key] }}</p>
+            <p v-if="errors[row.key]" class="mnt-row-error" role="alert">{{ errors[row.key] }}</p>
+          </div>
+          <button
+            type="button"
+            class="mnt-action"
+            :class="{ 'mnt-action-danger': row.key === 'forceKill' }"
+            :disabled="locked || (busy !== null && busy !== row.key)"
+            :aria-busy="busy === row.key"
+            @click="run(row)"
+          >
+            <Icon v-if="busy === row.key" name="refresh" :size="13" class="mnt-spin" />{{
+              busy === row.key ? (row.busy ?? '处理中...') : row.action
+            }}
+          </button>
+        </article>
+      </div>
+    </details>
 
     <p class="mnt-foot">
       ATELIER / MAINTENANCE<span v-if="snapshot"

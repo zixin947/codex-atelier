@@ -95,8 +95,11 @@ impl PreparedAction {
         if !self.preview.protected_db_holders.is_empty() {
             warnings.push("发现受保护或归属未知的数据库持有者：不会结束这些进程；即使相关进程已退出，原生流程仍会报告失败。".into());
         }
+        if self.action == Action::ForceKill {
+            warnings.push("本操作只做优雅退出：发送退出请求后轮询等待，超时即中止并报告仍未退出的进程；不会发送任何结束信号，也不会重新启动客户端。".into());
+        }
         if self.action == Action::Restart {
-            warnings.push("原版重启先请求正常退出，最多等待5秒，再强制结束相关进程；确认清空且无受保护持有者后才启动。".into());
+            warnings.push("重启会先请求正常退出，超时或仍有相关进程时中止，不强杀；确认退出后才启动。".into());
         }
         warnings
     }
@@ -193,7 +196,7 @@ pub(crate) fn prepare(
     let preview = ProcessPreview {
         action: action.id().into(),
         scope: match action {
-            Action::ForceKill => "强制结束全部原生识别的 Codex 相关进程（含 CLI），并在3秒窗口内处理重新出现的相关进程；不会自动启动客户端。",
+            Action::ForceKill => "请求 Codex 正常退出并轮询等待；超时未退出即中止并报告仍存在的相关进程（含 CLI），不会强制结束任何进程，也不会自动启动客户端。",
             Action::Restart => "按原版流程重启：正常退出等待5秒，随后执行 policy0 全相关进程强制退出，再启动并确认主进程，最后激活应用。",
         }.into(),
         targets: identities.iter().map(ProcessTarget::from).collect(),
@@ -242,26 +245,56 @@ pub(crate) fn apply(plan: &PreparedAction, r: &impl Runner) -> Result<ActionResu
     let ctx = &plan.context;
     match plan.action {
         Action::ForceKill => {
-            let report = native::force_close_all(r, ctx)
-                .map_err(|e| format!("{}；已执行的进程退出不可回滚，未启动客户端", map_error(e)))?;
-            let count = report.processes.len();
-            let mut out = result("forceKill", format!("原生全相关进程强制退出完成：初始目标 {count} 个，已确认相关进程清空且无受保护数据库持有者。"), count, vec![], None);
+            // 只请求优雅退出：轮询等待，超时即中止并如实报错。
+            // 这里绝不发送结束信号，因此不会出现「强制关闭」式的 kill -9。
+            let mut attempted = false;
+            if native::is_codex_app_running(r, ctx) {
+                r.output(&native::Operation::QuitApp)
+                    .map_err(|e| format!("无法请求 Codex 退出：{e}；未强杀任何进程"))?;
+                attempted = true;
+                let start = r.now();
+                while native::is_codex_app_running(r, ctx) {
+                    if r.now().saturating_sub(start) >= Duration::from_secs(10) {
+                        break;
+                    }
+                    r.sleep(Duration::from_millis(100));
+                }
+            }
+            let remaining = full_targets(r, ctx, plan.main.as_deref())?;
+            if !remaining.is_empty() {
+                let names = remaining
+                    .iter()
+                    .take(8)
+                    .map(|p| format!("{} (pid {})", native::extract_process_name(&p.command), p.pid))
+                    .collect::<Vec<_>>()
+                    .join(" | ");
+                return Err(format!(
+                    "仍有 {} 个 Codex 相关进程未退出：{}；已中止，未强杀任何进程，也未重新启动，请保存工作后手动退出再试。",
+                    remaining.len(),
+                    names
+                ));
+            }
+            if !native::protected_codex_db_holders(r, ctx).is_empty() {
+                return Err("仍有受保护的数据库持有者；已中止，未强杀任何进程".into());
+            }
+            if !attempted && plan.identities.is_empty() {
+                let mut out = result("forceKill", "未检测到正在运行的 Codex 相关进程；未发送任何信号，也未重新启动。".into(), 0, vec![], None);
+                out.checks.push(Check::new("原生进程复检", "pass", "相关目标本就不存在。"));
+                return Ok(out);
+            }
+            let count = plan.identities.len();
+            let mut out = result("forceKill", format!("Codex 已正常退出：请求退出后轮询确认 {count} 个相关进程清空，未强杀进程，也未重新启动。"), count, vec![], None);
             out.checks.push(Check::new(
                 "原生进程复检",
                 "pass",
-                "相关目标已清空，受保护数据库持有者检查通过；未重新启动。",
+                "相关目标已清空，受保护数据库持有者检查通过；未强杀，未重新启动。",
             ));
             Ok(out)
         }
         Action::Restart => {
-            // Installed restart blocking closure @100476ed8: Duration(5,0), policy=0.
-            native::prepare_transition(
-                r,
-                ctx,
-                Duration::from_secs(5),
-                native::ProcessPolicy::ForceCloseAll,
-            )
-            .map_err(|e| format!("{}；退出阶段未通过，未启动客户端", map_error(e)))?;
+            let mut stop = plan.clone();
+            stop.action = Action::ForceKill;
+            apply(&stop, r).map_err(|e| format!("{e}；退出阶段未通过，未启动客户端"))?;
             let pid = native::launch_codex_app(r, ctx)
                 .map_err(|e| format!("{}；退出已完成，启动阶段未通过", map_error(e)))?;
             let mut out = result(

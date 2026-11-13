@@ -8,11 +8,78 @@ private final class AtelierHudView: NSView {
     let navigation: HUDNavigation
     let map: WorldMapSurface
     let artwork = HUDMechanicalArtwork()
+    let identityCard = HUDIdentityCard()
+    let headerClock = HUDClock()
+    let accountGauge = HUDAccountGauge()
+    let chargeBadge = HUDChargeBadge()
+    let battery = BatteryMonitor()
+    private var batterySnapshot: BatterySnapshot = .unavailable
+    let header = CALayer()
+    private let profileStore = Result { try UserProfileStore(directory: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("com.codexatelier.desktop/HUD/Profile")) }
+    private var peripheralView: SystemHUDView?
+    private var profileObserver: UUID?
+    private let workMode = WorkModeController()
+    private lazy var account = HypergryphAccountController(profile: try? profileStore.get(), fileURL: FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("com.codexatelier.desktop/HUD/Account/profile-cache.json"))
+    private var accountObserver: UUID?
+
+    private func refreshProfile() {
+        guard let store = try? profileStore.get() else { return }
+        identityCard.setProfile(store.profile, avatar: store.image(for: .avatar), background: store.image(for: .background), avatarOrientation: store.imageOrientation(for: .avatar))
+    }
+    private func refreshAccount() {
+        let value = account.gaugeValue(work: workMode.snapshot)
+        accountGauge.update(value: value.0, accessibilityLabel: value.1, visible: true, accent: .yellow, scale: 2, sanity: account.sanityPresentation())
+    }
+    private func openPeripheral(_ module: HUDModule, quit: Bool = false) {
+        if peripheralView == nil {
+            let root = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("com.codexatelier.desktop/HUD")
+            let view = SystemHUDView(frame: bounds,
+                notesStore: Result { try NotesStore(directory: root.appendingPathComponent("Notes")) },
+                shelfStore: Result { try FileShelfStore(directory: root.appendingPathComponent("Shelf")) },
+                clipboard: ClipboardWatcher(store: ClipboardStore(), pasteboard: .withUniqueName()),
+                audio: .fixture(), perAppAudio: .fixture(), workMode: workMode,
+                appShortcuts: Result { try AppShortcutStore(directory: root.appendingPathComponent("Shortcuts")) },
+                profile: profileStore,
+                mapStore: Result { try WorldMapStore(directory: root.appendingPathComponent("Map")) },
+                archive: ArchiveController(store: ArchiveStore(directory: root.appendingPathComponent("Archive"))),
+                reader: ReaderController(loadStore: { try ReaderStore(directory: root.appendingPathComponent("Reader")) }),
+                account: account, initialModule: module)
+            view.onClose = { [weak self, weak view] in
+                view?.interactionEnabled = false
+                view?.stopMotionForConcealment()
+                view?.isHidden = true
+                if let self { self.setAccessibilityChildren(self.actions) }
+                self?.scene.isHidden = false
+                self?.refreshProfile()
+            }
+            view.onQuitConfirmed = { NSApp.terminate(nil) }
+            addSubview(view)
+            peripheralView = view
+        }
+        guard let view = peripheralView else { return }
+        view.frame = bounds
+        scene.isHidden = true
+        setAccessibilityChildren([view])
+        view.set(snapshot: batterySnapshot, configuration: .defaults)
+        view.isHidden = false
+        view.interactionEnabled = true
+        view.showStable()
+        view.selectModule(module, animated: false)
+        window?.makeFirstResponder(view)
+        if quit { view.presentQuitConfirmation() }
+    }
+
+
     let plane = HUDDepthPlane(name: "atelier", depth: 0, travel: 8, lag: 0.28)
     let scene = CALayer()
     lazy var motion = HUDMotionController(planes: [plane])
+    // Index ↔ destination mapping. This order must match `nav` in
+    // src/app/navigation.ts one-to-one: the web layer sends labels by index and
+    // routes the index it gets back. The six fixed tiles are left/bottom slots;
+    // the right-hand column keeps the first contiguous cards so no holes appear
+    // after the demo extensions, diagnostics and persona entries were removed.
     let modules: [HUDModule] = [.system, .display, .hotkeys, .about, .storage, .activityMonitor,
-                                .notes, .fileShelf, .clipboard, .archive, .mediaAssembly, .reader, .calendar, .map]
+                                .notes, .fileShelf, .clipboard, .archive, .mediaAssembly]
     var onRoute: (Int32) -> Void = { _ in }
     var focusIndex = 0
     var actions: [AtelierHudAction] = []
@@ -43,6 +110,42 @@ private final class AtelierHudView: NSView {
         map.layer.setAffineTransform(CGAffineTransform(scaleX: mapScale, y: mapScale))
         content.addSublayer(map.layer)
         [artwork.markers, artwork.glass, artwork.rim, navigation.layer, navigation.bottomLayer].forEach(content.addSublayer)
+        // Upstream SystemHUDView.buildHeader/buildNavigation composition;
+        // component artwork and 1000×640 design coordinates are unchanged.
+        content.addSublayer(identityCard.layer)
+        identityCard.update(dark: true, accent: .yellow, contentsScale: 2)
+        header.frame = HUDOverlayGeometry.header
+        header.zPosition = 20
+        content.addSublayer(header)
+        let titleLabel = HUDStandardTextLayer(size: 20, weight: .semibold)
+        titleLabel.frame = CGRect(x: 0, y: 0, width: 300, height: 27)
+        titleLabel.string = "ENDFIELDHUD"
+        let subtitleLabel = HUDStandardTextLayer(size: 9)
+        subtitleLabel.frame = CGRect(x: 0, y: 31, width: 300, height: 18)
+        subtitleLabel.string = "SYSTEM INTERFACE"
+        let clockTime = HUDStandardTextLayer(size: 20, weight: .semibold, tabular: true)
+        clockTime.frame = CGRect(x: 340, y: 0, width: 220, height: 27)
+        clockTime.alignmentMode = .right
+        let clockDate = HUDStandardTextLayer(size: 9, tabular: true)
+        clockDate.frame = CGRect(x: 340, y: 31, width: 220, height: 18)
+        clockDate.alignmentMode = .right
+        for label in [titleLabel, subtitleLabel, clockTime, clockDate] {
+            label.foregroundColor = NSColor.white.cgColor
+            header.addSublayer(label)
+        }
+        headerClock.onChange = { reading in
+            clockTime.string = reading.time
+            clockDate.string = reading.date
+        }
+        accountGauge.layer.position = HUDAccountGauge.headerPosition
+        header.addSublayer(accountGauge.layer)
+        accountGauge.update(value: "—", accessibilityLabel: "未连接账号", visible: true, accent: .yellow, scale: 2)
+        content.addSublayer(chargeBadge.layer)
+        battery.onChange = { [weak self] snapshot in
+            self?.batterySnapshot = snapshot
+            self?.peripheralView?.set(snapshot: snapshot, configuration: .defaults)
+            self?.chargeBadge.update(snapshot: snapshot, configuration: .defaults, dark: true, contentsScale: 2)
+        }
         artwork.update(dark: true, chargeColor: .yellow, accentColor: .yellow)
         navigation.update(dark: true, accent: NSColor(red: 1, green: 0.98, blue: 0, alpha: 1), contentsScale: 2)
         for entry in navigation.entries {
@@ -69,6 +172,11 @@ private final class AtelierHudView: NSView {
         setAccessibilityChildren(actions)
         map.onCamera = { [weak self] _ in self?.updateMapValue() }
         updateMapValue()
+        refreshProfile()
+        profileObserver = (try? profileStore.get())?.observe { [weak self] in self?.refreshProfile() }
+        accountObserver = account.observe { [weak self] in self?.refreshAccount() }
+        refreshAccount()
+        accountGauge.onRefresh = { [weak self] in self?.account.refresh(manual: true) }
         setAccessibilityRole(.group)
         setAccessibilityLabel("环形 HUD，原生 EndfieldHUD 地图与导航")
     }
@@ -81,6 +189,7 @@ private final class AtelierHudView: NSView {
     }
     override func layout() {
         super.layout()
+        peripheralView?.frame = bounds
         scale = min(bounds.width / 1000, bounds.height / 640) * 0.94
         origin = CGPoint(x: (bounds.width - 1000 * scale) / 2, y: (bounds.height - 640 * scale) / 2)
         CATransaction.begin(); CATransaction.setDisableActions(true)
@@ -104,7 +213,8 @@ private final class AtelierHudView: NSView {
     }
     override func keyDown(with event: NSEvent) {
         if event.keyCode == 48 {
-            focusIndex = (focusIndex + (event.modifierFlags.contains(.shift) ? 13 : 1)) % modules.count
+            // Shift steps backwards one module; plain Tab steps forward.
+            focusIndex = (focusIndex + (event.modifierFlags.contains(.shift) ? modules.count - 1 : 1)) % modules.count
             navigation.hover(modules[focusIndex]); return
         }
         if event.keyCode == 36 { onRoute(Int32(focusIndex)); return }
@@ -112,6 +222,15 @@ private final class AtelierHudView: NSView {
     }
     func show(_ visible: Bool) {
         isHidden = !visible
+        headerClock.setActive(visible)
+        account.setVisible(visible, accountModule: false)
+        if !visible {
+            peripheralView?.interactionEnabled = false
+            peripheralView?.stopMotionForConcealment()
+            peripheralView?.isHidden = true
+            scene.isHidden = false
+        }
+        if visible { battery.start(); chargeBadge.setStable() } else { battery.stop(); chargeBadge.setStable(visible: false) }
         if visible {
             window?.acceptsMouseMovedEvents = true
             map.prepareForPresentation(); map.activate()
@@ -136,12 +255,21 @@ private final class AtelierHudView: NSView {
     }
     override func mouseMoved(with event: NSEvent) {
         let point = designPoint(event)
+        identityCard.setHovered(identityCard.target(at: point))
+        chargeBadge.setHovered(chargeBadge.contains(point))
         navigation.hoverTarget(navigation.hoverHitTarget(point: point))
         motion.setParallax(normalizedPoint: HUDMotionMath.normalizedPointer(location: point, center: CGPoint(x: 500, y: 320)))
     }
     override func mouseExited(with event: NSEvent) { navigation.hover(nil); motion.resetParallax() }
     override func mouseDown(with event: NSEvent) {
         let p = designPoint(event)
+        if let target = identityCard.target(at: p) {
+            openPeripheral(target == .profile ? .profile : .power, quit: target == .close)
+            return
+        }
+        if chargeBadge.contains(p) { openPeripheral(.power); return }
+        let gaugePoint = CGPoint(x: p.x - header.frame.minX - accountGauge.layer.position.x, y: p.y - header.frame.minY - accountGauge.layer.position.y)
+        if CGRect(origin: .zero, size: HUDAccountGauge.size).contains(gaugePoint) { openPeripheral(.account); return }
         if let module = navigation.hitTest(point: p), let index = modules.firstIndex(of: module) {
             navigation.select(module); onRoute(Int32(index)); return
         }
@@ -185,7 +313,15 @@ public func atelierHudCreate(_ parent: UnsafeMutableRawPointer, _ labelsJSON: Un
 @_cdecl("atelier_hud_update")
 public func atelierHudUpdate(_ pointer: UnsafeMutableRawPointer, _ x: Double, _ y: Double, _ width: Double, _ height: Double, _ visible: Bool) {
     let view = Unmanaged<AtelierHudView>.fromOpaque(pointer).takeUnretainedValue()
-    view.frame = CGRect(x: x, y: view.superview!.bounds.height - y - height, width: width, height: height)
+    let parent = view.superview!
+    // The DOM viewport starts below the titlebar. contentView.bounds may include
+    // that titlebar, so use the window's content layout rect as the coordinate origin.
+    guard let window = view.window else { return }
+    let viewport = window.contentLayoutRect
+    let rect = CGRect(x: viewport.minX + x, y: viewport.maxY - y - height,
+                      width: width, height: height)
+    view.frame = parent.convert(rect, from: nil)
+    view.layer?.masksToBounds = true
     view.show(visible)
 }
 @_cdecl("atelier_hud_destroy")

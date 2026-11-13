@@ -393,6 +393,12 @@ pub async fn gateway_start(
     g.idle()?;
     let mut bridge = g.plan_bridge.lock().await;
     let c = g.store.read()?;
+    // 管理页初始化与转发接入是两条路径，`original_ui` 走前一条：
+    // 只启动原版管理界面所需的本机引擎（127.0.0.1 + 随机密钥），不写 ~/.codex/config.toml、
+    // 不注入供应商与路由组，也不启动 plan_bridge，因此不会接管或改道 Codex 的请求。
+    // discoverAccounts 只让内核「读取」已登录账号用于展示；所有会写回登录态的操作仍由
+    // 用户在管理页显式触发。把 Codex 指向本地网关只在 gateway_launch_desktop 中发生，
+    // 且仅作用于由 Atelier 新启动的进程。
     if original_ui.unwrap_or(false) {
         g.engine.start(serde_json::json!({"originalUI":true,"port":c.settings.port,"providers":[],"groups":[],"settings":{},"discoverAccounts":true}))?;
         return g.snapshot();

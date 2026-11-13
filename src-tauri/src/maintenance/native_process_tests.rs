@@ -188,9 +188,12 @@ fn force_preview_and_apply_include_cli_without_installed_bundle() {
     let serialized = serde_json::to_string(p.preview()).unwrap();
     assert!(!serialized.contains("PRIVATE_BODY"));
     assert!(f.events.borrow().is_empty());
-    let out = apply(&p, &f).unwrap();
-    assert_eq!(out.changed, 2);
-    assert_eq!(*f.events.borrow(), vec!["kill21", "kill22"]);
+    // 只有 CLI 目标时无法优雅退出：中止并如实报错，绝不发送结束信号。
+    let e = apply(&p, &f).err().unwrap();
+    assert!(e.contains("未强杀"));
+    assert!(f.events.borrow().is_empty());
+    assert!(f.entries.borrow().contains_key(&21));
+    assert!(f.entries.borrow().contains_key(&22));
     assert!(f.entries.borrow().contains_key(&23));
     assert!(f.entries.borrow().contains_key(&999));
 }
@@ -209,30 +212,66 @@ fn protected_extension_is_not_killed_and_actual_holder_blocks_completion() {
     assert_eq!(p.preview().protected_db_holders[0].pid, 32);
     assert_eq!(p.preview().external_cli.len(), 2);
     let e = apply(&p, &f).err().unwrap();
-    assert!(e.contains("codex_protected_db_holders"));
+    // 优雅退出无法处理 CLI 目标：中止报错，受保护持有者与目标都保持原样。
+    assert!(e.contains("未强杀"));
     assert!(!e.contains("SECRET"));
-    assert_eq!(*f.events.borrow(), vec!["kill31"]);
+    assert!(f.events.borrow().is_empty());
+    assert!(f.entries.borrow().contains_key(&31));
     assert!(f.entries.borrow().contains_key(&32));
 }
 #[test]
-fn restart_uses_native_five_second_policy_zero_force_fallback_then_double_open() {
+fn close_codex_only_requests_a_graceful_quit_and_never_signals_anything() {
+    let f = Fake::new(true);
+    f.add(41, "/Applications/ChatGPT.app/Contents/MacOS/ChatGPT");
+    let p = prepare(&f.ctx(), &f, "forceKill").unwrap();
+    assert!(f.events.borrow().is_empty());
+    let out = apply(&p, &f).unwrap();
+    assert_eq!(*f.events.borrow(), vec!["quit"]);
+    assert!(out.summary.contains("正常退出"));
+    assert!(f.entries.borrow().is_empty());
+    assert_eq!(out.changed, 1);
+}
+
+#[test]
+fn close_codex_aborts_without_killing_when_the_client_stays_running() {
     let f = Fake::new(true);
     f.add(41, "/Applications/ChatGPT.app/Contents/MacOS/ChatGPT");
     f.add(42, "/opt/homebrew/bin/codex");
     f.refuse_quit.set(true);
-    let p = prepare(&f.ctx(), &f, "restart").unwrap();
-    assert_eq!(p.preview().targets.len(), 2);
-    assert!(f.events.borrow().is_empty());
-    let out = apply(&p, &f).unwrap();
-    assert_eq!(out.action, "restart");
-    assert!(f.time.get() >= Duration::from_secs(5));
-    assert_eq!(
-        *f.events.borrow(),
-        vec!["quit", "kill41", "kill42", "open1", "open2"]
-    );
-    assert!(out.summary.contains("801"));
-    assert_eq!(out.checks[0].status, "pass");
+    let p = prepare(&f.ctx(), &f, "forceKill").unwrap();
+    let e = apply(&p, &f).err().unwrap();
+    assert!(e.contains("未强杀"));
+    assert!(e.contains("未退出"));
+    // 只发过一次退出请求，没有任何结束信号，进程与时间都保持真实。
+    assert_eq!(*f.events.borrow(), vec!["quit"]);
+    assert!(f.time.get() >= Duration::from_secs(10));
+    assert!(f.entries.borrow().contains_key(&41));
+    assert!(f.entries.borrow().contains_key(&42));
 }
+
+#[test]
+fn close_codex_reports_leftover_cli_processes_instead_of_killing_them() {
+    let f = Fake::new(true);
+    f.add(41, "/Applications/ChatGPT.app/Contents/MacOS/ChatGPT");
+    f.add(42, "/opt/homebrew/bin/codex");
+    let p = prepare(&f.ctx(), &f, "forceKill").unwrap();
+    let e = apply(&p, &f).err().unwrap();
+    assert!(e.contains("未强杀"));
+    assert!(e.contains("pid 42"));
+    assert_eq!(*f.events.borrow(), vec!["quit"]);
+    assert!(f.entries.borrow().contains_key(&42));
+}
+
+#[test]
+fn restart_aborts_without_killing_or_launching_when_exit_is_refused() {
+    let f = Fake::new(true);
+    f.add(41, "/Applications/ChatGPT.app/Contents/MacOS/ChatGPT");
+    f.refuse_quit.set(true);
+    let p = prepare(&f.ctx(), &f, "restart").unwrap();
+    assert!(apply(&p, &f).err().unwrap().contains("未启动客户端"));
+    assert_eq!(*f.events.borrow(), vec!["quit"]);
+}
+
 #[test]
 fn protected_holder_after_stop_prevents_restart_launch() {
     let f = Fake::new(true);
@@ -280,14 +319,15 @@ fn explicit_sqlite_home_excludes_default_dirs_and_preview_retains_numeric_order(
     assert_eq!(apply(&p, &f).unwrap().changed, 0);
 }
 #[test]
-fn force_timeout_and_launch_failures_are_actual_failures() {
+fn close_timeout_and_launch_failures_are_actual_failures() {
+    // 优雅退出拿不到结果时只报错，不发信号。
     let f = Fake::new(false);
     f.add(71, "codex");
-    f.refuse_signal.set(true);
     let p = prepare(&f.ctx(), &f, "forceKill").unwrap();
-    assert!(apply(&p, &f).err().unwrap().contains("未启动客户端"));
-    assert!(f.time.get() >= Duration::from_secs(3));
-    assert!(f.events.borrow().len() > 1);
+    let e = apply(&p, &f).err().unwrap();
+    assert!(e.contains("未强杀"));
+    assert!(f.events.borrow().is_empty());
+    assert!(f.entries.borrow().contains_key(&71));
     let launch = Fake::new(true);
     launch.open_failure.set(2);
     let p = prepare(&launch.ctx(), &launch, "restart").unwrap();

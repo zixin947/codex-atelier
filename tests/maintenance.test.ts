@@ -149,24 +149,30 @@ afterEach(() => {
 })
 
 describe('maintenance page', () => {
-  it('loads the nine original rows without executing anything', async () => {
+  it('leads with diagnostics and folds the low-frequency actions', async () => {
     await open()
     expect(api.snapshot).toHaveBeenCalledOnce()
     expect(api.preview).not.toHaveBeenCalled()
     expect(api.apply).not.toHaveBeenCalled()
     expect(api.runDiagnostics).not.toHaveBeenCalled()
-    expect(wrapper!.findAll('.mnt-row')).toHaveLength(9)
+    // 常驻 2 行（诊断 + 生图声明），诊断包 2 行，高级维护 4 行。
+    expect(wrapper!.findAll('.mnt-row')).toHaveLength(8)
+    expect(wrapper!.findAll('.mnt-feature .mnt-row')).toHaveLength(2)
+    expect(wrapper!.findAll('[data-section="package"] .mnt-row')).toHaveLength(2)
+    expect(wrapper!.findAll('[data-section="advanced"] .mnt-row')).toHaveLength(4)
     for (const t of [
       '运行诊断',
       '导出日志',
       '发送诊断',
       '开始清理',
       '开始重建',
-      '强制关闭',
+      '关闭 Codex',
       '重启',
     ])
       expect(button(t).exists()).toBe(true)
-    expect(wrapper!.get('[aria-label="Claude 联网搜索"]').attributes('disabled')).toBeDefined()
+    // 永久禁用的 Claude 联网搜索卡片已移除。
+    expect(wrapper!.find('[aria-label="Claude 联网搜索"]').exists()).toBe(false)
+    expect(wrapper!.text()).not.toContain('未开放')
   })
 
   it('runs clean as a single click, using the preview ticket internally', async () => {
@@ -187,13 +193,29 @@ describe('maintenance page', () => {
     expect(wrapper!.text()).toContain('目录已变化')
   })
 
-  it('force kill runs in one click like the original', async () => {
-    api.preview.mockResolvedValueOnce({ ...plan, action: 'forceKill', title: '结束预览' })
+  it('closing Codex asks for confirmation and previews the graceful request', async () => {
+    api.preview.mockResolvedValueOnce({ ...plan, action: 'forceKill', title: '关闭 Codex 预览' })
     await open()
-    await button('强制关闭').trigger('click')
+    await button('关闭 Codex').trigger('click')
+    await flushPromises()
+    expect(api.preview).not.toHaveBeenCalled()
+    await wrapper!.get('.mnt-confirm .mnt-primary-button').trigger('click')
     await flushPromises()
     expect(api.preview).toHaveBeenCalledWith('forceKill')
     expect(api.apply).toHaveBeenCalledWith('review-ticket')
+  })
+
+  it('never claims a forced kill when the graceful close is aborted', async () => {
+    api.preview.mockResolvedValueOnce({ ...plan, action: 'forceKill', title: '关闭 Codex 预览' })
+    api.apply.mockRejectedValueOnce(
+      Error('仍有 1 个 Codex 相关进程未退出：codex (pid 42)；已中止，未强杀任何进程'),
+    )
+    await open()
+    await button('关闭 Codex').trigger('click')
+    await flushPromises()
+    await wrapper!.get('.mnt-confirm .mnt-primary-button').trigger('click')
+    await flushPromises()
+    expect(wrapper!.text()).toContain('未强杀任何进程')
   })
 
   it('restart asks for confirmation before touching the client', async () => {
