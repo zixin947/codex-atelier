@@ -9,7 +9,6 @@ const label = computed(() => choices.find((choice) => choice.id === theme.value)
 const choices: { id: ThemeId; label: string; detail: string }[] = [
   { id: 'endfield', label: '终末地', detail: '纸墨工业 · 信号色与测绘网格' },
   { id: 'millennium', label: '千禧机壳', detail: '奶油面板 · 薄荷绿' },
-  { id: 'hud', label: '环形 HUD', detail: '环形导航 · 银灰面板与机械反馈' },
 ]
 function close(restoreFocus = false) {
   if (!details.value?.open) return

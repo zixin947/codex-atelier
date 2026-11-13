@@ -2,7 +2,7 @@
  * Copyright (c) 2026 DDDuoDuo, MIT. See public/licenses/EndfieldHUD.txt.
  * Navigation layout / plate geometry also adapt HUDNavigation.swift.
  * Functional pages remain Atelier's; no extracted game assets are included. */
-:root[data-theme='hud'] {
+:root[data-theme='endfield']:has(.hud-home) {
   --canvas: #1b1d1d;
   --surface: #d3d4cf;
   --elevated: #e4e5e0;
@@ -31,10 +31,10 @@
   color: #ffb4a8;
   font-size: 12px;
 }
-[data-theme='hud'] .workstation {
+[data-theme='endfield']:has(.hud-home) .workstation {
   background: radial-gradient(ellipse at 50% 48%, #363a37 0, #202323 47%, #141616 100%);
 }
-[data-theme='hud'] .topbar {
+[data-theme='endfield']:has(.hud-home) .topbar {
   background: #191b1bf2;
   border-color: #484c45;
   color: #e4e5e0;
@@ -47,28 +47,28 @@
   --focus: #fffa00;
   --accent-text: #fffa00;
 }
-[data-theme='hud'] .topbar .brand-mark {
+[data-theme='endfield']:has(.hud-home) .topbar .brand-mark {
   color: #171c17;
   background: linear-gradient(#fffc6b, #fffa00 38%, #e9cf12);
 }
-[data-theme='hud'] .topbar .badge {
+[data-theme='endfield']:has(.hud-home) .topbar .badge {
   background: #fffa0010;
   color: #fffa00;
   border-color: #fffa0040;
 }
-[data-theme='hud'] .statusbar {
+[data-theme='endfield']:has(.hud-home) .statusbar {
   background: #191b1b;
   color: #c6c7c2;
   border-color: #484c45;
 }
-[data-theme='hud'] .statusbar .dot {
+[data-theme='endfield']:has(.hud-home) .statusbar .dot {
   background: #fffa00;
 }
-[data-theme='hud'] .shell-body {
+[data-theme='endfield']:has(.hud-home) .shell-body {
   padding: 18px 20px;
   gap: 18px;
 }
-[data-theme='hud'] main {
+[data-theme='endfield']:has(.hud-home) main {
   --canvas: #d3d4cf;
   --shell: #d3d4cf;
   position: relative;
@@ -81,7 +81,7 @@
     inset 0 1px #fff6;
   scrollbar-color: #8a8b86 #d3d4cf;
 }
-[data-theme='hud'] .page {
+[data-theme='endfield']:has(.hud-home) .page {
   padding: 24px;
 }
 .hud-workbench-tabs {
@@ -108,22 +108,22 @@
 .hud-workbench-tabs a.active::before {
   display: none;
 }
-[data-theme='hud'] .page-heading {
+[data-theme='endfield']:has(.hud-home) .page-heading {
   border-bottom: 1px solid #8a8b86;
   padding-bottom: 16px;
 }
-[data-theme='hud'] .page-heading .eyebrow {
+[data-theme='endfield']:has(.hud-home) .page-heading .eyebrow {
   color: #575e55;
 }
-[data-theme='hud'] .panel {
+[data-theme='endfield']:has(.hud-home) .panel {
   background: #ecede8;
   border-color: #b3b4af;
   box-shadow: 0 2px 0 #0000000c;
 }
-[data-theme='hud'] .panel-head {
+[data-theme='endfield']:has(.hud-home) .panel-head {
   background: linear-gradient(#e4e5e0, #d3d4cf);
 }
-[data-theme='hud'] .button.primary {
+[data-theme='endfield']:has(.hud-home) .button.primary {
   background: linear-gradient(#fffc6b, #fffa00 38%, #e9cf12);
   color: #121212;
   border-color: #b8a511;
@@ -131,13 +131,13 @@
     inset 0 1px #ffffb4,
     0 2px 0 #898321;
 }
-[data-theme='hud'] .button:not(.primary) {
+[data-theme='endfield']:has(.hud-home) .button:not(.primary) {
   background: linear-gradient(#ecede8, #cdcec9);
 }
-[data-theme='hud'] .button:active:not(:disabled) {
+[data-theme='endfield']:has(.hud-home) .button:active:not(:disabled) {
   transform: translateY(1px) scale(0.985);
 }
-[data-theme='hud'] .button {
+[data-theme='endfield']:has(.hud-home) .button {
   transition:
     transform var(--motion-fast) var(--ease),
     background-color var(--motion) var(--ease);
@@ -265,7 +265,7 @@
   color: #575e55;
   opacity: 1;
 }
-[data-theme='hud'] .topbar .brand-mark i {
+[data-theme='endfield']:has(.hud-home) .topbar .brand-mark i {
   background: #171c17;
 }
 .hud-module:focus-visible {
@@ -697,7 +697,7 @@
   .hud-open .hud-navigation {
     width: 148px;
   }
-  [data-theme='hud'] .shell-body {
+  [data-theme='endfield']:has(.hud-home) .shell-body {
     gap: 12px;
     padding-left: 12px;
     padding-right: 12px;
@@ -774,18 +774,18 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  [data-theme='hud'] :is(.hud-ring-rotor, .hud-ring-mesh, .hud-indicator-glow) {
+  [data-theme='endfield']:has(.hud-home) :is(.hud-ring-rotor, .hud-ring-mesh, .hud-indicator-glow) {
     animation: none;
   }
-  [data-theme='hud'] .hud-orbit-plane,
-  [data-theme='hud'] .hud-module-plate::after {
+  [data-theme='endfield']:has(.hud-home) .hud-orbit-plane,
+  [data-theme='endfield']:has(.hud-home) .hud-module-plate::after {
     transition: none;
   }
-  [data-theme='hud'] .hud-orbits {
+  [data-theme='endfield']:has(.hud-home) .hud-orbits {
     transition: none;
   }
-  [data-theme='hud'] .hud-module-plate,
-  [data-theme='hud'] .button {
+  [data-theme='endfield']:has(.hud-home) .hud-module-plate,
+  [data-theme='endfield']:has(.hud-home) .button {
     transition: none;
     transform: none;
   }
@@ -793,19 +793,19 @@
 /* Functional pages inherit the 终末地 token set, which colours success states in
    forest green. The HUD shell is black / silver / signal yellow only, so every
    green text and hairline is remapped to ink here instead of editing each page. */
-[data-theme='hud'] {
+[data-theme='endfield']:has(.hud-home) {
   --green: var(--ink);
   --positive: var(--ink);
   --positive-wash: #e4e5e0;
   --mint: #e4e5e0;
 }
-[data-theme='hud'] .account-current,
-[data-theme='hud'] .account-plan-plus {
+[data-theme='endfield']:has(.hud-home) .account-current,
+[data-theme='endfield']:has(.hud-home) .account-plan-plus {
   background: #fffa001f;
   border-color: #b8a511;
   color: #575100;
 }
-[data-theme='hud'] .account-card.current {
+[data-theme='endfield']:has(.hud-home) .account-card.current {
   border-color: var(--ink);
   box-shadow:
     inset 0 0 0 1px #fffa00,
@@ -815,7 +815,7 @@
 /* The workbench placeholder is a full-width bordered paragraph when the local
    engine is not connected: a blank slab under a lone 20px heading. Give the
    idle state a stage instead — centred, numbered, and restrained. */
-[data-theme='hud'] .original-agents:has(> button) {
+[data-theme='endfield']:has(.hud-home) .original-agents:has(> button) {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -824,13 +824,13 @@
   gap: 0;
   text-align: center;
 }
-[data-theme='hud'] .original-agents:has(> button) h2 {
+[data-theme='endfield']:has(.hud-home) .original-agents:has(> button) h2 {
   margin: 0 0 10px;
   font: 700 26px/1.2 var(--font-body);
   letter-spacing: -0.02em;
   color: #20231f;
 }
-[data-theme='hud'] .original-agents:has(> button) h2::before {
+[data-theme='endfield']:has(.hud-home) .original-agents:has(> button) h2::before {
   content: 'MODULE / STANDBY';
   display: block;
   margin-bottom: 14px;
@@ -838,7 +838,7 @@
   font: 9px/1 var(--font-mono);
   letter-spacing: 0.16em;
 }
-[data-theme='hud'] .original-agents:has(> button) p {
+[data-theme='endfield']:has(.hud-home) .original-agents:has(> button) p {
   max-width: 46ch;
   padding: 0;
   border: 0;
@@ -847,12 +847,12 @@
   line-height: 1.7;
   text-wrap: pretty;
 }
-[data-theme='hud'] .original-agents:has(> button) .usage-scope {
+[data-theme='endfield']:has(.hud-home) .original-agents:has(> button) .usage-scope {
   margin: 8px 0 30px;
   color: #6c736a;
   font-size: 11px;
 }
-[data-theme='hud'] .original-agents:has(> button) .button {
+[data-theme='endfield']:has(.hud-home) .original-agents:has(> button) .button {
   min-height: 40px;
   padding: 0 26px;
   font-size: 12px;
@@ -866,10 +866,10 @@
     inset 0 1px #ffffb4,
     0 2px 0 #898321;
 }
-[data-theme='hud'] .original-agents:has(> button) .button:hover:not(:disabled) {
+[data-theme='endfield']:has(.hud-home) .original-agents:has(> button) .button:hover:not(:disabled) {
   filter: brightness(1.06);
 }
-[data-theme='hud'] .original-agents:has(> button) .button:disabled {
+[data-theme='endfield']:has(.hud-home) .original-agents:has(> button) .button:disabled {
   background: #cdcec9;
   border-color: #a8a9a4;
   color: #6c6d68;
@@ -879,7 +879,7 @@
 /* 终末地 sets --radius: 0 for its cut-corner grammar; several feature sheets
    hard-code 8-20px pill and card radii that predate that rule. Keep the shell
    rectangular and let only真控件 (switch track) stay pill-shaped. */
-[data-theme='hud']
+[data-theme='endfield']:has(.hud-home)
   :is(
     .thread-segments,
     .thread-segments button,

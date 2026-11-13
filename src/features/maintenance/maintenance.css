@@ -200,6 +200,59 @@
   color: var(--muted);
 }
 
+/* ---------- 折叠区：诊断包与高级维护 ---------- */
+
+.mnt-fold {
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.mnt-fold > summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+
+.mnt-fold > summary::-webkit-details-marker {
+  display: none;
+}
+
+.mnt-fold > summary::after {
+  content: '展开';
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.mnt-fold[open] > summary::after {
+  content: '收起';
+}
+
+.mnt-fold > summary small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.mnt-fold[open] > summary {
+  border-bottom: 1px solid var(--rule);
+}
+
+.mnt-fold .mnt-card {
+  border: 0;
+  border-radius: 0;
+}
+
 /* ---------- 通用文字与按钮 ---------- */
 
 .mnt-error {

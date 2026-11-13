@@ -318,7 +318,7 @@ pub(super) fn snapshot(root: &Path) -> Result<Snapshot> {
 }
 pub(super) fn preview(root: &Path, action: &str) -> Result<Ticket> {
     if !matches!(action, "clean" | "rebuild" | "restart" | "forceKill") {
-        return Err("请选择清理、重建、重启或强制结束操作".into());
+        return Err("请选择清理、重建、重启或关闭 Codex 操作".into());
     }
     let mut changes = vec![];
     let mut warnings = vec![];
@@ -381,7 +381,7 @@ pub(super) fn preview(root: &Path, action: &str) -> Result<Ticket> {
             title: match action {
                 "clean" => "清理 Atelier 数据",
                 "rebuild" => "重建账号注册表",
-                "forceKill" => "强制结束全部 Codex 相关进程",
+                "forceKill" => "关闭 Codex（仅优雅退出）",
                 _ => "重启 Codex Desktop",
             }
             .into(),

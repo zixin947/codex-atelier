@@ -16,7 +16,7 @@ it('suspends the native overlay for settings and the skin menu, then restores it
   vi.stubGlobal('matchMedia', () => Object.assign(new EventTarget(), { matches: false }))
   const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/', component: { template: '<p>home</p>' } }] })
   await router.push('/')
-  setTheme('hud')
+  setTheme('endfield')
   const wrapper = mount(App, { attachTo: document.body, global: { plugins: [createPinia(), router] } })
   try {
     finishStartupInitialization()

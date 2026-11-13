@@ -17,19 +17,13 @@ const choices: { id: ThemeId; name: string; english: string; description: string
     id: 'endfield',
     name: '终末地 · 野外终端',
     english: 'FIELD TERMINAL / 01',
-    description: '纸灰、墨黑与信号黄，工业制图的秩序。',
+    description: '环形首页导航，搭配纸灰、墨黑与信号黄的功能页面。',
   },
   {
     id: 'millennium',
     name: '千禧机壳',
     english: 'MILLENNIUM / 02',
     description: '奶油面板与薄荷绿，保留复古工作站质感。',
-  },
-  {
-    id: 'hud',
-    name: '环形 HUD',
-    english: 'ORBITAL HUD / 03',
-    description: '环形入口、银灰面板，进入功能后展开工作区。',
   },
 ]
 function select(choice: (typeof choices)[number]) {

@@ -31,7 +31,7 @@ pub fn hud_native_supported() -> bool {
 
 #[cfg(target_os = "macos")]
 extern "C" fn navigate(context: *mut libc::c_void, index: i32) {
-    if (0..14).contains(&index) {
+    if (0..11).contains(&index) {
         let window = unsafe { &*(context as *const tauri::WebviewWindow) };
         let _ = window.emit("atelier:hud-navigate", index);
     }
@@ -53,7 +53,7 @@ pub async fn hud_native_update(
     labels: Vec<String>,
     visible: bool,
 ) -> Result<(), String> {
-    if labels.len() != 14
+    if labels.len() != 11
         || frame.iter().any(|v| !v.is_finite())
         || frame[2] <= 0.0
         || frame[3] <= 0.0
