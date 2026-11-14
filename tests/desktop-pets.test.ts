@@ -51,3 +51,47 @@ it('refreshes quota through Atelier Accounts', async () => {
   await flushPromises()
   expect(invoke).toHaveBeenCalledWith('desktop_pet_action', { action: 'refresh-quota' })
 })
+
+it('switches the pet off and on through native actions and reads back its state', async () => {
+  let running = true
+  invoke.mockImplementation(async (_command, { action }) => {
+    if (action === 'stop') running = false
+    if (action === 'open') running = true
+    return { version: '0.3.0', installed: true, running }
+  })
+  const page = mount(DesktopPets)
+  await flushPromises()
+  const toggle = page.get('[role="switch"]')
+  expect(toggle.attributes('aria-checked')).toBe('true')
+  expect(page.findAll('button').some((button) => button.text() === '停止')).toBe(false)
+  await toggle.trigger('click')
+  await flushPromises()
+  expect(invoke).toHaveBeenCalledWith('desktop_pet_action', { action: 'stop' })
+  expect(toggle.attributes('aria-checked')).toBe('false')
+  await toggle.trigger('click')
+  await flushPromises()
+  expect(invoke).toHaveBeenCalledWith('desktop_pet_action', { action: 'open' })
+  expect(toggle.attributes('aria-checked')).toBe('true')
+})
+
+it('disables the switch while pending and retains its state when stopping fails', async () => {
+  const page = mount(DesktopPets)
+  await flushPromises()
+  let reject!: (reason: Error) => void
+  invoke.mockImplementationOnce(
+    () =>
+      new Promise((_, fail) => {
+        reject = fail
+      }),
+  )
+  const toggle = page.get('[role="switch"]')
+  await toggle.trigger('click')
+  expect(toggle.attributes('disabled')).toBeDefined()
+  expect(toggle.attributes('aria-busy')).toBe('true')
+  expect(page.text()).toContain('正在关闭')
+  reject(new Error('停止失败'))
+  await flushPromises()
+  expect(toggle.attributes('aria-checked')).toBe('true')
+  expect(toggle.attributes('disabled')).toBeUndefined()
+  expect(page.get('[role="alert"]').text()).toContain('停止失败')
+})
