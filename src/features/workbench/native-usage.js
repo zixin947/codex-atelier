@@ -19,7 +19,7 @@
   if (['usage', 'requests', 'sessions', 'context'].includes(tab)) {
     // WKWebView can deny storage; that must never disable request scoping.
     try {
-      localStorage.setItem('magpie.usageTab', tab)
+      localStorage.setItem('atelier.usageTab', tab)
     } catch {}
     document.addEventListener('DOMContentLoaded', () => {
       const select = () => {

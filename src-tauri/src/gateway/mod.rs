@@ -723,5 +723,5 @@ pub fn gateway_original_ui(
     state: State<'_, GatewayState>,
 ) -> Result<String, String> {
     state.get(&app)?.engine.management_url()?;
-    Ok("magpie://localhost/?view=agents".into())
+    Ok("atelier://localhost/?view=agents".into())
 }

@@ -1,5 +1,5 @@
 /* Source: yetone/magpie @ e6f151507f3c70f483d4bd476fa69faef155fe8c
-   MIT, Copyright (c) 2026 yetone. See MAGPIE-LICENSE.txt.
+   MIT, Copyright (c) 2026 yetone. See ATELIER-LICENSE.txt.
    Stage, account rows and attempt log excerpt; Vue host supplies layout and events. */
 /* Routing, live: the Gateway view's stage for what routing does with each
    request (client.js). The same stage as the site's Model Routing, only

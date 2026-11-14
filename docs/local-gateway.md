@@ -2,7 +2,7 @@
 
 当前安装版的模型区直接使用内置 magpie 的原版 Agent、供应商、路由、路由组和网关页面，保留原业务 API 与独立存储。Atelier 负责本机进程、自动认证、导航和皮肤；原版模式不经过旧 Rust 订阅桥或请求转换。真实供应商、账号切换与 Desktop 全链路尚未完整验收。
 
-当前范围、构建方式、证据和限制见 [协议与路由核心移植](magpie-engine-migration.md)。下方内容保留为旧 Rust Responses 网关的历史记录，其中“仅 Responses”“无 WebSocket/协议转换”等限制不再描述当前内置核心。
+当前范围、构建方式、证据和限制见 [协议与路由核心移植](atelier-engine-migration.md)。下方内容保留为旧 Rust Responses 网关的历史记录，其中“仅 Responses”“无 WebSocket/协议转换”等限制不再描述当前内置核心。
 
 ---
 

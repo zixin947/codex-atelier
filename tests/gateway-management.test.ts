@@ -18,7 +18,7 @@ vi.mock('@tauri-apps/api/core', () => ({
     bridge.calls.push(command)
     if (command === 'gateway_original_ui') {
       if (!bridge.uiReady) throw new Error('请先启动网关。')
-      return 'magpie://localhost/?view=agents'
+      return 'atelier://localhost/?view=agents'
     }
     if (command === 'gateway_start') {
       if (bridge.startMode === 'fail') throw new Error('管理服务启动失败。')

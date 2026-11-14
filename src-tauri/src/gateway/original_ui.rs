@@ -37,11 +37,32 @@ async fn forward(
         request.uri().scheme_str(),
         request.uri().authority().map(|value| value.as_str()),
     ) {
+        (Some("atelier"), Some("localhost")) => "atelier://localhost",
+        (Some("http"), Some("atelier.localhost")) => "http://atelier.localhost",
         (Some("magpie"), Some("localhost")) => "magpie://localhost",
         (Some("http"), Some("magpie.localhost")) => "http://magpie.localhost",
         _ => "",
     };
     let api = request.uri().path().starts_with("/api/");
+    if request.uri().path() == "/atelier-storage-export"
+        && matches!(
+            native_origin,
+            "magpie://localhost" | "http://magpie.localhost"
+        )
+    {
+        let parent = native_origin.replace("magpie", "atelier");
+        let page = format!(
+            r#"<!doctype html><script>
+const entries = store => Object.entries(store).filter(([key]) => key.startsWith('magpie.'));
+parent.postMessage({{type:'atelier-storage-export',local:entries(localStorage),session:entries(sessionStorage)}},'{parent}');
+</script>"#
+        );
+        return Response::builder()
+            .header("Content-Type", "text/html; charset=utf-8")
+            .header("Cache-Control", "no-store")
+            .body(page.into_bytes())
+            .map_err(|_| "旧版设置读取失败。".into());
+    }
     // Sandboxed plugin frames have an opaque Origin ("null"). Check it
     // before attaching the management cookie or translating our own origin.
     if native_origin.is_empty()
@@ -66,7 +87,7 @@ async fn forward(
             .body(b"Management API is available to the native page only".to_vec())
             .map_err(|_| "原版管理页响应无效。".into());
     }
-    let plugin_asset = request.uri().path().starts_with("/_magpie/plugin/");
+    let plugin_asset = request.uri().path().starts_with("/_atelier/plugin/");
     let opaque_plugin_asset = plugin_asset
         && request
             .headers()
@@ -96,7 +117,7 @@ async fn forward(
         .find(|(name, _)| name == "k")
         .map(|(_, value)| value.into_owned())
         .ok_or("管理页认证材料缺失。")?;
-    let cookie = format!("magpie_web_{}={key}", target.port().unwrap());
+    let cookie = format!("atelier_web_{}={key}", target.port().unwrap());
     let origin = target.origin().ascii_serialization();
     let secure_origin = format!("https://127.0.0.1:{}", target.port().unwrap());
     target.set_path(request.uri().path());
@@ -193,15 +214,49 @@ async fn forward(
         let mut page = String::from_utf8(bytes).map_err(|_| "原版页面不是 UTF-8。")?;
         if branded {
             page = page
+                .replacen(
+                    "<head>",
+                    &format!(
+                        "<head><script>{}</script>",
+                        include_str!("../../../src/features/connections/native-storage.js")
+                    ),
+                    1,
+                )
                 .replace("<title>magpie</title>", "<title>Atelier</title>")
                 .replacen(
                     "<script src=\"start.js",
                     &format!(
-                        "<script>{}</script><script src=\"start.js",
+                        "<script type=\"text/atelier-pending\">{}</script><script src=\"start.js",
                         include_str!("../../../src/features/connections/native-branding.js")
                     ),
                     1,
+                )
+                .replace(
+                    "<script src=",
+                    "<script type=\"text/atelier-pending\" data-src=",
                 );
+            page = page.replacen(
+                "</body>",
+                r#"<script>
+atelierStorageReady.then(async () => {
+  for (const old of document.querySelectorAll('script[type="text/atelier-pending"]')) {
+    const script = document.createElement('script');
+    if (old.dataset.src) {
+      await new Promise((resolve, reject) => {
+        script.onload = resolve;
+        script.onerror = () => reject(new Error('脚本加载失败 ' + old.dataset.src));
+        script.src = old.dataset.src;
+        old.replaceWith(script);
+      });
+    } else {
+      script.textContent = old.textContent;
+      old.replaceWith(script);
+    }
+  }
+}).catch(error => { document.body.textContent = 'Atelier 设置迁移失败：' + error.message; });
+</script></body>"#,
+                1,
+            );
         }
         let mut css = String::new();
         if styled {
@@ -270,7 +325,7 @@ mod tests {
             .route(
                 "/api/agents/test",
                 post(move |headers: HeaderMap, body: String| async move {
-                    assert_eq!(headers["cookie"], format!("magpie_web_{port}=fixture"));
+                    assert_eq!(headers["cookie"], format!("atelier_web_{port}=fixture"));
                     assert_eq!(headers["origin"], format!("http://127.0.0.1:{port}"));
                     body
                 }),
@@ -319,8 +374,8 @@ mod tests {
         let html = String::from_utf8(response.body().clone()).unwrap();
         assert!(html.contains("<style id=\"atelier-skin\">"));
         assert!(html.contains("<title>Atelier</title>"));
-        assert!(html.find("const brand =").unwrap() < html.find("<script src=\"start.js").unwrap());
-        assert!(html.contains("<body><main>original-layout</main></body>"));
+        assert!(html.find("const brand =").unwrap() < html.find("data-src=\"start.js").unwrap());
+        assert!(html.contains("<body><main>original-layout</main>"));
         assert_eq!(response.headers()["cache-control"], "no-store");
         let response = forward(
             &client,
@@ -335,7 +390,7 @@ mod tests {
         let html = String::from_utf8(response.body().clone()).unwrap();
         assert!(html.contains("/api/atelier-chatgpt/"));
         assert!(html.find("<script>").unwrap() < html.find("<body>").unwrap());
-        assert!(html.contains("<body><main>original-layout</main></body>"));
+        assert!(html.contains("<body><main>original-layout</main>"));
         task.abort();
     }
 
@@ -394,7 +449,7 @@ mod tests {
     async fn plugin_assets_keep_security_headers_and_their_own_resource_scope() {
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let port = listener.local_addr().unwrap().port();
-        let path = "/_magpie/plugin/fixture/index.html";
+        let path = "/_atelier/plugin/fixture/index.html";
         let app = Router::new().route(
             path,
             get(move |headers: HeaderMap| async move {
@@ -402,7 +457,7 @@ mod tests {
                 assert_eq!(headers["sec-fetch-dest"], "iframe");
                 assert!(!headers.contains_key("cookie"));
                 let mut headers = HeaderMap::new();
-                headers.append("content-security-policy", format!("default-src 'none'; script-src http://127.0.0.1:{port}/_magpie/plugin/fixture/ https://127.0.0.1:{port}/_magpie/plugin/fixture/; connect-src 'none'; frame-src 'none'").parse().unwrap());
+                headers.append("content-security-policy", format!("default-src 'none'; script-src http://127.0.0.1:{port}/_atelier/plugin/fixture/ https://127.0.0.1:{port}/_atelier/plugin/fixture/; connect-src 'none'; frame-src 'none'").parse().unwrap());
                 headers.append("content-security-policy", "sandbox allow-scripts; frame-ancestors 'self'".parse().unwrap());
                 headers.insert("x-content-type-options", "nosniff".parse().unwrap());
                 headers.insert("referrer-policy", "no-referrer".parse().unwrap());
@@ -440,7 +495,7 @@ mod tests {
             assert!(policy.contains("sandbox allow-scripts"));
             assert!(policy.contains("connect-src 'none'"));
             assert!(policy.contains("frame-src 'none'"));
-            assert!(policy.contains(&format!("{origin}/_magpie/plugin/fixture/")));
+            assert!(policy.contains(&format!("{origin}/_atelier/plugin/fixture/")));
             assert!(!policy.contains("127.0.0.1"));
         }
         task.abort();

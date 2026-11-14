@@ -16,6 +16,9 @@ fn main() {
         std::process::exit(desktop_bridge::cli());
     }
     tauri::Builder::default()
+        .register_asynchronous_uri_scheme_protocol("atelier", |context, request, responder| {
+            gateway::original_ui::protocol(context.app_handle().clone(), request, responder);
+        })
         .register_asynchronous_uri_scheme_protocol("magpie", |context, request, responder| {
             gateway::original_ui::protocol(context.app_handle().clone(), request, responder);
         })

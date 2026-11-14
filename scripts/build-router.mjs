@@ -22,7 +22,7 @@ if (!go) {
   process.exit(1)
 }
 
-// vendor/magpie 的 go.mod 要求较新工具链，会自动下载；国内网络需要镜像。
+// vendor/atelier 的 go.mod 要求较新工具链，会自动下载；国内网络需要镜像。
 const env = {
   ...process.env,
   GOPROXY: process.env.GOPROXY || 'https://goproxy.cn,direct',
@@ -31,7 +31,7 @@ const env = {
 const result = spawnSync(
   go,
   ['build', '-trimpath', '-o', `${root}src-tauri/binaries/atelier-router`, './cmd/atelier-router'],
-  { cwd: `${root}vendor/magpie`, stdio: 'inherit', env },
+  { cwd: `${root}vendor/atelier`, stdio: 'inherit', env },
 )
 if (result.error) {
   console.error(`构建路由引擎失败：${result.error.message}`)

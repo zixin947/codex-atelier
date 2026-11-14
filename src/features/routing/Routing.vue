@@ -1,11 +1,11 @@
 <script setup lang="ts">
 // Vue adaptation of magpie routing/client.js stage, candidates, counters and try log.
-// Copyright (c) 2026 yetone, MIT. See vendor/MAGPIE-LICENSE.txt.
+// Copyright (c) 2026 yetone, MIT. See vendor/ATELIER-LICENSE.txt.
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import Icon from '../../shared/components/Icon.vue'
 import { readRouting } from '../../services/routing'
 import type { RouteTrace, RoutingSnapshot } from '../../types/routing'
-import license from './vendor/MAGPIE-LICENSE.txt?raw'
+import license from './vendor/ATELIER-LICENSE.txt?raw'
 
 const props = defineProps<{ service?: () => Promise<RoutingSnapshot | null> }>()
 const data = ref<RoutingSnapshot | null>(null)

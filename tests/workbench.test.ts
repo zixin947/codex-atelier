@@ -5,7 +5,7 @@ import bootstrap from '../src/features/workbench/native-usage.js?raw'
 
 vi.mock('@tauri-apps/api/core', () => ({
   isTauri: () => true,
-  invoke: vi.fn(async () => 'magpie://localhost/'),
+  invoke: vi.fn(async () => 'atelier://localhost/'),
 }))
 vi.mock('../src/services/gateway', () => ({
   gatewayService: { snapshot: async () => ({ runtime: { state: 'running' } }) },
@@ -48,7 +48,7 @@ it('scopes original API requests even when WebView storage is unavailable', asyn
   run(
     window,
     { addEventListener: vi.fn() },
-    { href: 'magpie://localhost/?tab=context', protocol: 'magpie:', host: 'localhost' },
+    { href: 'atelier://localhost/?tab=context', protocol: 'atelier:', host: 'localhost' },
     {
       setItem() {
         throw new Error('SecurityError')
@@ -58,9 +58,9 @@ it('scopes original API requests even when WebView storage is unavailable', asyn
     Anchor,
   )
   new Anchor().click()
-  expect(clicked).toHaveBeenCalledWith('magpie://localhost/api/atelier-chatgpt/usage/requests.csv')
+  expect(clicked).toHaveBeenCalledWith('atelier://localhost/api/atelier-chatgpt/usage/requests.csv')
   await window.fetch('/api/usage?period=week')
   await window.fetch('https://example.invalid/api/usage')
-  expect(fetch.mock.calls[0]?.[0]).toBe('magpie://localhost/api/atelier-chatgpt/usage?period=week')
+  expect(fetch.mock.calls[0]?.[0]).toBe('atelier://localhost/api/atelier-chatgpt/usage?period=week')
   expect(fetch.mock.calls[1]?.[0]).toBe('https://example.invalid/api/usage')
 })
