@@ -4,6 +4,20 @@ use tauri::{Emitter, Manager};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 
+const PET_STOP_SCRIPT: &str = r#"
+import { runningService, serviceRequest } from './runtime/process.mjs';
+if (await runningService()) {
+  const result = await serviceRequest('/api/stop', { method: 'POST', body: {} });
+  if (result.ok !== true) throw new Error('桌宠拒绝了停止请求');
+  const deadline = Date.now() + 10000;
+  while (await runningService()) {
+    if (Date.now() >= deadline) throw new Error('桌宠未在期限内退出');
+    await new Promise(resolve => setTimeout(resolve, 250));
+  }
+}
+console.log(JSON.stringify({ ok: true, stopped: true }));
+"#;
+
 fn node() -> Result<PathBuf, String> {
     let mut candidates: Vec<PathBuf> = std::env::var_os("PATH")
         .map(|paths| {
@@ -136,6 +150,8 @@ const service = await runningService();
 const supervisor = supervisorStatus();
 console.log(JSON.stringify({ version: VERSION, installed: supervisor.installed, running: !!service }));
 "#]);
+    } else if action == "stop" {
+        command.args(["--input-type=module", "-e", PET_STOP_SCRIPT]);
     } else if action == "install" {
         command.arg("scripts/install-macos.mjs");
     } else {
@@ -183,7 +199,9 @@ console.log(JSON.stringify({ version: VERSION, installed: supervisor.installed, 
         .map_err(|_| "无法执行桌宠操作。")?;
     if !output.status.success() {
         // Upstream install logs can contain private backup paths; never return raw output.
-        return Err(if action == "install" {
+        return Err(if action == "stop" {
+            "桌宠尚未确认退出，请刷新状态后重试。"
+        } else if action == "install" {
             "桌宠安装未完成。请检查网络、npm 和 Xcode Command Line Tools 后重试。"
         } else {
             "桌宠操作失败，请检查是否已安装，并保持 Codex 桌面应用打开。"
