@@ -2,9 +2,14 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
 import Threads from '../src/features/threads/Threads.vue'
 import { createThreadDemo } from '../src/services/threadsMock'
+import tauriConfig from '../src-tauri/tauri.conf.json'
 const api = vi.hoisted(() => ({ catalog: vi.fn(), detail: vi.fn(), preview: vi.fn(), apply: vi.fn() }))
 vi.mock('../src/services/threads', () => ({ threadsService: api }))
 afterEach(() => { document.body.innerHTML = ''; vi.clearAllMocks() })
+it('allows the same-origin thread sync frame in the native content security policy', () => {
+  const directives = tauriConfig.app.security.csp.split(';').map(value => value.trim().split(/\s+/))
+  expect(directives.find(([name]) => name === 'frame-src')).toContain("'self'")
+})
 it('places the sync button after usage parsing and keeps the alignment confirmation flow', async () => {
   const demo = createThreadDemo()
   api.catalog.mockResolvedValue(await demo.catalog())
