@@ -61,6 +61,7 @@ function routingPage(part) {
   const toSet = $("#rtToSet");
   if (toSet) toSet.onclick = (e) => openSettingsAt(e, "models", "#routeList .row");
   const NS = "http://www.w3.org/2000/svg";
+  const blueprint = new URLSearchParams(location.search).get("atelierStyle") === "endfield";
   const still = calm;
   const shown = () => !$("#view-routing").hidden && !document.hidden;
   // the Routing groups page, which this script draws too (gsec)
@@ -81,6 +82,12 @@ function routingPage(part) {
   const mode = el("p", "rt-mode");
   top.append(what, mode);
   const stage = el("div", "rt-stage");
+  if (blueprint) box.classList.add("rt-blueprint");
+  const belts = new Map();
+  const beltLayer = document.createElementNS(NS, "svg");
+  beltLayer.setAttribute("class", "bp-belts");
+  beltLayer.setAttribute("aria-hidden", "true");
+  let beltID = 0;
   const wires = document.createElementNS(NS, "svg");
   wires.setAttribute("class", "rt-wires");
   wires.setAttribute("aria-hidden", "true");
@@ -101,6 +108,7 @@ function routingPage(part) {
   const sky = document.createElementNS(NS, "svg");
   sky.setAttribute("class", "rt-sky");
   sky.setAttribute("aria-hidden", "true");
+  if (blueprint) stage.append(beltLayer);
   stage.append(wires, flows, srcs, hub, list, sky);
   const foot = el("div", "rt-foot");
   const cap = el("p", "rt-cap");
@@ -366,7 +374,12 @@ function routingPage(part) {
   let metaW = -1;
   new ResizeObserver(() => { const w = colA.clientWidth; if (w && w !== metaW) { metaW = w; metaFit(); } }).observe(colA);
 
-  const path = () => { const p = document.createElementNS(NS, "path"); wires.appendChild(p); return p; };
+  const path = () => {
+    const p = document.createElementNS(NS, "path");
+    if (blueprint) p.id = "atelier-belt-" + beltID++;
+    wires.appendChild(p);
+    return p;
+  };
   const setText = (e, s) => { if (e.textContent !== s) e.textContent = s; };
   // setAttr: an attribute written only when it changes, as setText: the
   // list's head is told again on every trace answer (#3731)
@@ -1959,6 +1972,10 @@ function routingPage(part) {
   // had its flowing wire as one 18,000 px cubic: ~75 ms of each frame. The
   // pieces trace the same curve.
   function curve(x0, y0, mx, x3, y3) {
+    if (blueprint) {
+      const turn = Math.sign(y3 - y0), radius = Math.min(18, Math.abs(y3 - y0) / 2, (x3 - x0) / 4);
+      return `M${x0} ${y0} L${mx - radius} ${y0} Q${mx} ${y0} ${mx} ${y0 + turn * radius} L${mx} ${y3 - turn * radius} Q${mx} ${y3} ${mx + radius} ${y3} L${x3} ${y3}`;
+    }
     let a = [x0, y0], b = [mx, y0], c = [mx, y3];
     const d = [x3, y3], lerp = (p, q, t) => [p[0] + (q[0] - p[0]) * t, p[1] + (q[1] - p[1]) * t];
     let s = `M${x0} ${y0}`;
@@ -2008,6 +2025,7 @@ function routingPage(part) {
       clearInterval(slowTimer); slowTimer = 0;
       for (const k of ["--rt-dash", "--rt-fade"]) flows.style.removeProperty(k);
       sky.style.removeProperty("--rt-held");
+      if (blueprint) for (const belt of belts.values()) belt.arrows.removeAttribute("startOffset");
       return;
     }
     const now_ = performance.now(), fade = (1 - .55 * (1 - Math.cos(2 * Math.PI * (now_ % 1200) / 1200)) / 2).toFixed(3);
@@ -2015,6 +2033,11 @@ function routingPage(part) {
       const calm_ = still();
       flows.style.setProperty(calm_ ? "--rt-fade" : "--rt-dash", calm_ ? fade : (-(now_ % 700) / 700 * 8).toFixed(2) + "px");
       flows.style.removeProperty(calm_ ? "--rt-dash" : "--rt-fade");
+    }
+    if (blueprint) for (const p of flowing.keys()) {
+      const belt = belts.get(p);
+      belt.group.style.opacity = still() ? fade : "";
+      belt.arrows.setAttribute("startOffset", still() ? "0" : String(-((now_ % 1400) / 1400) * 28));
     }
     if (holds.size) sky.style.setProperty("--rt-held", fade);
   }
@@ -2025,6 +2048,35 @@ function routingPage(part) {
   }
   const flowSoon = () => { if (!flowAsked) flowAsked = requestAnimationFrame(() => { flowAsked = 0; flowNear(); }); };
   function flowNear() {
+    if (blueprint) {
+      for (const [p, belt] of belts) if (!p.isConnected || !p.hasAttribute("d")) { belt.group.remove(); belts.delete(p); }
+      for (const p of wires.querySelectorAll("path[d]")) {
+        let belt = belts.get(p);
+        if (!belt) {
+          const group = document.createElementNS(NS, "g"), bed = document.createElementNS(NS, "path");
+          const rim = document.createElementNS(NS, "path"), text = document.createElementNS(NS, "text"), arrows = document.createElementNS(NS, "textPath");
+          group.setAttribute("class", "bp-belt");
+          rim.setAttribute("class", "bp-belt-rim");
+          bed.setAttribute("class", "bp-belt-bed");
+          arrows.setAttribute("href", "#" + p.id);
+          text.append(arrows);
+          group.append(rim, bed, text);
+          beltLayer.append(group);
+          belts.set(p, belt = { group, bed, rim, arrows, d: "" });
+        }
+        const d = p.getAttribute("d");
+        if (belt.d !== d) {
+          belt.d = d;
+          belt.bed.setAttribute("d", d);
+          belt.rim.setAttribute("d", d);
+          belt.arrows.textContent = "▸".repeat(Math.min(512, Math.ceil(pathLength(p) / 28) + 1));
+        }
+        const active = p.classList.contains("live") && !p.classList.contains("rest");
+        belt.group.classList.toggle("rest", p.classList.contains("rest"));
+        belt.group.classList.toggle("active", active);
+        if (!active) { belt.arrows.removeAttribute("startOffset"); belt.group.style.opacity = ""; }
+      }
+    }
     const live = new Set([...wires.querySelectorAll("path.live[d]")].filter((p) => !p.classList.contains("rest")));
     for (const [p, f] of flowing) if (!live.has(p)) { f.copy.remove(); p.classList.remove("flown"); flowing.delete(p); }
     if (!live.size || !sight) return;
@@ -2244,7 +2296,7 @@ function routingPage(part) {
     }
     sight = { at: r.top, scroll: scrolled, lo: Math.max(0, v.top), hi: Math.min(innerHeight, v.bottom) };
     const box = `0 0 ${r.width} ${r.height}`;
-    for (const svg of [wires, flows, sky]) if (svg.getAttribute("viewBox") !== box) svg.setAttribute("viewBox", box);
+    for (const svg of [wires, flows, sky, ...(blueprint ? [beltLayer] : [])]) if (svg.getAttribute("viewBox") !== box) svg.setAttribute("viewBox", box);
     for (const [p, d] of sets) {
       if (d === null) { if (p.hasAttribute("d")) p.removeAttribute("d"); }
       else if (p.getAttribute("d") !== d) p.setAttribute("d", d);
@@ -5142,7 +5194,7 @@ function routingPage(part) {
     + "</g></g>";
 
   function bird(kind) {
-    if (still() || !shown()) return null;
+    if (blueprint || still() || !shown()) return null;
     const g = document.createElementNS(NS, "g");
     g.setAttribute("class", "rt-flier " + kind);
     g.innerHTML = FLIER;
@@ -5156,8 +5208,9 @@ function routingPage(part) {
     setTimeout(() => b.remove(), 450);
   }
   function packet() {
-    const dot = document.createElementNS(NS, "circle");
-    dot.setAttribute("r", 4.5);
+    const dot = document.createElementNS(NS, blueprint ? "g" : "circle");
+    if (blueprint) dot.innerHTML = '<rect x="-6" y="-6" width="12" height="12" rx="1"/><path class="bp-cargo-mark" d="M-3 -3H3V3H-3Z M-3 0H3 M0 -3V3"/>';
+    else dot.setAttribute("r", 4.5);
     dot.setAttribute("class", "pkt");
     dot.setAttribute("visibility", "hidden"); // until a flight puts it somewhere
     sky.appendChild(dot);
@@ -5477,8 +5530,11 @@ function routingPage(part) {
     // starts and ends a dot clear of them, so a dot held at its seat or
     // waiting at magpie is seen whole
     const edge = Math.min(6, total / 4), d = edge + e * (total - 2 * edge), pt = point(d);
-    setAttr(tr.dot, "cx", String(pt.x));
-    setAttr(tr.dot, "cy", String(pt.y));
+    if (blueprint) setAttr(tr.dot, "transform", `translate(${pt.x.toFixed(1)} ${pt.y.toFixed(1)})`);
+    else {
+      setAttr(tr.dot, "cx", String(pt.x));
+      setAttr(tr.dot, "cy", String(pt.y));
+    }
     tr.dot.removeAttribute("visibility");
     const b = tr.bird;
     if (!b) return;

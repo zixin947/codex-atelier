@@ -1,0 +1,283 @@
+/* The live routing trace supplies every state. This surface only draws the blueprint. */
+#rt.rt-blueprint {
+  --bp-paper: #e9e9e6;
+  --bp-machine: #f4f4f0;
+  --bp-ink: #30332e;
+  --bp-edge: #85887e;
+  --bp-belt: #f3f494;
+  --bp-live: #e8ee54;
+  padding: 0;
+  border: 1px solid #afb1a6;
+  border-radius: 3px;
+  overflow: clip;
+  background: var(--bp-paper);
+  color: var(--bp-ink);
+}
+.rt-blueprint .rt-top {
+  padding: 18px 24px;
+  border-bottom: 1px solid #bfc1b6;
+  background: #f8f8f2;
+}
+.rt-blueprint .rt-what {
+  color: #555b50;
+  font-size: 13px;
+}
+.rt-blueprint .rt-mode {
+  color: #62685b;
+  font-size: 12px;
+}
+.rt-blueprint .rt-stage {
+  min-height: 420px;
+  grid-template-columns: minmax(124px, 18%) minmax(144px, 20%) minmax(0, 1fr);
+  column-gap: clamp(42px, 6vw, 96px);
+  padding: 46px 30px;
+  background-color: var(--bp-paper);
+  background-image:
+    linear-gradient(#a1a69a29 1px, transparent 1px),
+    linear-gradient(90deg, #a1a69a29 1px, transparent 1px),
+    linear-gradient(#8187791c 1px, transparent 1px),
+    linear-gradient(90deg, #8187791c 1px, transparent 1px);
+  background-size:
+    32px 32px,
+    32px 32px,
+    160px 160px,
+    160px 160px;
+}
+.rt-blueprint .bp-belts {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.bp-belt path {
+  fill: none;
+  stroke-linejoin: round;
+}
+.bp-belt .bp-belt-rim {
+  stroke: #a7aa92;
+  stroke-width: 26px;
+}
+.bp-belt .bp-belt-bed {
+  stroke: var(--bp-belt);
+  stroke-width: 22px;
+}
+.bp-belt.active .bp-belt-bed {
+  stroke: var(--bp-live);
+}
+.bp-belt text {
+  fill: #787d51;
+  font-family: system-ui, sans-serif;
+  font-size: 9px;
+  letter-spacing: 20px;
+  dominant-baseline: central;
+}
+.bp-belt.active text {
+  fill: #454c25;
+}
+.bp-belt.rest {
+  opacity: 0.35;
+}
+.rt-blueprint .rt-wires path,
+.rt-blueprint .rt-wires path:is(.lit, .live) {
+  stroke: #747b3e;
+  stroke-width: 1px;
+  stroke-dasharray: none;
+  animation: none;
+  opacity: 0.3;
+}
+.rt-blueprint .rt-wires path.flown {
+  visibility: hidden;
+}
+.rt-blueprint .rt-flows path {
+  stroke: #656d35;
+  stroke-width: 1px;
+  opacity: 0.35;
+}
+.rt-blueprint .rt-node,
+.rt-blueprint .rt-accts li:not(.rt-gap) {
+  border: 2px solid #484c41;
+  border-radius: 2px;
+  background-color: var(--bp-machine);
+  background-image:
+    repeating-linear-gradient(90deg, transparent 0 22px, #777d6c 22px 23px, transparent 23px 27px),
+    repeating-linear-gradient(90deg, transparent 0 22px, #777d6c 22px 23px, transparent 23px 27px);
+  background-position:
+    8px 6px,
+    8px calc(100% - 6px);
+  background-size: calc(100% - 16px) 7px;
+  background-repeat: no-repeat;
+  box-shadow:
+    inset 0 0 0 5px var(--bp-machine),
+    inset 0 0 0 6px #a1a595,
+    3px 4px 0 #30382c12;
+}
+.rt-blueprint .rt-node {
+  padding: 28px 12px 24px;
+  gap: 7px;
+}
+.rt-blueprint .rt-node .rt-ic .ic,
+.rt-blueprint .rt-node .rt-ic .ic :is(img, svg),
+.rt-blueprint .rt-node .rt-bird {
+  width: 36px;
+  height: 36px;
+}
+.rt-blueprint .rt-srcs {
+  gap: 36px;
+}
+.rt-blueprint .rt-srcs.many .rt-node {
+  padding: 22px 8px;
+}
+.rt-blueprint .rt-node b {
+  font-size: 14px;
+  font-weight: 650;
+}
+.rt-blueprint .rt-node small {
+  font-size: 11px;
+}
+.rt-blueprint .rt-hub {
+  min-height: 170px;
+  justify-content: center;
+  background-color: #f7f7df;
+  border-color: #2e3429;
+  box-shadow:
+    inset 0 0 0 5px #f7f7df,
+    inset 0 0 0 6px #a1a595,
+    4px 5px 0 #30382c1a;
+}
+.rt-blueprint .rt-hub i {
+  margin-top: 6px;
+  padding: 3px 10px;
+  border: 1px solid #626b35;
+  border-radius: 1px;
+  background: #e9ed9f;
+  color: #343d21;
+}
+.rt-blueprint .rt-accts {
+  gap: 32px;
+}
+.rt-blueprint .rt-accts li:not(.rt-gap) {
+  padding: 26px 18px 24px;
+  row-gap: 10px;
+}
+.rt-blueprint .rt-accts li.on {
+  border-color: #505b2d;
+  background-color: #f9fbe2;
+}
+.rt-blueprint .rt-accts li.now {
+  box-shadow:
+    inset 0 0 0 5px #f9fbe2,
+    inset 0 0 0 6px #a6b35f,
+    3px 4px 0 #30382c12;
+}
+.rt-blueprint .rt-accts li > b {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+.rt-blueprint .rt-accts b .ic {
+  width: 24px;
+  height: 24px;
+  margin-right: 6px;
+}
+.rt-blueprint .rt-accts b .ic :is(img, svg) {
+  width: 24px;
+  height: 24px;
+}
+.rt-blueprint .rt-accts b code.mdl {
+  font-size: 10px;
+  border-radius: 1px;
+  background: #e4e7d8;
+}
+.rt-blueprint .rt-accts .bar {
+  height: 4px;
+  border-radius: 0;
+  background: #d5d8cb;
+}
+.rt-blueprint .rt-accts .bar i {
+  border-radius: 0;
+  background: #788543;
+}
+.rt-blueprint .rt-accts li.rt-sub {
+  border-style: solid;
+  background-color: #dde2cb;
+}
+.rt-blueprint .rt-accts li.idle {
+  color: #676e5d;
+}
+.rt-blueprint .rt-sky .pkt {
+  fill: #424b32;
+  stroke: #f7f9e5;
+  stroke-width: 1.5px;
+  filter: none;
+}
+.rt-blueprint .rt-sky .pkt.back {
+  fill: #f7f9e5;
+  stroke: #424b32;
+}
+.rt-blueprint .rt-sky .pkt.err {
+  fill: #a45443;
+  stroke: #fff3d8;
+}
+.rt-blueprint .rt-sky .bp-cargo-mark {
+  fill: none;
+  stroke: #e4ea8d;
+  stroke-width: 1px;
+}
+.rt-blueprint .rt-sky .pkt.back .bp-cargo-mark {
+  stroke: #424b32;
+}
+.rt-blueprint .rt-foot {
+  padding: 16px 24px;
+  background: #f7f7f0;
+  border-top: 1px solid #bfc1b6;
+}
+.rt-blueprint .rt-stats {
+  gap: 24px;
+}
+.rt-blueprint .rt-stats b {
+  font-family: var(--code-font, monospace);
+  font-size: 22px;
+  font-weight: 550;
+}
+.rt-blueprint .rt-log {
+  margin: 0;
+  padding: 18px 24px;
+  background: #fcfcf6;
+}
+.rt-blueprint .rt-off {
+  margin: 0;
+  padding: 24px;
+  background: #f7f7f0;
+}
+.rt-blueprint .rt-replay {
+  margin: 0;
+  padding: 14px 24px;
+  background: #f1f2d6;
+}
+.rt-blueprint.max560 .rt-stage {
+  grid-template-columns: 1fr 1fr;
+  gap: 34px;
+  padding: 32px 20px;
+}
+.rt-blueprint.max560 .rt-stage > :is(.rt-srcs, .rt-hub) {
+  min-width: 0;
+}
+.rt-blueprint.max560 .rt-hub {
+  min-height: 140px;
+}
+.rt-blueprint.max560 .rt-accts {
+  grid-column: 1 / -1;
+  padding-left: 22px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .rt-blueprint .rt-accts li[role='button']:hover {
+    border-color: #72813c;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rt-blueprint :is(.rt-node, .rt-accts li, .rt-cap) {
+    animation: none;
+    transition-property: opacity, color, border-color;
+  }
+}

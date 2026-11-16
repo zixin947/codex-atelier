@@ -263,6 +263,7 @@ atelierStorageReady.then(async () => {
             css.push_str(include_str!(
                 "../../../src/features/connections/native-theme.css"
             ));
+            css.push_str(include_str!("../../../src/features/routing/blueprint.css"));
         }
         if content_only {
             css.push_str(include_str!(
