@@ -75,12 +75,16 @@ async fn forward(
     let styled = request.uri().path() == "/"
         && url::form_urlencoded::parse(request.uri().query().unwrap_or("").as_bytes())
             .any(|(key, value)| key == "atelierStyle" && value == "endfield");
+    let blueprint = styled
+        && url::form_urlencoded::parse(request.uri().query().unwrap_or("").as_bytes()).any(|(k,v)| k == "view" && v == "routing")
+        && !url::form_urlencoded::parse(request.uri().query().unwrap_or("").as_bytes()).any(|(k,v)| k == "atelierBlueprint" && v == "off");
     let content_only = request.uri().path() == "/"
         && url::form_urlencoded::parse(request.uri().query().unwrap_or("").as_bytes())
             .any(|(key, value)| key == "atelierContent" && value == "1");
     let branded = request.uri().path() == "/";
     let branded_asset = request.uri().path() == "/plugins/gateway/client.js";
-    let decorated = styled || content_only || branded || branded_asset;
+    let routing_asset = request.uri().path() == "/plugins/routing/client.js";
+    let decorated = styled || content_only || branded || branded_asset || routing_asset;
     let chatgpt_usage = request.uri().path() == "/"
         && url::form_urlencoded::parse(request.uri().query().unwrap_or("").as_bytes())
             .any(|(key, value)| key == "atelierUsage" && value == "chatgpt");
@@ -189,6 +193,15 @@ async fn forward(
             .replace("\"magpie\"", "\"atelier\"")
             .into_bytes();
     }
+    if routing_asset {
+        let source = String::from_utf8(bytes).map_err(|_| "路由页面不是 UTF-8。")?;
+        let anchor = "function curve(x0, y0, mx, x3, y3) {";
+        if source.matches(anchor).count() != 1 {
+            return Err("路由绘图接口已变化，无法应用蓝图样式。".into());
+        }
+        bytes = source.replacen(anchor, &format!("{anchor}\n{}", include_str!("../../../src/features/connections/native-routing-path.js")), 1).into_bytes();
+        response = response.header("Cache-Control", "no-store");
+    }
     if (decorated || chatgpt_usage) && html {
         let mut page = String::from_utf8(bytes).map_err(|_| "原版页面不是 UTF-8。")?;
         if branded {
@@ -203,10 +216,16 @@ async fn forward(
                     1,
                 );
         }
+        if styled {
+            page = page.replacen("</head>", &format!("<script>{}</script></head>", include_str!("../../../src/features/connections/native-routing-detail.js")), 1);
+        }
         let mut css = String::new();
         if styled {
             css.push_str(include_str!(
                 "../../../src/features/connections/native-theme.css"
+            ));
+            css.push_str(include_str!(
+                "../../../src/features/connections/native-routing.css"
             ));
         }
         if content_only {
@@ -235,6 +254,12 @@ async fn forward(
                 .into_bytes();
         }
         response = response.header("Cache-Control", "no-store");
+    }
+    if blueprint && html {
+        bytes = include_str!("../../../previews/routing-conveyor.html")
+            .replacen("<script>", "<script>window.ATELIER_LIVE=true;</script><script>", 1)
+            .replacen("</html>", &format!("<script>{}</script></html>", include_str!("../../../src/features/connections/native-routing-live.js")), 1)
+            .into_bytes();
     }
     if opaque_plugin_asset {
         response = response.header("Access-Control-Allow-Origin", "null");
@@ -322,6 +347,14 @@ mod tests {
         assert!(html.find("const brand =").unwrap() < html.find("<script src=\"start.js").unwrap());
         assert!(html.contains("<body><main>original-layout</main></body>"));
         assert_eq!(response.headers()["cache-control"], "no-store");
+        let live = forward(&client, &address, Request::builder().uri("magpie://localhost/?view=routing&atelierStyle=endfield").body(vec![]).unwrap()).await.unwrap();
+        let live = String::from_utf8(live.body().clone()).unwrap();
+        assert!(live.contains("window.ATELIER_LIVE=true"));
+        assert!(live.contains("/api/gateway/trace?after="));
+        assert!(!live.contains("?k=fixture"));
+        let original = forward(&client, &address, Request::builder().uri("magpie://localhost/?view=routing&atelierStyle=endfield&atelierBlueprint=off").body(vec![]).unwrap()).await.unwrap();
+        assert!(!String::from_utf8(original.body().clone()).unwrap().contains("window.ATELIER_LIVE=true"));
+
         let response = forward(
             &client,
             &address,

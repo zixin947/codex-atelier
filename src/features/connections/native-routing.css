@@ -1,0 +1,554 @@
+/* Industrial blueprint skin. Live nodes and measured paths remain owned by routing. */
+#view-routing {
+  --blueprint-machine: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20210%22%3E%0A%3Cdefs%3E%3ClinearGradient%20id%3D%22plate%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23e0e0dc%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23cececa%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22slot%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20stop-color%3D%22%23e8e8e3%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23c6c7c1%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%0A%3Cpath%20d%3D%22M2%202H198V208H2Z%22%20fill%3D%22%23343733%22%2F%3E%0A%3Cpath%20d%3D%22M6%205H194V204H6Z%22%20fill%3D%22%23a4a6a0%22%2F%3E%0A%3Cpath%20d%3D%22M8%207H192V201H8Z%22%20fill%3D%22url%28%23plate%29%22%20stroke%3D%22%23eceee6%22%20stroke-width%3D%222%22%2F%3E%0A%3Cpath%20d%3D%22M49%2010H151V198H49Z%22%20fill%3D%22%23d5d6d0%22%20stroke%3D%22%23b6b8b1%22%2F%3E%0A%3Cpath%20d%3D%22M52%2012H148L138%2024H62Z%22%20fill%3D%22%23dfe0da%22%20stroke%3D%22%23b5b7ae%22%20stroke-width%3D%222%22%2F%3E%0A%3Cpath%20d%3D%22M63%2027H137V75L130%2082H70L63%2075Z%22%20fill%3D%22%23dcddd7%22%20stroke%3D%22%23c4c6be%22%2F%3E%0A%3Cpath%20d%3D%22M56%2031V75L64%2084V122L56%20132V176M144%2031V75L136%2084V122L144%20132V176%22%20fill%3D%22none%22%20stroke%3D%22%23b9bcb2%22%20stroke-width%3D%222%22%2F%3E%0A%3Cpath%20d%3D%22M67%20133H133V175H67Z%22%20fill%3D%22%23dfe0da%22%20stroke%3D%22%23c6c8be%22%2F%3E%0A%3Cpath%20d%3D%22M52%20197L64%20184H136L148%20197Z%22%20fill%3D%22%23c9cbc2%22%20stroke%3D%22%23aeb2a6%22%20stroke-width%3D%222%22%2F%3E%0A%3Cpath%20d%3D%22M64%20185H136%22%20stroke%3D%22%23eceee5%22%20stroke-width%3D%222%22%2F%3E%0A%3Cg%20transform%3D%22translate%2812%2014%29%22%3E%3Cpath%20d%3D%22M0%200H34V54H0Z%22%20fill%3D%22%239c9f95%22%2F%3E%3Cpath%20d%3D%22M2%202H32V51H2Z%22%20fill%3D%22url%28%23slot%29%22%20stroke%3D%22%23edefe7%22%2F%3E%3Cpath%20d%3D%22M5%207H29V44H5Z%22%20fill%3D%22%23d4d6cd%22%20stroke%3D%22%23b4b8ab%22%2F%3E%3Cpath%20d%3D%22M14%2017L20%2024L14%2031%22%20fill%3D%22none%22%20stroke%3D%22%238e9586%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M8%2047H27%22%20stroke%3D%22%23555d4f%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M3%204H31%22%20stroke%3D%22%23f4f5ed%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%2812%2078%29%22%3E%3Cpath%20d%3D%22M0%200H34V54H0Z%22%20fill%3D%22%239c9f95%22%2F%3E%3Cpath%20d%3D%22M2%202H32V51H2Z%22%20fill%3D%22url%28%23slot%29%22%20stroke%3D%22%23edefe7%22%2F%3E%3Cpath%20d%3D%22M5%207H29V44H5Z%22%20fill%3D%22%23d4d6cd%22%20stroke%3D%22%23b4b8ab%22%2F%3E%3Cpath%20d%3D%22M14%2017L20%2024L14%2031%22%20fill%3D%22none%22%20stroke%3D%22%238e9586%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M8%2047H27%22%20stroke%3D%22%23555d4f%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M3%204H31%22%20stroke%3D%22%23f4f5ed%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%2812%20142%29%22%3E%3Cpath%20d%3D%22M0%200H34V54H0Z%22%20fill%3D%22%239c9f95%22%2F%3E%3Cpath%20d%3D%22M2%202H32V51H2Z%22%20fill%3D%22url%28%23slot%29%22%20stroke%3D%22%23edefe7%22%2F%3E%3Cpath%20d%3D%22M5%207H29V44H5Z%22%20fill%3D%22%23d4d6cd%22%20stroke%3D%22%23b4b8ab%22%2F%3E%3Cpath%20d%3D%22M14%2017L20%2024L14%2031%22%20fill%3D%22none%22%20stroke%3D%22%238e9586%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M8%2047H27%22%20stroke%3D%22%23555d4f%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M3%204H31%22%20stroke%3D%22%23f4f5ed%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%28154%2014%29%22%3E%3Cpath%20d%3D%22M0%200H34V54H0Z%22%20fill%3D%22%239c9f95%22%2F%3E%3Cpath%20d%3D%22M2%202H32V51H2Z%22%20fill%3D%22url%28%23slot%29%22%20stroke%3D%22%23edefe7%22%2F%3E%3Cpath%20d%3D%22M5%207H29V44H5Z%22%20fill%3D%22%23d4d6cd%22%20stroke%3D%22%23b4b8ab%22%2F%3E%3Cpath%20d%3D%22M14%2017L20%2024L14%2031%22%20fill%3D%22none%22%20stroke%3D%22%238e9586%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M8%2047H27%22%20stroke%3D%22%23555d4f%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M3%204H31%22%20stroke%3D%22%23f4f5ed%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%28154%2078%29%22%3E%3Cpath%20d%3D%22M0%200H34V54H0Z%22%20fill%3D%22%239c9f95%22%2F%3E%3Cpath%20d%3D%22M2%202H32V51H2Z%22%20fill%3D%22url%28%23slot%29%22%20stroke%3D%22%23edefe7%22%2F%3E%3Cpath%20d%3D%22M5%207H29V44H5Z%22%20fill%3D%22%23d4d6cd%22%20stroke%3D%22%23b4b8ab%22%2F%3E%3Cpath%20d%3D%22M14%2017L20%2024L14%2031%22%20fill%3D%22none%22%20stroke%3D%22%238e9586%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M8%2047H27%22%20stroke%3D%22%23555d4f%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M3%204H31%22%20stroke%3D%22%23f4f5ed%22%2F%3E%3C%2Fg%3E%3Cg%20transform%3D%22translate%28154%20142%29%22%3E%3Cpath%20d%3D%22M0%200H34V54H0Z%22%20fill%3D%22%239c9f95%22%2F%3E%3Cpath%20d%3D%22M2%202H32V51H2Z%22%20fill%3D%22url%28%23slot%29%22%20stroke%3D%22%23edefe7%22%2F%3E%3Cpath%20d%3D%22M5%207H29V44H5Z%22%20fill%3D%22%23d4d6cd%22%20stroke%3D%22%23b4b8ab%22%2F%3E%3Cpath%20d%3D%22M14%2017L20%2024L14%2031%22%20fill%3D%22none%22%20stroke%3D%22%238e9586%22%20stroke-width%3D%223%22%2F%3E%3Cpath%20d%3D%22M8%2047H27%22%20stroke%3D%22%23555d4f%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M3%204H31%22%20stroke%3D%22%23f4f5ed%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23b4b9ab%22%3E%3Ccircle%20cx%3D%2278%22%20cy%3D%22165%22%20r%3D%227%22%2F%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22165%22%20r%3D%227%22%2F%3E%3Ccircle%20cx%3D%22122%22%20cy%3D%22165%22%20r%3D%227%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M51%20105H149%22%20stroke%3D%22%23dfe1d8%22%2F%3E%3Cpath%20d%3D%22M7%20205H195%22%20stroke%3D%22%23454a40%22%20stroke-width%3D%223%22%2F%3E%3C%2Fsvg%3E');
+}
+#view-routing .rt {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  padding: 0;
+  border-radius: 2px;
+  border-color: #a5ab9c;
+  overflow: hidden;
+}
+#view-routing .rt-top {
+  grid-column: 1 / -1;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  border-left: 5px solid #e8ee59;
+}
+#view-routing .rt-stage {
+  grid-column: 1;
+  min-height: 460px;
+  padding: 56px 24px;
+  column-gap: 48px;
+  justify-content: space-evenly;
+  grid-template-columns: 150px 180px minmax(160px, 220px);
+  align-content: center;
+  background-color: #e5e7e0;
+  background-image:
+    linear-gradient(#a0a79838 1px, transparent 1px),
+    linear-gradient(90deg, #a0a79838 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+#view-routing .rt-stage::before {
+  content: 'ROUTING / 工业蓝图';
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  font: 11px monospace;
+  letter-spacing: 2px;
+  color: #68715f;
+}
+#view-routing .rt-node {
+  min-width: 0;
+  min-height: 210px;
+  justify-content: flex-end;
+  padding: 164px 8px 8px;
+  border: 0;
+  border-radius: 0;
+  background: var(--blueprint-machine) top center / 100% 150px no-repeat;
+  box-shadow: none;
+  gap: 3px;
+}
+#view-routing .rt-hub {
+  min-height: 240px;
+  padding-top: 194px;
+  background-size: 100% 180px;
+}
+#view-routing .rt-node .rt-ic,
+#view-routing .rt-node .rt-bird {
+  position: absolute;
+  top: 56px;
+  left: calc(50% - 13px);
+  color: #edf25b;
+}
+#view-routing .rt-hub .rt-bird {
+  top: 69px;
+}
+#view-routing .rt-node .rt-ic {
+  transform: translateY(-5px);
+}
+#view-routing .rt-node b {
+  font-size: 12px;
+}
+#view-routing .rt-node small {
+  font-size: 9px;
+}
+#view-routing .rt-hub i:empty {
+  display: none;
+}
+#view-routing .rt-accts {
+  gap: 18px;
+}
+#view-routing .rt-accts li:not(.rt-gap):not(.rt-sub) {
+  min-height: 210px;
+  padding: 145px 16px 18px;
+  grid-template-columns: 10px minmax(0, 1fr);
+  border: 2px solid #66705c;
+  border-radius: 2px;
+  background:
+    var(--blueprint-machine) center 10px / 120px 120px no-repeat,
+    #f2f3e8;
+  box-shadow:
+    inset 0 0 0 5px #d4d8c9,
+    inset 0 0 0 6px #929b85,
+    4px 5px 0 #717a6530;
+}
+#view-routing .rt-accts li:not(.rt-sub) > b {
+  flex-wrap: wrap;
+  gap: 5px;
+}
+#view-routing .rt-accts em {
+  grid-column: 2;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#view-routing .rt-accts li.idle {
+  min-height: 100px;
+  padding-top: 36px;
+}
+#view-routing .rt-accts li::after {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: calc(50% - 10px);
+  width: 8px;
+  height: 20px;
+  background: #4d5645;
+  border: 2px solid #aab39c;
+}
+#view-routing .rt-accts li.rt-gap::after {
+  display: none;
+}
+#view-routing .rt-wires path {
+  stroke: #c9cf99;
+  stroke-width: 16px;
+  stroke-linejoin: round;
+  stroke-linecap: square;
+}
+#view-routing .rt-wires path:is(.live, .lit) {
+  stroke: #e6ed64;
+  stroke-dasharray: none;
+}
+#view-routing .rt-wires path.flown {
+  visibility: visible;
+  animation: none;
+}
+#view-routing .rt-flows path {
+  stroke: #59623b;
+  stroke-width: 3px;
+  stroke-dasharray: 2 12;
+}
+#view-routing .rt-log {
+  grid-column: 2;
+  grid-row: 2;
+  margin: 0;
+  padding: 18px;
+  border-left: 1px solid #a5ab9c;
+  background: #f4f5ed;
+  min-width: 0;
+  max-height: 600px;
+  overflow: auto;
+}
+#view-routing .rt-log-head {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+#view-routing .rt-foot {
+  grid-column: 1 / -1;
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+}
+#view-routing .rt-replay {
+  grid-column: 1 / -1;
+  margin: 0;
+  border-radius: 0;
+}
+#view-routing .rt:has(.rt-replay:not([hidden])) .rt-log {
+  grid-row: 3;
+}
+#view-routing .rt-off {
+  grid-column: 1 / -1;
+}
+@media (max-width: 1150px) {
+  #view-routing .rt {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  #view-routing .rt-log,
+  #view-routing .rt:has(.rt-replay:not([hidden])) .rt-log {
+    grid-column: 1;
+    grid-row: auto;
+    max-height: none;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+  }
+  #view-routing .rt-stage {
+    min-height: 390px;
+  }
+}
+@media (max-width: 650px) {
+  #view-routing .rt-stage {
+    grid-template-columns: 1fr 1fr;
+    padding: 48px 20px 24px;
+    gap: 30px;
+  }
+  #view-routing .rt-accts {
+    grid-column: 1 / -1;
+  }
+  #view-routing .rt-node {
+    max-width: 180px;
+    width: 100%;
+    justify-self: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #view-routing .rt :is(.rt-node, .rt-flier .wing, .rt-wires path) {
+    animation: none;
+  }
+  #view-routing .rt-accts li {
+    transition: none;
+  }
+}
+
+#view-routing .rt-hub {
+  background-image: url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20200%22%3E%3Cg%20stroke%3D%22%23535b50%22%20stroke-width%3D%222%22%3E%3Cpath%20d%3D%22M21%2010L10%2021L45%2056L56%2045ZM179%2010L190%2021L155%2056L144%2045ZM21%20190L10%20179L45%20144L56%20155ZM179%20190L190%20179L155%20144L144%20155Z%22%20fill%3D%22%23bfc4ba%22%2F%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%2281%22%20fill%3D%22%23d5d9d0%22%2F%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%2269%22%20fill%3D%22%23f0f1eb%22%2F%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%2247%22%20fill%3D%22%23e1e5d7%22%2F%3E%3Cpath%20d%3D%22M30%2085H52V115H30ZM148%2085H170V115H148ZM85%2030H115V52H85ZM85%20148H115V170H85Z%22%20fill%3D%22%23acb5a0%22%2F%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%22100%22%20r%3D%2230%22%20fill%3D%22%233c4636%22%2F%3E%3C%2Fg%3E%3Cg%20fill%3D%22%23666e5e%22%3E%3Ccircle%20cx%3D%2258%22%20cy%3D%2258%22%20r%3D%223%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%2258%22%20r%3D%223%22%2F%3E%3Ccircle%20cx%3D%2258%22%20cy%3D%22142%22%20r%3D%223%22%2F%3E%3Ccircle%20cx%3D%22142%22%20cy%3D%22142%22%20r%3D%223%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E');
+}
+
+/* Offset machines form two measured conveyor elbows rather than a row of cards. */
+#view-routing .rt-srcs {
+  align-self: start;
+  margin-top: 120px;
+}
+#view-routing .rt-hub {
+  align-self: start;
+  margin-top: 8px;
+}
+#view-routing .rt-accts {
+  align-self: start;
+  margin-top: 180px;
+}
+#view-routing .rt-stage {
+  align-content: start;
+  min-height: 560px;
+}
+#view-routing .rt-node {
+  min-height: 150px;
+  padding: 0;
+}
+#view-routing .rt-hub {
+  min-height: 180px;
+}
+#view-routing .rt-node > b {
+  position: absolute;
+  top: 100%;
+  margin-top: 12px;
+}
+#view-routing .rt-node > small {
+  position: absolute;
+  top: 100%;
+  margin-top: 30px;
+}
+#view-routing .rt-hub > i {
+  position: absolute;
+  bottom: 8px;
+}
+#view-routing .rt-accts li:not(.rt-gap):not(.rt-sub) {
+  min-height: 160px;
+  padding: 110px 16px 18px;
+  background-size: 86px 86px;
+  background-position: center 12px;
+}
+#view-routing .rt-accts li:not(.rt-gap):not(.rt-sub)::before {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  pointer-events: none;
+  background:
+    repeating-linear-gradient(0deg, #79836c 0 3px, transparent 3px 8px) left center / 12px 64px
+      no-repeat,
+    repeating-linear-gradient(0deg, #79836c 0 3px, transparent 3px 8px) right center / 12px 64px
+      no-repeat;
+}
+#view-routing .rt-accts li.idle {
+  padding-top: 110px;
+}
+#view-routing .rt-wires path {
+  stroke-width: 22px;
+  filter: drop-shadow(0 2px 0 #9da775);
+}
+#view-routing .rt-stage::after {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border: 1px solid #717b5e30;
+  pointer-events: none;
+}
+@media (max-width: 650px) {
+  #view-routing .rt-srcs {
+    margin-top: 65px;
+  }
+  #view-routing .rt-accts {
+    margin-top: 20px;
+  }
+  #view-routing .rt-stage {
+    padding-bottom: 50px;
+  }
+}
+/* Equipment detail, technical rails and conveyor direction markings. */
+#view-routing .bp-tracks {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+#view-routing .bp-tracks path {
+  fill: none;
+  stroke: #596137;
+  stroke-width: 1.5;
+}
+#view-routing .bp-inspector {
+  margin: -18px -18px 20px;
+  padding: 18px;
+  border-bottom: 1px solid #a5ab9c;
+  background: #e5e8dc;
+}
+#view-routing .bp-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 650;
+  border-left: 4px solid #ccd934;
+  padding-left: 10px;
+}
+#view-routing .bp-heading span {
+  font: 9px monospace;
+  color: var(--muted);
+  letter-spacing: 2px;
+}
+#view-routing .bp-devices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 16px 0;
+}
+#view-routing .bp-devices button {
+  border: 1px solid #a3ad93;
+  padding: 5px 9px;
+  border-radius: 2px;
+  font-size: 11px;
+  background: #f4f5ed;
+  color: #414b37;
+}
+#view-routing .bp-devices button[aria-pressed='true'] {
+  background: #36402e;
+  color: #edf36a;
+}
+#view-routing .bp-devices button:focus-visible {
+  outline: 2px solid #697b26;
+  outline-offset: 3px;
+}
+#view-routing .bp-portrait {
+  height: 140px;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 130px 130px;
+  border: 1px solid #bcc4b0;
+}
+#view-routing .bp-inspector h3 {
+  margin: 14px 0 6px;
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+#view-routing .bp-device-state {
+  font-size: 11px;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+#view-routing .bp-readouts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 16px;
+}
+#view-routing .bp-readouts > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px;
+  background: #f7f8f0;
+  border-top: 2px solid #939e78;
+}
+#view-routing .bp-readouts strong {
+  font: 22px monospace;
+}
+#view-routing .bp-readouts span {
+  font-size: 9px;
+  color: var(--muted);
+}
+#view-routing .rt-node::before {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border: 1px solid #78846566;
+  pointer-events: none;
+  background: repeating-linear-gradient(90deg, #59654c 0 1px, transparent 1px 8px) left top / 100%
+    4px repeat-x;
+}
+#view-routing .rt-hub::before {
+  border-radius: 50%;
+  inset: -14px;
+  border: 1px dashed #78846588;
+  background: none;
+}
+#view-routing .rt-node::after {
+  content: '';
+  position: absolute;
+  top: calc(50% - 10px);
+  right: -6px;
+  width: 9px;
+  height: 20px;
+  border: 2px solid #69765b;
+  background: #c7ceb9;
+  pointer-events: none;
+}
+#view-routing .rt-hub::after {
+  right: -8px;
+}
+#view-routing .rt-stage .bp-selected {
+  outline: 2px solid #9ba82c;
+  outline-offset: 10px;
+}
+#view-routing .rt-stage .rt-hub.bp-selected {
+  outline: none;
+}
+#view-routing .rt-hub.bp-selected::before {
+  border: 2px solid #a5b432;
+}
+#view-routing .rt-stage {
+  background-image:
+    linear-gradient(#8a947340 1px, transparent 1px),
+    linear-gradient(90deg, #8a947340 1px, transparent 1px),
+    linear-gradient(#85906418 1px, transparent 1px),
+    linear-gradient(90deg, #85906418 1px, transparent 1px);
+  background-size:
+    120px 120px,
+    120px 120px,
+    24px 24px,
+    24px 24px;
+}
+#view-routing .rt-stage::before {
+  content: 'ROUTING / 工业蓝图     ·     AGENT → GATEWAY → PROVIDER';
+  font-size: 9px;
+  letter-spacing: 1px;
+  max-width: calc(100% - 40px);
+}
+#view-routing .rt-log {
+  max-height: 760px;
+}
+#view-routing .rt-stage {
+  min-height: 620px;
+}
+@media (max-width: 1150px) {
+  #view-routing .rt-log {
+    max-height: none;
+  }
+  #view-routing .bp-portrait {
+    float: right;
+    width: 150px;
+    margin: 0 0 12px 16px;
+  }
+  #view-routing .bp-inspector {
+    display: flow-root;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  #view-routing .bp-devices button:hover {
+    border-color: #55613b;
+  }
+  #view-routing .rt-node {
+    cursor: pointer;
+  }
+}
+#view-routing .bp-scope {
+  margin: 16px 0 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+/* The reference shell deliberately has no central item or substitute icon. */
+#view-routing .rt-src .rt-ic {
+  visibility: hidden;
+}
+
+/* Reference conveyor: restrained metal edging, flat lemon-yellow belt, solid arrows. */
+#view-routing .bp-tracks {
+  z-index: 0;
+}
+#view-routing .bp-tracks path {
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+}
+#view-routing .bp-tracks .bp-belt-rail {
+  fill: none;
+  stroke: #a6ab96;
+  stroke-width: 32px;
+}
+#view-routing .bp-tracks .bp-belt-lip {
+  fill: none;
+  stroke: #e0e3ca;
+  stroke-width: 29px;
+}
+#view-routing .bp-tracks .bp-belt-surface {
+  fill: none;
+  stroke: #f1f58c;
+  stroke-width: 25px;
+}
+#view-routing .bp-tracks .bp-belt-arrow {
+  fill: #77805c;
+  stroke: none;
+}
+#view-routing .rt-flows {
+  z-index: 1;
+}
+#view-routing .rt-wires path {
+  filter: none;
+}
+/* Replace the upstream dot/bird drawing while keeping its request-driven motion. */
+#view-routing .rt-sky .pkt,
+#view-routing .rt-sky .rt-flier {
+  opacity: 0;
+}
+#view-routing .bp-cargo {
+  pointer-events: none;
+  stroke: #48513c;
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+#view-routing .bp-crate-top {
+  fill: #e0d78d;
+}
+#view-routing .bp-crate-left {
+  fill: #a8a06b;
+}
+#view-routing .bp-crate-right {
+  fill: #c0b780;
+}
+#view-routing .bp-crate-band {
+  fill: none;
+  stroke: #636b52;
+  stroke-width: 1.5;
+}
+#view-routing .bp-cargo.back .bp-crate-top {
+  fill: #e8eddb;
+}
+#view-routing .bp-cargo.back .bp-crate-left {
+  fill: #9ba98e;
+}
+#view-routing .bp-cargo.back .bp-crate-right {
+  fill: #bdcbb1;
+}
+#view-routing .bp-cargo.err {
+  stroke: #b24838;
+  stroke-width: 2;
+}
